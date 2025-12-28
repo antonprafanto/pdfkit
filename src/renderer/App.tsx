@@ -77,13 +77,14 @@ function App() {
 
   // Initialize theme on mount
   useEffect(() => {
-    // Safety check for document
-    if (typeof document !== 'undefined' && document.documentElement) {
+    // Safety check for document (use window.document to avoid conflict with PDF document variable)
+    const htmlDoc = window.document;
+    if (htmlDoc && htmlDoc.documentElement) {
       // Apply theme from localStorage
       if (theme === 'dark') {
-        document.documentElement.classList.add('dark');
+        htmlDoc.documentElement.classList.add('dark');
       } else {
-        document.documentElement.classList.remove('dark');
+        htmlDoc.documentElement.classList.remove('dark');
       }
     }
   }, [theme]);

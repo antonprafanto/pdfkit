@@ -24,11 +24,12 @@ export const useThemeStore = create<ThemeState>()(
           const newTheme = state.theme === 'light' ? 'dark' : 'light';
 
           // Update document class (with safety check)
-          if (typeof document !== 'undefined' && document.documentElement) {
+          const htmlDoc = window.document;
+          if (htmlDoc && htmlDoc.documentElement) {
             if (newTheme === 'dark') {
-              document.documentElement.classList.add('dark');
+              htmlDoc.documentElement.classList.add('dark');
             } else {
-              document.documentElement.classList.remove('dark');
+              htmlDoc.documentElement.classList.remove('dark');
             }
           }
 
@@ -38,11 +39,12 @@ export const useThemeStore = create<ThemeState>()(
       setTheme: (theme) =>
         set(() => {
           // Update document class (with safety check)
-          if (typeof document !== 'undefined' && document.documentElement) {
+          const htmlDoc = window.document;
+          if (htmlDoc && htmlDoc.documentElement) {
             if (theme === 'dark') {
-              document.documentElement.classList.add('dark');
+              htmlDoc.documentElement.classList.add('dark');
             } else {
-              document.documentElement.classList.remove('dark');
+              htmlDoc.documentElement.classList.remove('dark');
             }
           }
 
