@@ -69,17 +69,19 @@ export const FormFieldEditor: React.FC<FormFieldEditorProps> = ({
 
   return (
     <>
-      {/* Click overlay */}
+      {/* Click overlay - disable when dialog is open */}
       <div
         onClick={handleCanvasClick}
         className="absolute inset-0 cursor-crosshair z-20 bg-blue-500 bg-opacity-10"
-        style={{ pointerEvents: editMode ? 'auto' : 'none' }}
+        style={{ pointerEvents: editMode && !showDialog ? 'auto' : 'none' }}
         title="Click to add a form field"
       >
-        {/* Visual indicator */}
-        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-4 py-2 rounded shadow-lg text-sm">
-          Click anywhere to add a form field
-        </div>
+        {/* Visual indicator - hide when dialog is open */}
+        {!showDialog && (
+          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-4 py-2 rounded shadow-lg text-sm">
+            Click anywhere to add a form field
+          </div>
+        )}
       </div>
 
       {/* Create field dialog */}
