@@ -77,11 +77,14 @@ function App() {
 
   // Initialize theme on mount
   useEffect(() => {
-    // Apply theme from localStorage
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
+    // Safety check for document
+    if (typeof document !== 'undefined' && document.documentElement) {
+      // Apply theme from localStorage
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
     }
   }, [theme]);
 

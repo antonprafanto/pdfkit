@@ -23,11 +23,13 @@ export const useThemeStore = create<ThemeState>()(
         set((state) => {
           const newTheme = state.theme === 'light' ? 'dark' : 'light';
 
-          // Update document class
-          if (newTheme === 'dark') {
-            document.documentElement.classList.add('dark');
-          } else {
-            document.documentElement.classList.remove('dark');
+          // Update document class (with safety check)
+          if (typeof document !== 'undefined' && document.documentElement) {
+            if (newTheme === 'dark') {
+              document.documentElement.classList.add('dark');
+            } else {
+              document.documentElement.classList.remove('dark');
+            }
           }
 
           return { theme: newTheme };
@@ -35,11 +37,13 @@ export const useThemeStore = create<ThemeState>()(
 
       setTheme: (theme) =>
         set(() => {
-          // Update document class
-          if (theme === 'dark') {
-            document.documentElement.classList.add('dark');
-          } else {
-            document.documentElement.classList.remove('dark');
+          // Update document class (with safety check)
+          if (typeof document !== 'undefined' && document.documentElement) {
+            if (theme === 'dark') {
+              document.documentElement.classList.add('dark');
+            } else {
+              document.documentElement.classList.remove('dark');
+            }
           }
 
           return { theme };
