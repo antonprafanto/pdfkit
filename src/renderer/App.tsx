@@ -27,7 +27,7 @@ import { useEditingStore } from './store/editing-store';
 import { useAnnotationStore } from './store/annotation-store';
 import { useFormsStore } from './store/forms-store';
 import { useThemeStore } from './store/theme-store';
-import { useSettingsStore } from './store/settings-store';
+import { useSettingsStore, FONT_OPTIONS } from './store/settings-store';
 import { pdfService } from './lib/pdf-service';
 import { pdfFormsService } from './lib/pdf-forms.service';
 import { recentFilesManager, RecentFile } from './lib/recent-files';
@@ -290,8 +290,20 @@ function App() {
 
       console.log('[App] Saving PDF template with fields...');
 
+      // Get font settings
+      const { formFieldFont, formFieldFontSize } = useSettingsStore.getState();
+      const fontOption = FONT_OPTIONS.find((f) => f.id === formFieldFont);
+      const pdfFontName = fontOption?.pdfStandardFont || 'Courier';
+
+      console.log(`[App] Using font: ${pdfFontName}, size: ${formFieldFontSize}px`);
+
       // Generate PDF with fields structure
-      const pdfWithFields = await pdfFormsService.saveFieldsStructureToPDF(pdfBytes, fields);
+      const pdfWithFields = await pdfFormsService.saveFieldsStructureToPDF(
+        pdfBytes,
+        fields,
+        pdfFontName,
+        formFieldFontSize
+      );
 
       // Suggest filename
       const suggestedName = fileName

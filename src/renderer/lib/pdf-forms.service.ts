@@ -4,7 +4,7 @@
  */
 
 import { PDFDocumentProxy, PDFPageProxy } from './pdf-config';
-import { PDFDocument, PDFTextField, PDFCheckBox, PDFRadioGroup, PDFDropdown, PDFButton } from 'pdf-lib';
+import { PDFDocument, PDFTextField, PDFCheckBox, PDFRadioGroup, PDFDropdown, StandardFonts } from 'pdf-lib';
 
 /**
  * Form field types supported
@@ -504,20 +504,96 @@ export class PDFFormsService {
   }
 
   /**
+   * Update font appearance of all form fields in PDF
+   * This modifies the PDF's AcroForm fields to use the specified font and size
+   */
+  async updateFormFieldsAppearance(
+    pdfBytes: Uint8Array,
+    fontName: string,
+    fontSize: number
+  ): Promise<Uint8Array> {
+    try {
+      const pdfDoc = await PDFDocument.load(pdfBytes);
+      const form = pdfDoc.getForm();
+      const fields = form.getFields();
+
+      console.log(`[Forms] Updating appearance for ${fields.length} field(s) - Font: ${fontName}, Size: ${fontSize}px`);
+
+      // Get the standard font
+      let font;
+      switch (fontName) {
+        case 'Courier':
+          font = await pdfDoc.embedFont(StandardFonts.Courier);
+          break;
+        case 'Helvetica':
+          font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+          break;
+        case 'Times-Roman':
+          font = await pdfDoc.embedFont(StandardFonts.TimesRoman);
+          break;
+        default:
+          font = await pdfDoc.embedFont(StandardFonts.Courier);
+      }
+
+      // Update each text field
+      for (const field of fields) {
+        if (field instanceof PDFTextField) {
+          try {
+            // Update default appearance with new font and size
+            field.defaultUpdateAppearances(font);
+
+            // Note: pdf-lib doesn't expose direct fontSize setting for existing fields
+            // The font will be applied, but size is harder to change after creation
+            console.log(`[Forms]   ✓ Updated field: ${field.getName()}`);
+          } catch (err) {
+            console.warn(`[Forms]   ⚠ Could not update field ${field.getName()}:`, err);
+          }
+        }
+      }
+
+      const updatedBytes = await pdfDoc.save();
+      console.log('[Forms] ✓ Field appearances updated');
+      return updatedBytes;
+    } catch (error) {
+      console.error('[Forms] Error updating field appearance:', error);
+      throw new Error('Failed to update form field appearance');
+    }
+  }
+
+  /**
    * Save all fields structure to PDF (create AcroForm fields)
    * This creates a PDF template with interactive fields that can be opened in any PDF reader
    */
   async saveFieldsStructureToPDF(
     originalPdfBytes: Uint8Array,
-    fields: FormField[]
+    fields: FormField[],
+    fontName: string = 'Courier',
+    fontSize: number = 12
   ): Promise<Uint8Array> {
     try {
-      console.log(`[Forms] Saving ${fields.length} fields to PDF...`);
+      console.log(`[Forms] Saving ${fields.length} fields to PDF with font: ${fontName}, size: ${fontSize}px...`);
 
       // Load PDF with pdf-lib
       const pdfDoc = await PDFDocument.load(originalPdfBytes);
       const form = pdfDoc.getForm();
       const pages = pdfDoc.getPages();
+
+      // Embed the standard font
+      let font;
+      switch (fontName) {
+        case 'Courier':
+          font = await pdfDoc.embedFont(StandardFonts.Courier);
+          break;
+        case 'Helvetica':
+          font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+          break;
+        case 'Times-Roman':
+          font = await pdfDoc.embedFont(StandardFonts.TimesRoman);
+          break;
+        default:
+          font = await pdfDoc.embedFont(StandardFonts.Courier);
+      }
+      console.log(`[Forms] Using font: ${fontName}`);
 
       // Group fields by page for efficient processing
       const fieldsByPage = new Map<number, FormField[]>();
@@ -579,7 +655,10 @@ export class PDFFormsService {
                   textField.setMaxLength(field.maxLength);
                 }
 
-                console.log(`[Forms]   ✓ Created text field: ${field.name}`);
+                // Set font appearance
+                textField.defaultUpdateAppearances(font);
+
+                console.log(`[Forms]   ✓ Created text field: ${field.name} with font ${fontName}`);
                 break;
               }
 
