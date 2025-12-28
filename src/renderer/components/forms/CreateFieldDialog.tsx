@@ -129,10 +129,14 @@ export const CreateFieldDialog: React.FC<CreateFieldDialogProps> = ({
               type="text"
               value={fieldName}
               onChange={(e) => setFieldName(e.target.value)}
+              onKeyDown={(e) => e.stopPropagation()}
+              onKeyUp={(e) => e.stopPropagation()}
+              onKeyPress={(e) => e.stopPropagation()}
               placeholder="e.g., firstName"
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
               required
               autoFocus
+              autoComplete="off"
             />
           </div>
 
@@ -145,8 +149,12 @@ export const CreateFieldDialog: React.FC<CreateFieldDialogProps> = ({
               type="text"
               value={defaultValue}
               onChange={(e) => setDefaultValue(e.target.value)}
+              onKeyDown={(e) => e.stopPropagation()}
+              onKeyUp={(e) => e.stopPropagation()}
+              onKeyPress={(e) => e.stopPropagation()}
               placeholder="Optional default value"
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              autoComplete="off"
             />
           </div>
 
@@ -159,6 +167,9 @@ export const CreateFieldDialog: React.FC<CreateFieldDialogProps> = ({
               <textarea
                 value={options}
                 onChange={(e) => setOptions(e.target.value)}
+                onKeyDown={(e) => e.stopPropagation()}
+                onKeyUp={(e) => e.stopPropagation()}
+                onKeyPress={(e) => e.stopPropagation()}
                 placeholder="Option 1&#10;Option 2&#10;Option 3"
                 rows={4}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 font-mono text-sm"
