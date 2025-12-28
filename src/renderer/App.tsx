@@ -419,8 +419,9 @@ function App() {
           onDrop={handleDrop}
         >
           {!document ? (
-            <div className="flex h-full items-center justify-center bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
-              <div className="max-w-5xl w-full px-8 py-12">
+            <div className="h-full bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 overflow-y-auto">
+              <div className="min-h-full flex items-center justify-center">
+                <div className="max-w-5xl w-full px-8 py-12">
                 {/* Hero Section */}
                 <div className="text-center mb-16">
                   {/* Logo/Icon */}
@@ -528,6 +529,7 @@ function App() {
                       </div>
                     </button>
                   </div>
+                </div>
                 </div>
               </div>
             </div>
