@@ -1,5 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { ConnectivityIndicator } from './components/ConnectivityIndicator';
+import { ThemeToggle } from './components/ThemeToggle';
+import { AboutDialog } from './components/AboutDialog';
 import { PDFViewer } from './components/PDFViewer';
 import { RecentFilesList } from './components/RecentFilesList';
 import { MergeDialog } from './components/editing/MergeDialog';
@@ -23,6 +25,7 @@ import { usePDFStore } from './store/pdf-store';
 import { useEditingStore } from './store/editing-store';
 import { useAnnotationStore } from './store/annotation-store';
 import { useFormsStore } from './store/forms-store';
+import { useThemeStore } from './store/theme-store';
 import { pdfService } from './lib/pdf-service';
 import { pdfFormsService } from './lib/pdf-forms.service';
 import { recentFilesManager, RecentFile } from './lib/recent-files';
@@ -54,6 +57,7 @@ function App() {
   const [isDetectingForms, setIsDetectingForms] = useState(false);
   const [isSavingTemplate, setIsSavingTemplate] = useState(false);
   const [pdfBytes, setPdfBytes] = useState<Uint8Array | null>(null);
+  const [showAboutDialog, setShowAboutDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -69,6 +73,17 @@ function App() {
 
   const { hasUnsavedChanges, reset: resetEditingStore, setOriginalFile } = useEditingStore();
   const { setFields, fields, editMode, toggleEditMode, setEditMode, isDirty, setDirty } = useFormsStore();
+  const { theme, setTheme } = useThemeStore();
+
+  // Initialize theme on mount
+  useEffect(() => {
+    // Apply theme from localStorage
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme]);
 
   useEffect(() => {
     // Get initial connectivity status
@@ -339,8 +354,23 @@ function App() {
           <span className="text-sm text-gray-500 dark:text-gray-400">v0.1.0</span>
         </div>
 
-        {/* Connectivity Indicator */}
-        <ConnectivityIndicator isOnline={isOnline} />
+        {/* Right side controls */}
+        <div className="flex items-center gap-3">
+          {/* Theme Toggle */}
+          <ThemeToggle />
+
+          {/* About Button */}
+          <button
+            onClick={() => setShowAboutDialog(true)}
+            className="rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            title="About PDF Kit"
+          >
+            About
+          </button>
+
+          {/* Connectivity Indicator */}
+          <ConnectivityIndicator isOnline={isOnline} />
+        </div>
       </header>
 
       {/* Main Content */}
@@ -594,6 +624,9 @@ function App() {
         onClose={() => setShowFormsDataDialog(false)}
         pdfTitle={fileName}
       />
+
+      {/* About Dialog */}
+      <AboutDialog isOpen={showAboutDialog} onClose={() => setShowAboutDialog(false)} />
     </div>
   );
 }
