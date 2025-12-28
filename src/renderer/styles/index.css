@@ -111,6 +111,16 @@
   }
 }
 
+/* PDF Form Fields Styling */
+/* Style for all PDF form fields (light and dark mode) */
+.annotationLayer input,
+.annotationLayer textarea,
+.annotationLayer select {
+  font-family: 'Courier New', Courier, monospace !important;
+  font-size: 14px !important;
+  line-height: 1.4 !important;
+}
+
 /* PDF Form Fields Dark Mode Fix */
 /* Fix for PDF.js annotation layer input fields in dark mode */
 .dark .annotationLayer input,
@@ -122,6 +132,7 @@
   background-color: white !important;
   color: black !important;
   border: 2px solid #f59e0b !important;
+  font-family: 'Courier New', Courier, monospace !important;
 }
 
 /* Highlighted/focused fields in dark mode */
@@ -153,4 +164,5 @@ html.dark select {
   background-color: white !important;
   color: #000000 !important;
   border: 2px solid #f59e0b !important;
+  font-family: 'Courier New', Courier, monospace !important;
 }
