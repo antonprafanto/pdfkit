@@ -6,15 +6,14 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type FontFamily = 'courier' | 'arial' | 'times' | 'consolas' | 'roboto';
+export type FontFamily = 'courier' | 'arial' | 'times';
 
 export interface FontOption {
   id: FontFamily;
   name: string;
   cssFamily: string;
   description: string;
-  pdfStandardFont?: string; // PDF standard font name for embedding
-  note?: string;
+  pdfStandardFont: string; // PDF standard font name for embedding
 }
 
 export const FONT_OPTIONS: FontOption[] = [
@@ -24,7 +23,6 @@ export const FONT_OPTIONS: FontOption[] = [
     cssFamily: "'Courier New', Courier, monospace",
     description: 'Monospace - Professional & Structured',
     pdfStandardFont: 'Courier',
-    note: 'PDF Standard - Always works',
   },
   {
     id: 'arial',
@@ -32,7 +30,6 @@ export const FONT_OPTIONS: FontOption[] = [
     cssFamily: 'Arial, Helvetica, sans-serif',
     description: 'Sans-serif - Modern & Clean',
     pdfStandardFont: 'Helvetica',
-    note: 'PDF Standard - Always works',
   },
   {
     id: 'times',
@@ -40,21 +37,6 @@ export const FONT_OPTIONS: FontOption[] = [
     cssFamily: "'Times New Roman', Times, serif",
     description: 'Serif - Formal & Traditional',
     pdfStandardFont: 'Times-Roman',
-    note: 'PDF Standard - Always works',
-  },
-  {
-    id: 'consolas',
-    name: 'Consolas',
-    cssFamily: "Consolas, 'Courier New', monospace",
-    description: 'Monospace - Developer Style',
-    note: 'Display only - PDF uses Courier',
-  },
-  {
-    id: 'roboto',
-    name: 'Roboto',
-    cssFamily: "'Roboto', Arial, sans-serif",
-    description: 'Sans-serif - Modern Google Font',
-    note: 'Display only - PDF uses Helvetica',
   },
 ];
 
