@@ -655,10 +655,17 @@ export class PDFFormsService {
                   textField.setMaxLength(field.maxLength);
                 }
 
-                // Set font appearance
-                textField.defaultUpdateAppearances(font);
+                // Set Default Appearance (DA) string with custom font size
+                // DA format: /FontName fontSize Tf colorR colorG colorB rg
+                const fontAbbrev = fontName === 'Courier' ? 'Cour' : fontName === 'Helvetica' ? 'Helv' : 'TiRo';
+                const daString = `/${fontAbbrev} ${fontSize} Tf 0 g`;
 
-                console.log(`[Forms]   ✓ Created text field: ${field.name} with font ${fontName}`);
+                textField.acroField.setDefaultAppearance(daString);
+
+                // Update visual appearance with the embedded font
+                textField.updateAppearances(font);
+
+                console.log(`[Forms]   ✓ Created text field: ${field.name} with ${fontName} ${fontSize}px`);
                 break;
               }
 
