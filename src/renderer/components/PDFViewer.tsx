@@ -377,22 +377,44 @@ export function PDFViewer({
 
         {/* Center Section: Page Navigation */}
         <div className="flex flex-1 items-center justify-center gap-2">
-          <Button size="sm" variant="outline" onClick={previousPage} disabled={currentPage <= 1}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => goToPage(1)}
+            disabled={currentPage <= 1}
+            title="First Page (Home)"
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+            </svg>
+          </Button>
+          <Button size="sm" variant="outline" onClick={previousPage} disabled={currentPage <= 1} title="Previous Page">
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
           </Button>
           <div className="flex items-center gap-2">
-            <input 
-              type="number" 
-              min={1} 
-              max={totalPages} 
-              value={currentPage} 
-              onChange={(e) => goToPage(parseInt(e.target.value))} 
-              className="w-16 rounded border border-gray-300 px-2 py-1 text-center text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" 
+            <input
+              type="number"
+              min={1}
+              max={totalPages}
+              value={currentPage}
+              onChange={(e) => goToPage(parseInt(e.target.value))}
+              className="w-16 rounded border border-gray-300 px-2 py-1 text-center text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
             />
             <span className="text-sm text-gray-600 dark:text-gray-400">/ {totalPages}</span>
           </div>
-          <Button size="sm" variant="outline" onClick={nextPage} disabled={currentPage >= totalPages}>
+          <Button size="sm" variant="outline" onClick={nextPage} disabled={currentPage >= totalPages} title="Next Page">
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => goToPage(totalPages)}
+            disabled={currentPage >= totalPages}
+            title="Last Page (End)"
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+            </svg>
           </Button>
         </div>
 
