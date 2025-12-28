@@ -36,34 +36,34 @@
   }
 
   .dark {
-    /* Minimalist Dark Mode - Dark Gray/Black */
-    --background: 240 10% 4%;
+    /* Minimalist Dark Mode - Pitch Black */
+    --background: 0 0% 0%; /* Pure Black */
     --foreground: 0 0% 98%;
 
-    --card: 240 10% 4%;
+    --card: 0 0% 0%; /* Pure Black */
     --card-foreground: 0 0% 98%;
 
-    --popover: 240 10% 4%;
+    --popover: 0 0% 0%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 0 0% 98%; /* White for primary in dark mode */
-    --primary-foreground: 240 10% 4%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 0%;
 
-    --secondary: 240 6% 10%;
+    --secondary: 0 0% 8%; /* Slightly lighter for contrast */
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 240 6% 10%;
-    --muted-foreground: 240 5% 65%;
+    --muted: 0 0% 8%;
+    --muted-foreground: 0 0% 60%;
 
-    --accent: 240 6% 10%;
+    --accent: 0 0% 8%;
     --accent-foreground: 0 0% 98%;
 
     --destructive: 0 62% 30%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 240 6% 20%;
-    --input: 240 6% 20%;
-    --ring: 240 5% 84%;
+    --border: 0 0% 15%; /* Visible border for separation */
+    --input: 0 0% 15%;
+    --ring: 0 0% 80%;
   }
 }
 

@@ -177,6 +177,8 @@ function App() {
     if (file) {
       handleFileOpen(file);
     }
+    // Reset input value to allow opening the same file again
+    e.target.value = '';
   };
 
   // Trigger file input click
@@ -415,7 +417,7 @@ function App() {
       </header>
 
       {/* Floating Support Buttons - Simple */}
-      <div className="fixed bottom-6 right-6 flex flex-col gap-3 z-40">
+      <div className="fixed bottom-12 right-6 flex flex-col gap-3 z-40">
         <button
           onClick={() => window.electronAPI.openExternal('https://wa.me/6281155339393')}
           className="rounded-full p-3 text-white bg-[#25D366] hover:bg-[#128C7E] transition-all shadow-md hover:shadow-lg"
