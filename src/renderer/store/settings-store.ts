@@ -13,38 +13,48 @@ export interface FontOption {
   name: string;
   cssFamily: string;
   description: string;
+  pdfStandardFont?: string; // PDF standard font name for embedding
+  note?: string;
 }
 
 export const FONT_OPTIONS: FontOption[] = [
   {
     id: 'courier',
-    name: 'Courier New',
+    name: 'Courier',
     cssFamily: "'Courier New', Courier, monospace",
     description: 'Monospace - Professional & Structured',
+    pdfStandardFont: 'Courier',
+    note: 'PDF Standard - Always works',
   },
   {
     id: 'arial',
-    name: 'Arial',
+    name: 'Helvetica',
     cssFamily: 'Arial, Helvetica, sans-serif',
     description: 'Sans-serif - Modern & Clean',
+    pdfStandardFont: 'Helvetica',
+    note: 'PDF Standard - Always works',
   },
   {
     id: 'times',
-    name: 'Times New Roman',
+    name: 'Times Roman',
     cssFamily: "'Times New Roman', Times, serif",
     description: 'Serif - Formal & Traditional',
+    pdfStandardFont: 'Times-Roman',
+    note: 'PDF Standard - Always works',
   },
   {
     id: 'consolas',
     name: 'Consolas',
     cssFamily: "Consolas, 'Courier New', monospace",
     description: 'Monospace - Developer Style',
+    note: 'Display only - PDF uses Courier',
   },
   {
     id: 'roboto',
     name: 'Roboto',
     cssFamily: "'Roboto', Arial, sans-serif",
     description: 'Sans-serif - Modern Google Font',
+    note: 'Display only - PDF uses Helvetica',
   },
 ];
 
