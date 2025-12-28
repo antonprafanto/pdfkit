@@ -1,0 +1,93 @@
+  /**
+   * Split PDF every N pages
+   */
+  async splitEveryNPages(file: File, pagesPerFile: number): Promise<Uint8Array[]> {
+    try {
+      const arrayBuffer = await this.fileToArrayBuffer(file);
+      const sourcePdf = await PDFDocument.load(arrayBuffer);
+      const totalPages = sourcePdf.getPageCount();
+      const results: Uint8Array[] = [];
+
+      for (let i = 0; i < totalPages; i += pagesPerFile) {
+        const newPdf = await PDFDocument.create();
+        const pageIndices: number[] = [];
+
+        // Get next N pages
+        const endPage = Math.min(i + pagesPerFile, totalPages);
+        for (let j = i; j < endPage; j++) {
+          pageIndices.push(j);
+        }
+
+        const copiedPages = await newPdf.copyPages(sourcePdf, pageIndices);
+        copiedPages.forEach((page) => newPdf.addPage(page));
+
+        results.push(await newPdf.save());
+      }
+
+      return results;
+    } catch (error) {
+      console.error('Error splitting PDF every N pages:', error);
+      throw new Error('Failed to split PDF');
+    }
+  }
+
+  /**
+   * Split PDF into individual pages (1 file per page)
+   */
+  async splitIntoIndividualPages(file: File): Promise<Uint8Array[]> {
+    try {
+      const arrayBuffer = await this.fileToArrayBuffer(file);
+      const sourcePdf = await PDFDocument.load(arrayBuffer);
+      const totalPages = sourcePdf.getPageCount();
+      const results: Uint8Array[] = [];
+
+      for (let i = 0; i < totalPages; i++) {
+        const newPdf = await PDFDocument.create();
+        const [copiedPage] = await newPdf.copyPages(sourcePdf, [i]);
+        newPdf.addPage(copiedPage);
+
+        results.push(await newPdf.save());
+      }
+
+      return results;
+    } catch (error) {
+      console.error('Error splitting PDF into individual pages:', error);
+      throw new Error('Failed to split PDF');
+    }
+  }
+
+  /**
+   * Split PDF into fixed number of files (divide evenly)
+   */
+  async splitIntoFixedIntervals(file: File, numberOfFiles: number): Promise<Uint8Array[]> {
+    try {
+      const arrayBuffer = await this.fileToArrayBuffer(file);
+      const sourcePdf = await PDFDocument.load(arrayBuffer);
+      const totalPages = sourcePdf.getPageCount();
+      const pagesPerFile = Math.ceil(totalPages / numberOfFiles);
+      const results: Uint8Array[] = [];
+
+      for (let i = 0; i < numberOfFiles; i++) {
+        const startPage = i * pagesPerFile;
+        if (startPage >= totalPages) break; // No more pages
+
+        const newPdf = await PDFDocument.create();
+        const pageIndices: number[] = [];
+
+        const endPage = Math.min(startPage + pagesPerFile, totalPages);
+        for (let j = startPage; j < endPage; j++) {
+          pageIndices.push(j);
+        }
+
+        const copiedPages = await newPdf.copyPages(sourcePdf, pageIndices);
+        copiedPages.forEach((page) => newPdf.addPage(page));
+
+        results.push(await newPdf.save());
+      }
+
+      return results;
+    } catch (error) {
+      console.error('Error splitting PDF into fixed intervals:', error);
+      throw new Error('Failed to split PDF');
+    }
+  }

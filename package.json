@@ -1,0 +1,114 @@
+{
+  "name": "pdf-kit",
+  "version": "0.1.0",
+  "description": "Modern open-source PDF management desktop application with AI-powered features",
+  "main": "dist/main/main/main.js",
+  "author": "PDF Kit Contributors",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev:vite\" \"npm run dev:electron\"",
+    "dev:vite": "vite",
+    "dev:electron": "wait-on http://localhost:5173 && cross-env NODE_ENV=development electron .",
+    "build": "npm run build:vite && npm run build:electron",
+    "build:vite": "vite build",
+    "build:electron": "tsc -p tsconfig.main.json",
+    "package": "npm run build && electron-builder",
+    "package:win": "npm run build && electron-builder --win",
+    "package:mac": "npm run build && electron-builder --mac",
+    "package:linux": "npm run build && electron-builder --linux",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "format": "prettier --write \"src/**/*.{ts,tsx,css,md}\"",
+    "type-check": "tsc --noEmit",
+    "test": "vitest",
+    "test:ui": "vitest --ui"
+  },
+  "dependencies": {
+    "@signpdf/placeholder-pdf-lib": "^3.2.6",
+    "@signpdf/signer-p12": "^3.2.4",
+    "@signpdf/signpdf": "^3.2.5",
+    "axios": "^1.6.5",
+    "coherentpdf": "^2.5.5",
+    "convertapi": "^1.15.0",
+    "electron-squirrel-startup": "^1.0.1",
+    "electron-store": "^8.1.0",
+    "i18next": "^23.7.16",
+    "langchain": "^0.1.7",
+    "mammoth": "^1.11.0",
+    "muhammara": "^6.0.0",
+    "node-forge": "^1.3.3",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^4.0.379",
+    "pdfkit": "^0.17.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-i18next": "^14.0.0",
+    "sharp": "^0.33.2",
+    "tesseract.js": "^5.0.4",
+    "zustand": "^4.5.0"
+  },
+  "devDependencies": {
+    "@types/pdfkit": "^0.17.4",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@typescript-eslint/eslint-plugin": "^6.19.0",
+    "@typescript-eslint/parser": "^6.19.0",
+    "@vitejs/plugin-react": "^4.3.3",
+    "@vitest/ui": "^1.2.1",
+    "autoprefixer": "^10.4.17",
+    "blob-stream": "^0.1.3",
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "electron": "^28.1.3",
+    "electron-builder": "^24.9.1",
+    "electron-devtools-installer": "^3.2.0",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "postcss": "^8.4.33",
+    "prettier": "^3.2.4",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11",
+    "vitest": "^1.2.1",
+    "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "com.pdfkit.app",
+    "productName": "PDF Kit",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "build/icon.ico"
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "icon": "build/icon.icns",
+      "category": "public.app-category.productivity"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb",
+        "rpm"
+      ],
+      "icon": "build/icon.png",
+      "category": "Office"
+    }
+  }
+}
