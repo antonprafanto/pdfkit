@@ -12,8 +12,12 @@ interface AboutDialogProps {
 }
 
 export const AboutDialog: React.FC<AboutDialogProps> = ({ isOpen, onClose }) => {
+  const handleOpenLink = (url: string) => {
+    window.electronAPI.openExternal(url);
+  };
+
   return (
-    <Dialog isOpen={isOpen} onClose={onClose} title="About PDF Kit">
+    <Dialog open={isOpen} onClose={onClose} title="About PDF Kit">
       <div className="space-y-6">
         {/* App Icon & Name */}
         <div className="flex flex-col items-center text-center">
@@ -125,22 +129,18 @@ export const AboutDialog: React.FC<AboutDialogProps> = ({ isOpen, onClose }) => 
 
         {/* Links */}
         <div className="flex gap-3 border-t border-gray-200 dark:border-gray-700 pt-4">
-          <a
-            href="https://github.com/antonprafanto/pdfkit"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-1 rounded-lg bg-gray-800 dark:bg-gray-700 px-4 py-2 text-center text-sm font-medium text-white hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
+          <button
+            onClick={() => handleOpenLink('https://github.com/antonprafanto/pdfkit')}
+            className="flex-1 rounded-lg bg-gray-800 dark:bg-gray-700 px-4 py-2 text-center text-sm font-medium text-white hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors cursor-pointer"
           >
             GitHub Repository
-          </a>
-          <a
-            href="https://github.com/antonprafanto/pdfkit/issues"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-center text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+          </button>
+          <button
+            onClick={() => handleOpenLink('https://github.com/antonprafanto/pdfkit/issues')}
+            className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-center text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
           >
             Report Issue
-          </a>
+          </button>
         </div>
 
         {/* Footer */}
