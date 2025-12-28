@@ -60,3 +60,47 @@
       'calt' 1;
   }
 }
+
+/* PDF Form Fields Dark Mode Fix */
+/* Fix for PDF.js annotation layer input fields in dark mode */
+.dark .annotationLayer input,
+.dark .annotationLayer textarea,
+.dark .annotationLayer select,
+.dark input[type="text"],
+.dark textarea,
+.dark select {
+  background-color: white !important;
+  color: black !important;
+  border: 2px solid #f59e0b !important;
+}
+
+/* Highlighted/focused fields in dark mode */
+.dark .annotationLayer input:focus,
+.dark .annotationLayer textarea:focus,
+.dark .annotationLayer select:focus,
+.dark input[type="text"]:focus,
+.dark textarea:focus,
+.dark select:focus {
+  background-color: #fffbeb !important;
+  border: 2px solid #3b82f6 !important;
+  outline: 2px solid #3b82f6 !important;
+  outline-offset: 2px;
+}
+
+/* Checkbox and radio buttons in dark mode */
+.dark .annotationLayer input[type="checkbox"],
+.dark .annotationLayer input[type="radio"],
+.dark input[type="checkbox"],
+.dark input[type="radio"] {
+  background-color: white !important;
+  border: 2px solid #f59e0b !important;
+}
+
+/* More aggressive approach - target all form elements in dark mode */
+html.dark input:not([type="file"]):not([type="button"]):not([type="submit"]),
+html.dark textarea,
+html.dark select {
+  background-color: white !important;
+  color: #000000 !important;
+  border: 2px solid #f59e0b !important;
+}
