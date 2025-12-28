@@ -188,9 +188,9 @@ export function PDFViewer({
   return (
     <div className="flex h-full flex-col">
       {/* New Compact Toolbar */}
-      <div className="flex items-center gap-4 border-b border-gray-200 bg-white px-4 py-2 dark:border-gray-700 dark:bg-gray-800">
+      <div className="flex items-center gap-2 border-b border-gray-200 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-800">
         {/* Left Section: File info + Menus */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-shrink-0">
           {/* PDF Icon + Filename */}
           <div className="flex items-center gap-2">
             <svg className="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
@@ -421,52 +421,52 @@ export function PDFViewer({
         </div>
 
         {/* Right Section: Zoom, Rotation, Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 flex-shrink-0">
           {/* Zoom Controls */}
-          <Button size="sm" variant="outline" onClick={zoomOut} disabled={scale <= 0.25} title="Zoom Out">
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" /></svg>
+          <Button size="sm" variant="outline" onClick={zoomOut} disabled={scale <= 0.25} title="Zoom Out" className="px-2">
+            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" /></svg>
           </Button>
-          <span className="min-w-[3.5rem] text-center text-sm text-gray-600 dark:text-gray-400">{Math.round(scale * 100)}%</span>
-          <Button size="sm" variant="outline" onClick={zoomIn} disabled={scale >= 5.0} title="Zoom In">
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" /></svg>
+          <span className="min-w-[3rem] text-center text-xs text-gray-600 dark:text-gray-400">{Math.round(scale * 100)}%</span>
+          <Button size="sm" variant="outline" onClick={zoomIn} disabled={scale >= 5.0} title="Zoom In" className="px-2">
+            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" /></svg>
           </Button>
 
-          <div className="h-6 w-px bg-gray-300 dark:bg-gray-600" />
+          <div className="h-6 w-px bg-gray-300 dark:bg-gray-600 mx-1" />
 
           {/* Rotation */}
-          <Button size="sm" variant="outline" onClick={rotateCounterClockwise} title="Rotate Left">
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
+          <Button size="sm" variant="outline" onClick={rotateCounterClockwise} title="Rotate Left" className="px-2">
+            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
           </Button>
-          <Button size="sm" variant="outline" onClick={rotateClockwise} title="Rotate Right">
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 10h-10a8 8 0 00-8 8v2M21 10l-6 6m6-6l-6-6" /></svg>
+          <Button size="sm" variant="outline" onClick={rotateClockwise} title="Rotate Right" className="px-2">
+            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 10h-10a8 8 0 00-8 8v2M21 10l-6 6m6-6l-6-6" /></svg>
           </Button>
 
-          <div className="h-6 w-px bg-gray-300 dark:bg-gray-600" />
+          <div className="h-6 w-px bg-gray-300 dark:bg-gray-600 mx-1" />
 
           {/* Quick Actions */}
-          <Button size="sm" variant="outline" onClick={() => setShowSearch(!showSearch)} title="Search">
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+          <Button size="sm" variant="outline" onClick={() => setShowSearch(!showSearch)} title="Search" className="px-2">
+            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
           </Button>
-          <Button size="sm" variant="outline" onClick={() => setShowProperties(true)} title="Properties">
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          <Button size="sm" variant="outline" onClick={() => setShowProperties(true)} title="Properties" className="px-2">
+            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
           </Button>
           <Button
             size="sm"
             variant={annotationMode ? 'primary' : 'outline'}
             onClick={() => setAnnotationMode(!annotationMode)}
             title="Annotation Mode"
-            className={annotationMode ? 'bg-purple-500 hover:bg-purple-600' : ''}
+            className={annotationMode ? 'bg-purple-500 hover:bg-purple-600 px-2' : 'px-2'}
           >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" /></svg>
+            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" /></svg>
           </Button>
           <Button
             size="sm"
             variant={formsMode ? 'primary' : 'outline'}
             onClick={() => setFormsMode(!formsMode)}
             title="Forms Mode"
-            className={formsMode ? 'bg-green-500 hover:bg-green-600' : ''}
+            className={formsMode ? 'bg-green-500 hover:bg-green-600 px-2' : 'px-2'}
           >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
           </Button>
         </div>
       </div>
