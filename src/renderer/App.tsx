@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { ConnectivityIndicator } from './components/ConnectivityIndicator';
 import { ThemeToggle } from './components/ThemeToggle';
 import { AboutDialog } from './components/AboutDialog';
+import { SettingsDialog } from './components/SettingsDialog';
 import { PDFViewer } from './components/PDFViewer';
 import { RecentFilesList } from './components/RecentFilesList';
 import { MergeDialog } from './components/editing/MergeDialog';
@@ -26,6 +27,7 @@ import { useEditingStore } from './store/editing-store';
 import { useAnnotationStore } from './store/annotation-store';
 import { useFormsStore } from './store/forms-store';
 import { useThemeStore } from './store/theme-store';
+import { useSettingsStore } from './store/settings-store';
 import { pdfService } from './lib/pdf-service';
 import { pdfFormsService } from './lib/pdf-forms.service';
 import { recentFilesManager, RecentFile } from './lib/recent-files';
@@ -59,6 +61,7 @@ function App() {
   const [isSavingTemplate, setIsSavingTemplate] = useState(false);
   const [pdfBytes, setPdfBytes] = useState<Uint8Array | null>(null);
   const [showAboutDialog, setShowAboutDialog] = useState(false);
+  const [showSettingsDialog, setShowSettingsDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -380,6 +383,15 @@ function App() {
             <>
               {/* Theme Toggle */}
               <ThemeToggle />
+
+              {/* Settings Button */}
+              <button
+                onClick={() => setShowSettingsDialog(true)}
+                className="rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-all"
+                title="Settings"
+              >
+                Settings
+              </button>
 
               {/* About Button */}
               <button
@@ -746,6 +758,9 @@ function App() {
         onClose={() => setShowFormsDataDialog(false)}
         pdfTitle={fileName || undefined}
       />
+
+      {/* Settings Dialog */}
+      <SettingsDialog isOpen={showSettingsDialog} onClose={() => setShowSettingsDialog(false)} />
 
       {/* About Dialog */}
       <AboutDialog isOpen={showAboutDialog} onClose={() => setShowAboutDialog(false)} />
