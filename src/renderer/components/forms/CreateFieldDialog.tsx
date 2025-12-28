@@ -33,11 +33,26 @@ export const CreateFieldDialog: React.FC<CreateFieldDialogProps> = ({
 
   // Auto-focus field name input when dialog opens
   useEffect(() => {
-    if (isOpen && fieldNameInputRef.current) {
-      // Small delay to ensure dialog is fully rendered
-      setTimeout(() => {
-        fieldNameInputRef.current?.focus();
-      }, 100);
+    if (isOpen) {
+      // Disable annotation layer pointer events when dialog is open
+      const annotationLayers = document.querySelectorAll('.annotationLayer');
+      annotationLayers.forEach((layer) => {
+        (layer as HTMLElement).style.pointerEvents = 'none';
+      });
+
+      // Focus the input
+      if (fieldNameInputRef.current) {
+        setTimeout(() => {
+          fieldNameInputRef.current?.focus();
+        }, 100);
+      }
+
+      // Cleanup: re-enable annotation layers when dialog closes
+      return () => {
+        annotationLayers.forEach((layer) => {
+          (layer as HTMLElement).style.pointerEvents = 'auto';
+        });
+      };
     }
   }, [isOpen]);
 
