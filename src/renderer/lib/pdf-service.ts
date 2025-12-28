@@ -3,7 +3,7 @@
  * Handles PDF document loading and management
  */
 
-import { pdfjsLib, PDFDocumentProxy } from './pdf-config';
+import { pdfjsLib, PDFDocumentProxy, PDF_CONFIG } from './pdf-config';
 
 export class PDFService {
   private currentDocument: PDFDocumentProxy | null = null;
@@ -14,7 +14,12 @@ export class PDFService {
   async loadFromFile(file: File): Promise<PDFDocumentProxy> {
     try {
       const arrayBuffer = await file.arrayBuffer();
-      const document = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const document = await pdfjsLib.getDocument({
+        data: arrayBuffer,
+        cMapUrl: PDF_CONFIG.cMapUrl,
+        cMapPacked: PDF_CONFIG.cMapPacked,
+        standardFontDataUrl: PDF_CONFIG.standardFontDataUrl,
+      }).promise;
       this.currentDocument = document;
       return document;
     } catch (error) {
@@ -28,7 +33,12 @@ export class PDFService {
    */
   async loadFromUrl(url: string): Promise<PDFDocumentProxy> {
     try {
-      const document = await pdfjsLib.getDocument(url).promise;
+      const document = await pdfjsLib.getDocument({
+        url,
+        cMapUrl: PDF_CONFIG.cMapUrl,
+        cMapPacked: PDF_CONFIG.cMapPacked,
+        standardFontDataUrl: PDF_CONFIG.standardFontDataUrl,
+      }).promise;
       this.currentDocument = document;
       return document;
     } catch (error) {
@@ -42,7 +52,12 @@ export class PDFService {
    */
   async loadFromBuffer(buffer: ArrayBuffer): Promise<PDFDocumentProxy> {
     try {
-      const document = await pdfjsLib.getDocument({ data: buffer }).promise;
+      const document = await pdfjsLib.getDocument({
+        data: buffer,
+        cMapUrl: PDF_CONFIG.cMapUrl,
+        cMapPacked: PDF_CONFIG.cMapPacked,
+        standardFontDataUrl: PDF_CONFIG.standardFontDataUrl,
+      }).promise;
       this.currentDocument = document;
       return document;
     } catch (error) {

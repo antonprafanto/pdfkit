@@ -22,6 +22,24 @@ try {
   }
 }
 
+// Configure CMap for font support (required for CJK and special characters)
+let cMapUrl = '';
+try {
+  cMapUrl = new URL('pdfjs-dist/cmaps/', import.meta.url).href;
+  console.log('[PDF.js] CMap URL configured:', cMapUrl);
+} catch (error) {
+  console.error('[PDF.js] Failed to configure CMap URL:', error);
+  cMapUrl = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/cmaps/';
+  console.log('[PDF.js] Using CDN fallback for CMap:', cMapUrl);
+}
+
+// Export CMap configuration for use in getDocument calls
+export const PDF_CONFIG = {
+  cMapUrl,
+  cMapPacked: true,
+  standardFontDataUrl: new URL('pdfjs-dist/standard_fonts/', import.meta.url).href,
+};
+
 // Export configured pdfjs
 export { pdfjsLib };
 

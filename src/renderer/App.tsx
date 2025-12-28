@@ -352,22 +352,28 @@ function App() {
 
   return (
     <div className="flex h-screen flex-col bg-gray-50 dark:bg-gray-900">
-      {/* Header / Toolbar - Collapsible */}
-      <header className={`flex items-center justify-between border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800 transition-all duration-300 ${isHeaderMinimized ? 'h-10' : 'h-14'}`}>
-        <div className="flex items-center gap-4 px-4">
+      {/* Header / Toolbar - Minimalist */}
+      <header className={`sticky top-0 z-50 flex items-center justify-between border-b border-border bg-background transition-all duration-300 ${isHeaderMinimized ? 'h-12' : 'h-14'}`}>
+        <div className="flex items-center gap-4 px-6">
           {!isHeaderMinimized && (
             <>
-              <h1 className="text-xl font-semibold text-gray-900 dark:text-white">PDF Kit</h1>
-              <span className="text-sm text-gray-500 dark:text-gray-400">v0.1.0</span>
+              <div className="flex items-center justify-center p-1.5 rounded bg-primary">
+                 <svg className="w-5 h-5 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                 </svg>
+              </div>
+              <div>
+                <h1 className="text-base font-semibold text-foreground tracking-tight">PDF Kit</h1>
+              </div>
             </>
           )}
           {isHeaderMinimized && (
-            <h1 className="text-sm font-semibold text-gray-900 dark:text-white">PDF Kit</h1>
+            <h1 className="text-sm font-semibold text-foreground">PDF Kit</h1>
           )}
         </div>
 
         {/* Right side controls */}
-        <div className="flex items-center gap-2 px-4">
+        <div className="flex items-center gap-2 px-6">
           {!isHeaderMinimized && (
             <>
               {/* Theme Toggle */}
@@ -376,23 +382,25 @@ function App() {
               {/* About Button */}
               <button
                 onClick={() => setShowAboutDialog(true)}
-                className="rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                title="About PDF Kit"
+                className="rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-all"
+                title="About"
               >
                 About
               </button>
 
               {/* Connectivity Indicator */}
-              <ConnectivityIndicator isOnline={isOnline} />
+              <div className="flex items-center gap-2 px-2 py-1 rounded-md bg-secondary/50">
+                 <ConnectivityIndicator isOnline={isOnline} />
+              </div>
 
-              <div className="w-px h-6 bg-gray-300 dark:bg-gray-600"></div>
+              <div className="w-px h-5 bg-border mx-2"></div>
             </>
           )}
 
           {/* Minimize/Maximize Button */}
           <button
             onClick={() => setIsHeaderMinimized(!isHeaderMinimized)}
-            className="rounded-lg p-1.5 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="rounded-md p-2 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
             title={isHeaderMinimized ? 'Expand Header' : 'Minimize Header'}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -406,22 +414,22 @@ function App() {
         </div>
       </header>
 
-      {/* Floating Support Buttons */}
-      <div className="fixed bottom-4 right-4 flex flex-col gap-2 z-50">
+      {/* Floating Support Buttons - Simple */}
+      <div className="fixed bottom-6 right-6 flex flex-col gap-3 z-40">
         <button
           onClick={() => window.electronAPI.openExternal('https://wa.me/6281155339393')}
-          className="rounded-full p-2.5 text-white bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 transition-all duration-200 shadow-md hover:shadow-lg hover:scale-110"
-          title="Contact Support via WhatsApp (0811-5533-9393)"
+          className="rounded-full p-3 text-white bg-[#25D366] hover:bg-[#128C7E] transition-all shadow-md hover:shadow-lg"
+          title="Contact Support"
         >
           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+             <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
           </svg>
         </button>
 
         <button
           onClick={() => window.electronAPI.openExternal('https://trakteer.id/limitless7/tip')}
-          className="rounded-full p-2.5 text-white bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 dark:from-pink-600 dark:to-purple-700 dark:hover:from-pink-700 dark:hover:to-purple-800 transition-all duration-200 shadow-md hover:shadow-lg hover:scale-110"
-          title="Support Us via Trakteer"
+          className="rounded-full p-3 text-white bg-pink-600 hover:bg-pink-700 transition-all shadow-md hover:shadow-lg"
+          title="Support Us"
         >
           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
@@ -430,8 +438,8 @@ function App() {
 
         <button
           onClick={() => window.electronAPI.openExternal('https://github.com/antonprafanto/pdfkit/issues')}
-          className="rounded-full p-2.5 text-gray-700 dark:text-gray-300 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 transition-all duration-200 shadow-md hover:shadow-lg hover:scale-110"
-          title="Report Issue on GitHub"
+          className="rounded-full p-3 text-foreground bg-secondary hover:bg-secondary/80 transition-all shadow-md hover:shadow-lg"
+          title="Report Issue"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -440,122 +448,129 @@ function App() {
       </div>
 
       {/* Main Content */}
-      <main className="flex flex-1 overflow-hidden">
+      <main className="flex flex-1 overflow-hidden relative bg-background">
+        
         {/* Content Area - Full Width */}
         <div
-          className="flex flex-1 flex-col"
+          className="flex flex-1 flex-col z-10"
           onDragOver={handleDragOver}
           onDrop={handleDrop}
         >
           {!document ? (
-            <div className="h-full bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 overflow-y-auto">
-              <div className="min-h-full flex items-center justify-center">
-                <div className="max-w-5xl w-full px-8 py-12">
-                {/* Hero Section */}
-                <div className="text-center mb-16">
-                  {/* Logo/Icon */}
-                  <div className="inline-flex items-center justify-center w-28 h-28 mb-6 rounded-3xl bg-gradient-to-br from-blue-500 to-purple-600 shadow-2xl shadow-blue-500/30 dark:shadow-blue-500/20">
-                    <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
-                    </svg>
-                  </div>
+            <div className="h-full overflow-y-auto">
+              <div className="min-h-full flex items-center justify-center p-8">
+                <div className="max-w-5xl w-full">
+                
+                {/* Hero Section - Minimalist */}
+                <div className="flex flex-col items-center justify-center text-center mb-16 animate-fade-in-up">
+                  
+                  {/* Smart Drop Zone - Clean */}
+                  <div 
+                    onClick={triggerFileInput}
+                    className="group w-full max-w-2xl text-center cursor-pointer"
+                  >
+                    <div className="rounded-xl border border-dashed border-border bg-card hover:bg-secondary/50 p-12 transition-all duration-200">
+                      
+                      <div className="mb-6 inline-flex items-center justify-center w-16 h-16 rounded-xl bg-secondary group-hover:bg-primary/5 transition-colors duration-200">
+                         <svg className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                         </svg>
+                      </div>
 
-                  {/* Title */}
-                  <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-4 tracking-tight">
-                    Modern PDF Management
-                  </h1>
-                  <p className="text-xl text-gray-600 dark:text-gray-400 mb-8 max-w-2xl mx-auto">
-                    Everything you need to work with PDFs—merge, split, convert, secure, and more.
-                  </p>
+                      <h1 className="text-3xl font-semibold mb-3 tracking-tight text-foreground">
+                        Upload PDF
+                      </h1>
+                      <p className="text-base text-muted-foreground mb-8 max-w-sm mx-auto">
+                         Drag and drop your file here, or click to browse.
+                      </p>
 
-                  {/* CTA Buttons */}
-                  <div className="flex items-center justify-center gap-4 mb-4">
-                    <button
-                      onClick={triggerFileInput}
-                      className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-200 transform hover:scale-105"
-                    >
-                      Open PDF File
-                    </button>
-                    <button
-                      onClick={() => setShowRecentFiles(true)}
-                      className="px-8 py-4 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-semibold rounded-xl hover:border-blue-500 dark:hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-200"
-                    >
-                      Recent Files
-                    </button>
+                      <div className="flex items-center justify-center gap-4">
+                        <Button 
+                          onClick={(e) => { e.stopPropagation(); triggerFileInput(); }}
+                          className="px-6 rounded-md"
+                        >
+                          Open File
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="px-6 rounded-md"
+                          onClick={(e) => { e.stopPropagation(); setShowRecentFiles(true); }}
+                        >
+                          Recent Files
+                        </Button>
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-sm text-gray-500 dark:text-gray-500">
-                    or drag and drop your PDF here
-                  </p>
                 </div>
 
-                {/* Quick Tools Section */}
-                <div className="mb-12">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">
-                    Quick Tools
+                {/* Quick Tools Section - Clean Grid */}
+                <div className="mb-12 animate-fade-in-up-delay-1">
+                  <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-6">
+                    Quick Actions
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {/* Office to PDF */}
                     <button
                       onClick={() => setShowConvertOfficeDialog(true)}
-                      className="group p-6 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200"
+                      className="group p-5 rounded-lg border border-border bg-card hover:border-primary/50 hover:bg-secondary/30 transition-all duration-200 text-left"
                     >
-                      <div className="flex flex-col items-center text-center">
-                        <div className="w-14 h-14 mb-4 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
-                          <svg className="w-7 h-7 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="flex items-center gap-4 mb-2">
+                        <div className="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
+                          <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                           </svg>
                         </div>
-                        <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Office to PDF</h3>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Word, Excel, PowerPoint</p>
+                        <h3 className="font-medium text-foreground">Office to PDF</h3>
                       </div>
+                      <p className="text-xs text-muted-foreground pl-[3.5rem]">Convert Docx, Xlsx</p>
                     </button>
 
                     {/* Merge PDFs */}
                     <button
                       onClick={() => setShowMergeDialog(true)}
-                      className="group p-6 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-purple-500 dark:hover:border-purple-500 hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-200"
+                       className="group p-5 rounded-lg border border-border bg-card hover:border-primary/50 hover:bg-secondary/30 transition-all duration-200 text-left"
                     >
-                      <div className="flex flex-col items-center text-center">
-                        <div className="w-14 h-14 mb-4 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
-                          <svg className="w-7 h-7 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="flex items-center gap-4 mb-2">
+                        <div className="w-10 h-10 rounded-lg bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center">
+                          <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 14v6m-3-3h6M6 10h2a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v2a2 2 0 002 2zm10 0h2a2 2 0 002-2V6a2 2 0 00-2-2h-2a2 2 0 00-2 2v2a2 2 0 002 2zM6 20h2a2 2 0 002-2v-2a2 2 0 00-2-2H6a2 2 0 00-2 2v2a2 2 0 002 2z" />
                           </svg>
                         </div>
-                        <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Merge PDFs</h3>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Combine multiple files</p>
+                        <h3 className="font-medium text-foreground">Merge PDFs</h3>
                       </div>
+                      <p className="text-xs text-muted-foreground pl-[3.5rem]">Combine files</p>
                     </button>
 
                     {/* Images to PDF */}
                     <button
                       onClick={() => setShowImportImagesDialog(true)}
-                      className="group p-6 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-green-500 dark:hover:border-green-500 hover:shadow-lg hover:shadow-green-500/10 transition-all duration-200"
+                       className="group p-5 rounded-lg border border-border bg-card hover:border-primary/50 hover:bg-secondary/30 transition-all duration-200 text-left"
                     >
-                      <div className="flex flex-col items-center text-center">
-                        <div className="w-14 h-14 mb-4 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
-                          <svg className="w-7 h-7 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="flex items-center gap-4 mb-2">
+                         <div className="w-10 h-10 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center">
+                          <svg className="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                           </svg>
                         </div>
-                        <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Images to PDF</h3>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Create from images</p>
+                        <h3 className="font-medium text-foreground">Images to PDF</h3>
                       </div>
+                       <p className="text-xs text-muted-foreground pl-[3.5rem]">JPG, PNG to PDF</p>
                     </button>
 
                     {/* Bulk Encrypt */}
                     <button
-                      onClick={() => setShowBulkEncryptDialog(true)}
-                      className="group p-6 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-orange-500 dark:hover:border-orange-500 hover:shadow-lg hover:shadow-orange-500/10 transition-all duration-200"
+                       onClick={() => setShowBulkEncryptDialog(true)}
+                       className="group p-5 rounded-lg border border-border bg-card hover:border-primary/50 hover:bg-secondary/30 transition-all duration-200 text-left"
                     >
-                      <div className="flex flex-col items-center text-center">
-                        <div className="w-14 h-14 mb-4 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
-                          <svg className="w-7 h-7 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      <div className="flex items-center gap-4 mb-2">
+                        <div className="w-10 h-10 rounded-lg bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center">
+                          <svg className="w-5 h-5 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                           </svg>
                         </div>
-                        <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Bulk Encrypt</h3>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Protect multiple PDFs</p>
+                         <h3 className="font-medium text-foreground">Bulk Encrypt</h3>
                       </div>
+                       <p className="text-xs text-muted-foreground pl-[3.5rem]">Protect multiple files</p>
                     </button>
                   </div>
                 </div>
@@ -595,14 +610,14 @@ function App() {
         </div>
       </main>
 
-      {/* Status Bar */}
-      <footer className="flex h-8 items-center justify-between border-t border-gray-200 bg-white px-4 text-xs text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
+      {/* Status Bar - Minimalist */}
+      <footer className="z-50 flex h-8 items-center justify-between border-t border-border bg-background px-4 text-xs text-muted-foreground">
         <div>
-          {document
-            ? `Page ${usePDFStore.getState().currentPage} of ${usePDFStore.getState().totalPages}`
-            : 'Ready'}
+           {document
+             ? `Page ${usePDFStore.getState().currentPage} of ${usePDFStore.getState().totalPages}`
+             : 'Ready'}
         </div>
-        <div>PDF Kit - Open Source PDF Management</div>
+        <div>PDF Kit v0.1.0</div>
       </footer>
 
       {/* Hidden file input */}
@@ -727,7 +742,7 @@ function App() {
         isOpen={showFormsDataDialog}
         mode={formsDataDialogMode}
         onClose={() => setShowFormsDataDialog(false)}
-        pdfTitle={fileName}
+        pdfTitle={fileName || undefined}
       />
 
       {/* About Dialog */}
