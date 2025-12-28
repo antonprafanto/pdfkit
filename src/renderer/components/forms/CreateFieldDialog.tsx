@@ -3,7 +3,7 @@
  * Dialog for configuring new form field properties
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FormField, FormFieldType } from '../../lib/pdf-forms.service';
 
 interface CreateFieldDialogProps {
@@ -27,6 +27,19 @@ export const CreateFieldDialog: React.FC<CreateFieldDialogProps> = ({
   const [required, setRequired] = useState(false);
   const [multiline, setMultiline] = useState(false);
   const [options, setOptions] = useState('');
+
+  // Reference to field name input for auto-focus
+  const fieldNameInputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-focus field name input when dialog opens
+  useEffect(() => {
+    if (isOpen && fieldNameInputRef.current) {
+      // Small delay to ensure dialog is fully rendered
+      setTimeout(() => {
+        fieldNameInputRef.current?.focus();
+      }, 100);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -66,8 +79,20 @@ export const CreateFieldDialog: React.FC<CreateFieldDialogProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md">
+    <div
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      onClick={(e) => {
+        // Close dialog when clicking backdrop
+        if (e.target === e.currentTarget) {
+          onCancel();
+          resetForm();
+        }
+      }}
+    >
+      <div
+        className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md"
+        onClick={(e) => e.stopPropagation()} // Prevent backdrop click when clicking inside dialog
+      >
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -100,12 +125,14 @@ export const CreateFieldDialog: React.FC<CreateFieldDialogProps> = ({
               Field Name *
             </label>
             <input
+              ref={fieldNameInputRef}
               type="text"
               value={fieldName}
               onChange={(e) => setFieldName(e.target.value)}
               placeholder="e.g., firstName"
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
               required
+              autoFocus
             />
           </div>
 
