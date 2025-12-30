@@ -41,6 +41,7 @@ export const FONT_OPTIONS: FontOption[] = [
 ];
 
 export type Language = 'en' | 'id';
+export type ViewMode = 'single' | 'continuous' | 'facing';
 
 interface SettingsState {
   // Form field settings
@@ -59,26 +60,63 @@ interface SettingsState {
   reducedMotion: boolean;
   setHighContrast: (enabled: boolean) => void;
   setReducedMotion: (enabled: boolean) => void;
+
+  // === NEW SETTINGS ===
+  
+  // Default save location
+  defaultSaveLocation: string;
+  setDefaultSaveLocation: (path: string) => void;
+
+  // PDF defaults
+  defaultZoom: number; // 50-200
+  defaultViewMode: ViewMode;
+  setDefaultZoom: (zoom: number) => void;
+  setDefaultViewMode: (mode: ViewMode) => void;
+
+  // Startup behavior
+  reopenLastFile: boolean;
+  lastOpenedFile: string | null;
+  setReopenLastFile: (enabled: boolean) => void;
+  setLastOpenedFile: (path: string | null) => void;
+
+  // Performance settings
+  cacheSize: number; // MB
+  maxMemoryUsage: number; // MB
+  setCacheSize: (size: number) => void;
+  setMaxMemoryUsage: (size: number) => void;
+
+  // Privacy settings
+  clearRecentOnExit: boolean;
+  setClearRecentOnExit: (enabled: boolean) => void;
 }
 
 export const useSettingsStore = create<SettingsState>()(
   persist(
     (set, get) => ({
+      // Existing settings
       formFieldFont: 'courier',
       formFieldFontSize: 14,
       language: 'en',
       highContrast: false,
       reducedMotion: false,
 
+      // New settings defaults
+      defaultSaveLocation: '',
+      defaultZoom: 100,
+      defaultViewMode: 'continuous',
+      reopenLastFile: false,
+      lastOpenedFile: null,
+      cacheSize: 100, // 100 MB
+      maxMemoryUsage: 512, // 512 MB
+      clearRecentOnExit: false,
+
       setFormFieldFont: (font) => {
         set({ formFieldFont: font });
-        // Apply to document
         applyFontToDocument(font, get().formFieldFontSize);
       },
 
       setFormFieldFontSize: (size) => {
         set({ formFieldFontSize: size });
-        // Apply to document
         applyFontToDocument(get().formFieldFont, size);
       },
 
@@ -89,7 +127,6 @@ export const useSettingsStore = create<SettingsState>()(
 
       setLanguage: (lang) => {
         set({ language: lang });
-        // Update i18n
         import('../i18n').then((i18n) => {
           i18n.default.changeLanguage(lang);
         });
@@ -105,16 +142,24 @@ export const useSettingsStore = create<SettingsState>()(
         set({ reducedMotion: enabled });
         applyAccessibilitySettings(get().highContrast, enabled);
       },
+
+      // New setters
+      setDefaultSaveLocation: (path) => set({ defaultSaveLocation: path }),
+      setDefaultZoom: (zoom) => set({ defaultZoom: Math.max(50, Math.min(200, zoom)) }),
+      setDefaultViewMode: (mode) => set({ defaultViewMode: mode }),
+      setReopenLastFile: (enabled) => set({ reopenLastFile: enabled }),
+      setLastOpenedFile: (path) => set({ lastOpenedFile: path }),
+      setCacheSize: (size) => set({ cacheSize: Math.max(50, Math.min(500, size)) }),
+      setMaxMemoryUsage: (size) => set({ maxMemoryUsage: Math.max(256, Math.min(2048, size)) }),
+      setClearRecentOnExit: (enabled) => set({ clearRecentOnExit: enabled }),
     }),
     {
       name: 'settings-storage',
       onRehydrateStorage: () => (state) => {
-        // Apply saved settings on app load
         if (state) {
           applyFontToDocument(state.formFieldFont, state.formFieldFontSize);
           applyAccessibilitySettings(state.highContrast, state.reducedMotion);
           
-          // Sync language with i18n
           if (state.language) {
             import('../i18n').then((i18n) => {
               i18n.default.changeLanguage(state.language);
