@@ -4,6 +4,7 @@
  */
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAnnotationStore, Annotation } from '../../store/annotation-store';
 import { useEditingStore } from '../../store/editing-store';
 import { embedAnnotationsToPdf } from '../../lib/pdf-annotation-embed.service';
@@ -39,6 +40,7 @@ export function AnnotationListSidebar({ onNavigateToPage }: AnnotationListSideba
   
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
+  const { t } = useTranslation();
 
   // Group annotations by page
   const annotationsByPage = annotations.reduce((acc, ann) => {
@@ -133,9 +135,9 @@ export function AnnotationListSidebar({ onNavigateToPage }: AnnotationListSideba
         <svg className="w-12 h-12 mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
         </svg>
-        <p className="text-sm font-medium">No Annotations</p>
+        <p className="text-sm font-medium">{t('annotations.noAnnotations')}</p>
         <p className="text-xs text-center mt-1">
-          Use the toolbar above to add highlights, notes, drawings, and stamps.
+          {t('annotations.noAnnotationsHint')}
         </p>
       </div>
     );
@@ -145,10 +147,10 @@ export function AnnotationListSidebar({ onNavigateToPage }: AnnotationListSideba
     <div className="h-full flex flex-col">
       <div className="flex-shrink-0 p-3 border-b border-gray-200 dark:border-gray-700">
         <h3 className="font-semibold text-gray-800 dark:text-gray-200">
-          📋 Annotations
+          📋 {t('annotations.title')}
         </h3>
         <p className="text-xs text-gray-500 mt-1">
-          {annotations.length} annotation{annotations.length !== 1 ? 's' : ''}
+          {annotations.length} {t('common.pages')}
         </p>
       </div>
 
@@ -161,7 +163,7 @@ export function AnnotationListSidebar({ onNavigateToPage }: AnnotationListSideba
               className="w-full px-3 py-2 flex items-center justify-between bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 text-left"
             >
               <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                Page {pageNum}
+                {t('common.page')} {pageNum}
               </span>
               <span className="text-xs text-gray-400">
                 {annotationsByPage[pageNum].length}

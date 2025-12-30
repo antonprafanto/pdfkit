@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Dialog, Button, Spinner } from '../ui';
+import { Dialog, Button, Spinner, useToast } from '../ui';
 import { conversionService, ImageFormat } from '../../lib/conversion.service';
 import { usePDFStore } from '../../store/pdf-store';
 
@@ -28,6 +28,7 @@ export function ExportImagesDialog({ open, onClose }: ExportImagesDialogProps) {
   const [error, setError] = useState<string | null>(null);
 
   const { document, fileName, totalPages, currentPage } = usePDFStore();
+  const toast = useToast();
 
   // Reset state when dialog opens
   useEffect(() => {
@@ -144,6 +145,7 @@ export function ExportImagesDialog({ open, onClose }: ExportImagesDialogProps) {
       }
 
       // Success
+      toast.success('Images exported successfully!', `Exported ${blobs.length} image(s)`);
       onClose();
     } catch (err: any) {
       setError(err.message || 'Failed to export images');

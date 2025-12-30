@@ -82,9 +82,19 @@ export function PDFPage({ document, pageNumber, scale, rotation, searchHighlight
           throw new Error('Could not get canvas context');
         }
 
-        // Set canvas dimensions
-        canvas.height = pageViewport.height;
-        canvas.width = pageViewport.width;
+        // Get device pixel ratio for crisp rendering on HD displays
+        const pixelRatio = window.devicePixelRatio || 1;
+
+        // Set canvas dimensions accounting for pixel ratio
+        canvas.width = Math.floor(pageViewport.width * pixelRatio);
+        canvas.height = Math.floor(pageViewport.height * pixelRatio);
+
+        // Scale down canvas display size
+        canvas.style.width = `${pageViewport.width}px`;
+        canvas.style.height = `${pageViewport.height}px`;
+
+        // Scale context to match pixel ratio
+        context.scale(pixelRatio, pixelRatio);
 
         // Render the page
         const renderContext = {

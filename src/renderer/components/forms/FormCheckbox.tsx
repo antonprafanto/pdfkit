@@ -11,9 +11,10 @@ interface FormCheckboxProps {
   field: FormField;
   scale: number;
   rotation: number;
+  noPosition?: boolean;
 }
 
-export const FormCheckbox: React.FC<FormCheckboxProps> = ({ field, scale, rotation }) => {
+export const FormCheckbox: React.FC<FormCheckboxProps> = ({ field, scale, rotation, noPosition = false }) => {
   const { updateFieldValue } = useFormsStore();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -25,7 +26,10 @@ export const FormCheckbox: React.FC<FormCheckboxProps> = ({ field, scale, rotati
   // Make it square (use the smaller dimension)
   const size = Math.min(width, height);
 
-  const style: React.CSSProperties = {
+  const style: React.CSSProperties = noPosition ? {
+    width: '100%',
+    height: '100%',
+  } : {
     position: 'absolute',
     left: `${x * scale}px`,
     top: `${y * scale}px`,

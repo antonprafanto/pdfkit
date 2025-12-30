@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dialog, Button, Spinner } from '../ui';
 import { pdfManipulationService } from '../../lib/pdf-manipulation.service';
 import { useEditingStore } from '../../store/editing-store';
@@ -22,6 +23,7 @@ export function DuplicatePageDialog({ open, onClose }: DuplicatePageDialogProps)
 
   const { setModifiedPdf, setProcessing } = useEditingStore();
   const { document, fileName, totalPages } = usePDFStore();
+  const { t } = useTranslation();
 
   // Reset state when dialog opens
   useEffect(() => {
@@ -88,11 +90,11 @@ export function DuplicatePageDialog({ open, onClose }: DuplicatePageDialogProps)
       <Dialog
         open={open}
         onClose={onClose}
-        title="Duplicate Page"
-        description="No document is currently open"
+        title={t('tools.duplicate')}
+        description={t('errors.fileNotFound')}
       >
         <div className="text-center text-gray-600 dark:text-gray-400">
-          Please open a PDF document first
+          {t('common.openFile')}
         </div>
       </Dialog>
     );
@@ -106,15 +108,15 @@ export function DuplicatePageDialog({ open, onClose }: DuplicatePageDialogProps)
     <Dialog
       open={open}
       onClose={onClose}
-      title="Duplicate Page"
-      description={`Duplicate a page in ${fileName || 'document'}`}
+      title={t('tools.duplicate')}
+      description={t('split.description')}
       footer={
         <div className="flex justify-between">
           <Button variant="outline" onClick={onClose} disabled={isDuplicating}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleDuplicate} disabled={!isValidPage || isDuplicating}>
-            {isDuplicating ? <Spinner size="sm" /> : 'Duplicate Page'}
+            {isDuplicating ? <Spinner size="sm" /> : t('tools.duplicate')}
           </Button>
         </div>
       }

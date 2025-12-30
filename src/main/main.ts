@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import { ConnectivityService } from './services/connectivity.service';
 import { officeConversionService } from './services/office-conversion.service';
 import { createMenu } from './menu';
+import { pluginLifecycle, pluginLoader, pluginSettings } from './plugins';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling
 if (require('electron-squirrel-startup')) {
@@ -57,7 +58,7 @@ function createWindow(): void {
 }
 
 // App lifecycle
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   createWindow();
 
   // Initialize connectivity service
@@ -71,6 +72,14 @@ app.whenReady().then(() => {
     }
   });
 
+  // Initialize plugin system
+  if (mainWindow) {
+    pluginLifecycle.initialize(mainWindow);
+    const enabledPlugins = pluginSettings.getEnabledPlugins();
+    pluginLifecycle.loadEnabledPlugins(enabledPlugins);
+    await pluginLifecycle.initializePlugins();
+  }
+
   // macOS: Re-create window when dock icon is clicked
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -80,7 +89,10 @@ app.whenReady().then(() => {
 });
 
 // Quit when all windows are closed (except on macOS)
-app.on('window-all-closed', () => {
+app.on('window-all-closed', async () => {
+  // Shutdown plugins
+  await pluginLifecycle.shutdown();
+  
   if (process.platform !== 'darwin') {
     connectivityService?.stopMonitoring();
     app.quit();
@@ -629,4 +641,75 @@ ipcMain.handle('open-p12-file-dialog', async () => {
     name: path.basename(filePath),
     data: new Uint8Array(fileData),
   };
+});
+
+// ==================== Plugin System IPC Handlers ====================
+
+// Get all plugins
+ipcMain.handle('get-plugins', async () => {
+  const plugins = pluginLoader.getLoadedPlugins();
+  return plugins.map(p => ({
+    id: p.manifest.id,
+    name: p.manifest.name,
+    version: p.manifest.version,
+    description: p.manifest.description,
+    author: p.manifest.author,
+    state: p.state,
+    error: p.error,
+    icon: p.manifest.icon,
+  }));
+});
+
+// Enable plugin
+ipcMain.handle('enable-plugin', async (_, pluginId: string) => {
+  const success = await pluginLifecycle.activatePlugin(pluginId);
+  if (success) {
+    pluginSettings.enablePlugin(pluginId);
+  }
+  return success;
+});
+
+// Disable plugin
+ipcMain.handle('disable-plugin', async (_, pluginId: string) => {
+  const success = await pluginLifecycle.deactivatePlugin(pluginId);
+  if (success) {
+    pluginSettings.disablePlugin(pluginId);
+  }
+  return success;
+});
+
+// Install plugin from folder
+ipcMain.handle('install-plugin', async (_, folderPath: string) => {
+  const plugin = await pluginLifecycle.installPlugin(folderPath);
+  return plugin ? true : false;
+});
+
+// Uninstall plugin
+ipcMain.handle('uninstall-plugin', async (_, pluginId: string) => {
+  return await pluginLifecycle.uninstallPlugin(pluginId);
+});
+
+// Reload plugins
+ipcMain.handle('reload-plugins', async () => {
+  await pluginLifecycle.reloadPlugins();
+  return true;
+});
+
+// Open plugins folder
+ipcMain.handle('open-plugins-folder', async () => {
+  const pluginsDir = pluginLoader.getPluginsDir();
+  await shell.openPath(pluginsDir);
+});
+
+// Open folder dialog for plugin installation
+ipcMain.handle('open-folder-dialog', async () => {
+  if (!mainWindow) return null;
+  
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: 'Select Plugin Folder',
+    properties: ['openDirectory'],
+  });
+  
+  if (result.canceled || result.filePaths.length === 0) return null;
+  return result.filePaths;
 });

@@ -11,9 +11,10 @@ interface FormRadioButtonProps {
   field: FormField;
   scale: number;
   rotation: number;
+  noPosition?: boolean;
 }
 
-export const FormRadioButton: React.FC<FormRadioButtonProps> = ({ field, scale, rotation }) => {
+export const FormRadioButton: React.FC<FormRadioButtonProps> = ({ field, scale, rotation, noPosition = false }) => {
   const { updateFieldValue, fields } = useFormsStore();
 
   const handleChange = () => {
@@ -39,7 +40,10 @@ export const FormRadioButton: React.FC<FormRadioButtonProps> = ({ field, scale, 
   // Make it square (use the smaller dimension)
   const size = Math.min(width, height);
 
-  const style: React.CSSProperties = {
+  const style: React.CSSProperties = noPosition ? {
+    width: '100%',
+    height: '100%',
+  } : {
     position: 'absolute',
     left: `${x * scale}px`,
     top: `${y * scale}px`,

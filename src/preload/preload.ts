@@ -94,6 +94,23 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('menu-about', subscription);
     return () => ipcRenderer.removeListener('menu-about', subscription);
   },
+
+  // Plugin System
+  getPlugins: () => ipcRenderer.invoke('get-plugins'),
+  enablePlugin: (pluginId: string) => ipcRenderer.invoke('enable-plugin', pluginId),
+  disablePlugin: (pluginId: string) => ipcRenderer.invoke('disable-plugin', pluginId),
+  installPlugin: (folderPath: string) => ipcRenderer.invoke('install-plugin', folderPath),
+  uninstallPlugin: (pluginId: string) => ipcRenderer.invoke('uninstall-plugin', pluginId),
+  reloadPlugins: () => ipcRenderer.invoke('reload-plugins'),
+  openPluginsFolder: () => ipcRenderer.invoke('open-plugins-folder'),
+  openFolderDialog: () => ipcRenderer.invoke('open-folder-dialog'),
+
+  // Plugin events
+  onPluginNotification: (callback: (data: { pluginId: string; message: string; type: string }) => void) => {
+    const subscription = (_event: Electron.IpcRendererEvent, data: any) => callback(data);
+    ipcRenderer.on('plugin:notification', subscription);
+    return () => ipcRenderer.removeListener('plugin:notification', subscription);
+  },
 });
 
 // Type definitions for TypeScript
@@ -136,6 +153,25 @@ export interface ElectronAPI {
   signPdf: (pdfBytes: Uint8Array, p12Bytes: Uint8Array, password: string, reason?: string, location?: string) => 
     Promise<{ success: boolean; outputPath?: string; signedPdfBytes?: Uint8Array; error?: string }>;
   openP12FileDialog: () => Promise<{ path: string; name: string; data: Uint8Array } | null>;
+  // Plugin System
+  getPlugins: () => Promise<Array<{
+    id: string;
+    name: string;
+    version: string;
+    description: string;
+    author: string;
+    state: string;
+    error?: string;
+    icon?: string;
+  }>>;
+  enablePlugin: (pluginId: string) => Promise<boolean>;
+  disablePlugin: (pluginId: string) => Promise<boolean>;
+  installPlugin: (folderPath: string) => Promise<boolean>;
+  uninstallPlugin: (pluginId: string) => Promise<boolean>;
+  reloadPlugins: () => Promise<boolean>;
+  openPluginsFolder: () => Promise<void>;
+  openFolderDialog: () => Promise<string[] | null>;
+  onPluginNotification: (callback: (data: { pluginId: string; message: string; type: string }) => void) => () => void;
 }
 
 declare global {

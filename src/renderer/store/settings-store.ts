@@ -40,12 +40,25 @@ export const FONT_OPTIONS: FontOption[] = [
   },
 ];
 
+export type Language = 'en' | 'id';
+
 interface SettingsState {
+  // Form field settings
   formFieldFont: FontFamily;
   formFieldFontSize: number;
   setFormFieldFont: (font: FontFamily) => void;
   setFormFieldFontSize: (size: number) => void;
   getFontCSSFamily: () => string;
+  
+  // Language settings
+  language: Language;
+  setLanguage: (lang: Language) => void;
+  
+  // Accessibility settings
+  highContrast: boolean;
+  reducedMotion: boolean;
+  setHighContrast: (enabled: boolean) => void;
+  setReducedMotion: (enabled: boolean) => void;
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -53,6 +66,9 @@ export const useSettingsStore = create<SettingsState>()(
     (set, get) => ({
       formFieldFont: 'courier',
       formFieldFontSize: 14,
+      language: 'en',
+      highContrast: false,
+      reducedMotion: false,
 
       setFormFieldFont: (font) => {
         set({ formFieldFont: font });
@@ -70,13 +86,40 @@ export const useSettingsStore = create<SettingsState>()(
         const font = FONT_OPTIONS.find((f) => f.id === get().formFieldFont);
         return font?.cssFamily || FONT_OPTIONS[0].cssFamily;
       },
+
+      setLanguage: (lang) => {
+        set({ language: lang });
+        // Update i18n
+        import('../i18n').then((i18n) => {
+          i18n.default.changeLanguage(lang);
+        });
+        localStorage.setItem('language', lang);
+      },
+
+      setHighContrast: (enabled) => {
+        set({ highContrast: enabled });
+        applyAccessibilitySettings(enabled, get().reducedMotion);
+      },
+
+      setReducedMotion: (enabled) => {
+        set({ reducedMotion: enabled });
+        applyAccessibilitySettings(get().highContrast, enabled);
+      },
     }),
     {
       name: 'settings-storage',
       onRehydrateStorage: () => (state) => {
-        // Apply saved font settings on app load
+        // Apply saved settings on app load
         if (state) {
           applyFontToDocument(state.formFieldFont, state.formFieldFontSize);
+          applyAccessibilitySettings(state.highContrast, state.reducedMotion);
+          
+          // Sync language with i18n
+          if (state.language) {
+            import('../i18n').then((i18n) => {
+              i18n.default.changeLanguage(state.language);
+            });
+          }
         }
       },
     }
@@ -116,4 +159,23 @@ function applyFontToDocument(font: FontFamily, size: number) {
     }
   `;
   document.head.appendChild(style);
+}
+
+// Helper function to apply accessibility settings
+function applyAccessibilitySettings(highContrast: boolean, reducedMotion: boolean) {
+  const html = document.documentElement;
+  
+  // High contrast mode
+  if (highContrast) {
+    html.classList.add('high-contrast');
+  } else {
+    html.classList.remove('high-contrast');
+  }
+  
+  // Reduced motion mode
+  if (reducedMotion) {
+    html.classList.add('reduced-motion');
+  } else {
+    html.classList.remove('reduced-motion');
+  }
 }

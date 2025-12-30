@@ -4,7 +4,8 @@
  */
 
 import { useState } from 'react';
-import { Dialog, Button, Spinner } from '../ui';
+import { useTranslation } from 'react-i18next';
+import { Dialog, Button, Spinner, useToast } from '../ui';
 import { pdfManipulationService } from '../../lib/pdf-manipulation.service';
 import { useEditingStore } from '../../store/editing-store';
 import { usePDFStore } from '../../store/pdf-store';
@@ -29,6 +30,8 @@ export function MergeDialog({ open, onClose }: MergeDialogProps) {
 
   const { setModifiedPdf, setProcessing } = useEditingStore();
   const { document: currentDocument, fileName: currentFileName, totalPages: currentTotalPages } = usePDFStore();
+  const toast = useToast();
+  const { t } = useTranslation();
 
   const handleSelectFiles = async () => {
     try {
@@ -100,9 +103,11 @@ export function MergeDialog({ open, onClose }: MergeDialogProps) {
         const result = await window.electronAPI.savePdfFile(filePath, mergedPdfBytes);
 
         if (result.success) {
+          toast.success('PDFs merged successfully!', `Saved to ${filePath.split(/[\\/]/).pop()}`);
           onClose();
           setFiles([]);
         } else {
+          toast.error('Failed to save merged PDF', result.error);
           setError(result.error || 'Failed to save merged PDF');
         }
       }
@@ -143,16 +148,16 @@ export function MergeDialog({ open, onClose }: MergeDialogProps) {
     <Dialog
       open={open}
       onClose={onClose}
-      title="Merge PDF Files"
-      description="Select and reorder PDF files to merge into a single document"
+      title={t('merge.title')}
+      description={t('merge.description')}
       footer={
         <div className="flex justify-between">
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <div className="flex gap-2">
             <Button variant="outline" onClick={handleSelectFiles} disabled={isLoading}>
-              {isLoading ? <Spinner size="sm" /> : 'Add Files'}
+              {isLoading ? <Spinner size="sm" /> : t('merge.addFiles')}
             </Button>
             <Button 
               onClick={handleMerge} 

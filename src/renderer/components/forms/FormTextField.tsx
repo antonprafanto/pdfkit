@@ -11,9 +11,10 @@ interface FormTextFieldProps {
   field: FormField;
   scale: number;
   rotation: number;
+  noPosition?: boolean; // If true, don't apply positioning (parent handles it)
 }
 
-export const FormTextField: React.FC<FormTextFieldProps> = ({ field, scale, rotation }) => {
+export const FormTextField: React.FC<FormTextFieldProps> = ({ field, scale, rotation, noPosition = false }) => {
   const { updateFieldValue, validationErrors, clearValidationError } = useFormsStore();
   const [localValue, setLocalValue] = useState(field.value || '');
   const [isFocused, setIsFocused] = useState(false);
@@ -47,7 +48,12 @@ export const FormTextField: React.FC<FormTextFieldProps> = ({ field, scale, rota
   const hasError = !!validationErrors[field.name];
 
   // Calculate position and size with scale
-  const style: React.CSSProperties = {
+  const style: React.CSSProperties = noPosition ? {
+    // Parent handles positioning - just set size
+    width: '100%',
+    height: '100%',
+  } : {
+    // Self-positioning mode (legacy)
     position: 'absolute',
     left: `${x * scale}px`,
     top: `${y * scale}px`,

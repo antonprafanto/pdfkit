@@ -11,9 +11,10 @@ interface FormDropdownProps {
   field: FormField;
   scale: number;
   rotation: number;
+  noPosition?: boolean;
 }
 
-export const FormDropdown: React.FC<FormDropdownProps> = ({ field, scale, rotation }) => {
+export const FormDropdown: React.FC<FormDropdownProps> = ({ field, scale, rotation, noPosition = false }) => {
   const { updateFieldValue, validationErrors } = useFormsStore();
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -23,7 +24,10 @@ export const FormDropdown: React.FC<FormDropdownProps> = ({ field, scale, rotati
   const [x, y, width, height] = field.rect;
   const hasError = !!validationErrors[field.name];
 
-  const style: React.CSSProperties = {
+  const style: React.CSSProperties = noPosition ? {
+    width: '100%',
+    height: '100%',
+  } : {
     position: 'absolute',
     left: `${x * scale}px`,
     top: `${y * scale}px`,

@@ -4,7 +4,8 @@
  */
 
 import { useState } from 'react';
-import { Dialog, Button, Spinner } from '../ui';
+import { useTranslation } from 'react-i18next';
+import { Dialog, Button, Spinner, useToast } from '../ui';
 import { ColorPicker } from '../ui/ColorPicker';
 import { watermarkService, WatermarkPosition } from '../../lib/watermark.service';
 import { usePDFStore } from '../../store/pdf-store';
@@ -30,6 +31,8 @@ export function WatermarkDialog({ open, onClose }: WatermarkDialogProps) {
   const [error, setError] = useState<string | null>(null);
 
   const { document, fileName } = usePDFStore();
+  const toast = useToast();
+  const { t } = useTranslation();
 
   const handleImageSelect = () => {
     const input = window.document.createElement('input');
@@ -112,8 +115,10 @@ export function WatermarkDialog({ open, onClose }: WatermarkDialogProps) {
         const result = await window.electronAPI.savePdfFile(filePath, watermarkedBytes);
 
         if (result.success) {
+          toast.success('Watermark applied!', `Saved to ${filePath.split(/[\\/]/).pop()}`);
           onClose();
         } else {
+          toast.error('Failed to save watermarked PDF', result.error);
           setError(result.error || 'Failed to save watermarked PDF');
         }
       }
@@ -128,15 +133,15 @@ export function WatermarkDialog({ open, onClose }: WatermarkDialogProps) {
     <Dialog
       open={open}
       onClose={onClose}
-      title="💧 Add Watermark"
-      description={`Add watermark to ${fileName || 'document'}`}
+      title={`\ud83d\udca7 ${t('watermark.title')}`}
+      description={t('watermark.description')}
       footer={
         <div className="flex justify-between">
           <Button variant="outline" onClick={onClose} disabled={isApplying}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleApplyWatermark} disabled={isApplying}>
-            {isApplying ? <Spinner size="sm" /> : 'Apply Watermark'}
+            {isApplying ? <Spinner size="sm" /> : t('watermark.applyButton')}
           </Button>
         </div>
       }

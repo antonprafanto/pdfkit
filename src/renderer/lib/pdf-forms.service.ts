@@ -160,7 +160,9 @@ export class PDFFormsService {
         value: annotation.fieldValue || annotation.buttonValue || '',
         defaultValue: annotation.defaultFieldValue || '',
         required: annotation.required || false,
-        readOnly: annotation.readOnly || false,
+        // Always allow editing in our app - user can fill detected fields
+        // The PDF's original readOnly flag is ignored for usability
+        readOnly: false,
         multiline: annotation.multiLine || false,
         maxLength: annotation.maxLen || undefined,
       };
@@ -638,9 +640,10 @@ export class PDFFormsService {
                   height: fieldHeight,
                 });
 
-                // Set properties
-                if (field.defaultValue) {
-                  textField.setText(String(field.defaultValue));
+                // Set field value - use actual value first, then default
+                const textValue = field.value || field.defaultValue;
+                if (textValue) {
+                  textField.setText(String(textValue));
                 }
                 if (field.required) {
                   textField.enableRequired();
@@ -678,7 +681,8 @@ export class PDFFormsService {
                   height: fieldHeight,
                 });
 
-                if (field.defaultValue) {
+                // Use actual value first, then default
+                if (field.value || field.defaultValue) {
                   checkbox.check();
                 }
                 if (field.required) {
@@ -738,9 +742,10 @@ export class PDFFormsService {
                 if (field.options && field.options.length > 0) {
                   dropdown.addOptions(field.options);
 
-                  // Set default value if provided
-                  if (field.defaultValue && field.options.includes(String(field.defaultValue))) {
-                    dropdown.select(String(field.defaultValue));
+                  // Set value - use actual value first, then default
+                  const dropdownValue = field.value || field.defaultValue;
+                  if (dropdownValue && field.options.includes(String(dropdownValue))) {
+                    dropdown.select(String(dropdownValue));
                   }
                 }
 

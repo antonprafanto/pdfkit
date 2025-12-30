@@ -79,15 +79,16 @@ export class PDFService {
   async getMetadata(document: PDFDocumentProxy) {
     try {
       const metadata = await document.getMetadata();
+      const info = metadata.info as Record<string, any> | undefined;
       return {
-        title: metadata.info?.Title || 'Untitled',
-        author: metadata.info?.Author || 'Unknown',
-        subject: metadata.info?.Subject || '',
-        keywords: metadata.info?.Keywords || '',
-        creator: metadata.info?.Creator || '',
-        producer: metadata.info?.Producer || '',
-        creationDate: metadata.info?.CreationDate || '',
-        modificationDate: metadata.info?.ModDate || '',
+        title: info?.Title || 'Untitled',
+        author: info?.Author || 'Unknown',
+        subject: info?.Subject || '',
+        keywords: info?.Keywords || '',
+        creator: info?.Creator || '',
+        producer: info?.Producer || '',
+        creationDate: info?.CreationDate || '',
+        modificationDate: info?.ModDate || '',
       };
     } catch (error) {
       console.error('Error getting metadata:', error);

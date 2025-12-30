@@ -1,6 +1,7 @@
 /**
  * Form Field Overlay Component
  * Renders all form fields as overlays on a PDF page
+ * Now with editable wrapper for drag/resize/delete
  */
 
 import React from 'react';
@@ -9,6 +10,8 @@ import { FormTextField } from './FormTextField';
 import { FormCheckbox } from './FormCheckbox';
 import { FormRadioButton } from './FormRadioButton';
 import { FormDropdown } from './FormDropdown';
+import { EditableFieldWrapper } from './EditableFieldWrapper';
+import { useFieldKeyboardShortcuts } from '../../hooks/useFieldKeyboardShortcuts';
 
 interface FormFieldOverlayProps {
   fields: FormField[];
@@ -23,6 +26,10 @@ export const FormFieldOverlay: React.FC<FormFieldOverlayProps> = ({
   scale,
   rotation,
 }) => {
+  
+  // Enable keyboard shortcuts for field manipulation
+  useFieldKeyboardShortcuts();
+  
   // Filter fields for current page
   const pageFields = fields.filter((field) => field.page === pageNumber);
 
@@ -32,39 +39,41 @@ export const FormFieldOverlay: React.FC<FormFieldOverlayProps> = ({
 
   return (
     <div
-      className="form-fields-overlay absolute inset-0 pointer-events-none"
-      style={{ zIndex: 10 }}
+      className="form-fields-overlay absolute inset-0"
+      style={{ zIndex: 10, pointerEvents: 'none' }}
     >
-      {pageFields.map((field) => {
-        // Enable pointer events for individual fields
-        const fieldWrapper = (
-          <div key={field.id} className="pointer-events-auto">
+      {pageFields.map((field) => (
+        <div key={field.id} style={{ pointerEvents: 'auto' }}>
+          <EditableFieldWrapper
+            field={field}
+            scale={scale}
+            rotation={rotation}
+          >
             {renderField(field, scale, rotation)}
-          </div>
-        );
-
-        return fieldWrapper;
-      })}
+          </EditableFieldWrapper>
+        </div>
+      ))}
     </div>
   );
 };
 
 /**
  * Render appropriate field component based on field type
+ * Using noPosition=true since EditableFieldWrapper handles positioning
  */
 function renderField(field: FormField, scale: number, rotation: number): React.ReactNode {
   switch (field.type) {
     case 'text':
-      return <FormTextField field={field} scale={scale} rotation={rotation} />;
+      return <FormTextField field={field} scale={scale} rotation={rotation} noPosition={true} />;
 
     case 'checkbox':
-      return <FormCheckbox field={field} scale={scale} rotation={rotation} />;
+      return <FormCheckbox field={field} scale={scale} rotation={rotation} noPosition={true} />;
 
     case 'radio':
-      return <FormRadioButton field={field} scale={scale} rotation={rotation} />;
+      return <FormRadioButton field={field} scale={scale} rotation={rotation} noPosition={true} />;
 
     case 'dropdown':
-      return <FormDropdown field={field} scale={scale} rotation={rotation} />;
+      return <FormDropdown field={field} scale={scale} rotation={rotation} noPosition={true} />;
 
     case 'button':
       // TODO: Implement button field if needed

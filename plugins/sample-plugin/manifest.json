@@ -1,0 +1,44 @@
+{
+  "id": "com.pdfkit.sample-plugin",
+  "name": "Sample Plugin",
+  "version": "1.0.0",
+  "description": "A sample plugin demonstrating PDF Kit plugin API",
+  "author": "PDF Kit Team",
+  "homepage": "https://github.com/pdfkit/sample-plugin",
+  "license": "MIT",
+  "minAppVersion": "1.0.0",
+  "main": "index.js",
+  "permissions": [
+    "commands",
+    "menus",
+    "notifications",
+    "document:read"
+  ],
+  "categories": ["productivity"],
+  "contributes": {
+    "commands": [
+      {
+        "id": "sayHello",
+        "title": "Say Hello",
+        "description": "Shows a greeting notification"
+      },
+      {
+        "id": "countPages",
+        "title": "Count Pages",
+        "description": "Shows the current document page count"
+      }
+    ],
+    "menus": [
+      {
+        "command": "sayHello",
+        "label": "Sample: Say Hello",
+        "location": "tools"
+      },
+      {
+        "command": "countPages",
+        "label": "Sample: Count Pages",
+        "location": "tools"
+      }
+    ]
+  }
+}

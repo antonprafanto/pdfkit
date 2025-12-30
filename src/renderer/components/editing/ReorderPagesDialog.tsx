@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dialog, Button, Spinner } from '../ui';
 import { pdfManipulationService } from '../../lib/pdf-manipulation.service';
 import { useEditingStore } from '../../store/editing-store';
@@ -23,6 +24,7 @@ export function ReorderPagesDialog({ open, onClose }: ReorderPagesDialogProps) {
 
   const { setModifiedPdf, setProcessing } = useEditingStore();
   const { document, fileName, totalPages } = usePDFStore();
+  const { t } = useTranslation();
 
   // Initialize page order when dialog opens
   useEffect(() => {
@@ -145,11 +147,11 @@ export function ReorderPagesDialog({ open, onClose }: ReorderPagesDialogProps) {
       <Dialog
         open={open}
         onClose={onClose}
-        title="Reorder Pages"
-        description="No document is currently open"
+        title={t('tools.reorder')}
+        description={t('errors.fileNotFound')}
       >
         <div className="text-center text-gray-600 dark:text-gray-400">
-          Please open a PDF document first
+          {t('common.openFile')}
         </div>
       </Dialog>
     );
@@ -159,16 +161,16 @@ export function ReorderPagesDialog({ open, onClose }: ReorderPagesDialogProps) {
     <Dialog
       open={open}
       onClose={onClose}
-      title="Reorder Pages"
-      description={`Rearrange pages in ${fileName || 'document'}`}
+      title={t('tools.reorder')}
+      description={t('split.description')}
       footer={
         <div className="flex justify-between">
           <Button variant="outline" onClick={onClose} disabled={isReordering}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <div className="flex gap-2">
             <Button variant="outline" onClick={resetOrder} disabled={isReordering || !hasChanges()}>
-              Reset Order
+              {t('common.reset')}
             </Button>
             <Button onClick={handleReorder} disabled={!hasChanges() || isReordering}>
               {isReordering ? <Spinner size="sm" /> : 'Save Reordered PDF'}

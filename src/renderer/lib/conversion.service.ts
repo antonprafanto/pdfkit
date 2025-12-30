@@ -72,6 +72,11 @@ export class ConversionService {
       return await this.injectPNGDPI(blob, scale * 72);
     }
 
+    // For JPEG, inject DPI metadata (JFIF APP0 marker)
+    if (format === 'jpeg') {
+      return await this.injectJPEGDPI(blob, scale * 72);
+    }
+
     return blob;
   }
 
@@ -134,6 +139,57 @@ export class ConversionService {
     newData.set(data.slice(ihdrEnd), ihdrEnd + pHYsData.length);
 
     return new Blob([newData], { type: 'image/png' });
+  }
+
+  /**
+   * Inject DPI metadata into JPEG file
+   * Always inserts/replaces JFIF APP0 marker with DPI information
+   */
+  private async injectJPEGDPI(blob: Blob, dpi: number): Promise<Blob> {
+    const arrayBuffer = await blob.arrayBuffer();
+    const data = new Uint8Array(arrayBuffer);
+    
+    // JPEG should start with FFD8 (SOI marker)
+    if (data.length < 2 || data[0] !== 0xFF || data[1] !== 0xD8) {
+      console.warn('[ConversionService] Not a valid JPEG file');
+      return blob;
+    }
+
+    const dpiRounded = Math.round(dpi);
+    console.log(`[ConversionService] Injecting JPEG DPI: ${dpiRounded}`);
+    
+    // Create JFIF APP0 segment with DPI
+    // Structure: FFE0 (marker) + length (2 bytes) + "JFIF\0" + version(2) + units(1) + Xdpi(2) + Ydpi(2) + thumb(2)
+    const jfifSegment = new Uint8Array([
+      0xFF, 0xE0,           // APP0 marker
+      0x00, 0x10,           // Length: 16 bytes
+      0x4A, 0x46, 0x49, 0x46, 0x00,  // "JFIF\0" (5 bytes)
+      0x01, 0x02,           // Version 1.2 (2 bytes)
+      0x01,                 // Units: 1 = dots per inch
+      (dpiRounded >> 8) & 0xFF, dpiRounded & 0xFF,  // X density (2 bytes)
+      (dpiRounded >> 8) & 0xFF, dpiRounded & 0xFF,  // Y density (2 bytes)
+      0x00, 0x00            // No thumbnail
+    ]);
+
+    // Check if there's already an APP0 marker right after SOI
+    let skipBytes = 2; // Start after SOI (FFD8)
+    
+    if (data.length > 4 && data[2] === 0xFF && data[3] === 0xE0) {
+      // APP0 exists, skip it entirely (we'll replace it)
+      const existingLength = (data[4] << 8) | data[5];
+      skipBytes = 2 + 2 + existingLength; // SOI + marker + length
+      console.log(`[ConversionService] Replacing existing APP0 (${existingLength} bytes)`);
+    }
+    
+    // Build new JPEG: SOI + new JFIF + rest of original data
+    const newData = new Uint8Array(2 + jfifSegment.length + (data.length - skipBytes));
+    newData.set(data.slice(0, 2), 0);           // SOI (FFD8)
+    newData.set(jfifSegment, 2);                 // New JFIF APP0
+    newData.set(data.slice(skipBytes), 2 + jfifSegment.length);  // Rest of JPEG
+    
+    console.log(`[ConversionService] JPEG rewritten with ${dpiRounded} DPI. Size: ${data.length} -> ${newData.length}`);
+    
+    return new Blob([newData], { type: 'image/jpeg' });
   }
 
   /**

@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dialog, Button, Spinner } from '../ui';
 import { pdfManipulationService } from '../../lib/pdf-manipulation.service';
 import { useEditingStore } from '../../store/editing-store';
@@ -21,6 +22,7 @@ export function ExtractPagesDialog({ open, onClose }: ExtractPagesDialogProps) {
 
   const { setModifiedPdf, setProcessing } = useEditingStore();
   const { document, fileName, totalPages } = usePDFStore();
+  const { t } = useTranslation();
 
   // Reset state when dialog opens
   useEffect(() => {
@@ -107,11 +109,11 @@ export function ExtractPagesDialog({ open, onClose }: ExtractPagesDialogProps) {
       <Dialog
         open={open}
         onClose={onClose}
-        title="Extract Pages"
-        description="No document is currently open"
+        title={t('tools.extract')}
+        description={t('errors.fileNotFound')}
       >
         <div className="text-center text-gray-600 dark:text-gray-400">
-          Please open a PDF document first
+          {t('common.openFile')}
         </div>
       </Dialog>
     );
@@ -121,12 +123,12 @@ export function ExtractPagesDialog({ open, onClose }: ExtractPagesDialogProps) {
     <Dialog
       open={open}
       onClose={onClose}
-      title="Extract Pages"
-      description={`Select pages to extract from ${fileName || 'document'}`}
+      title={t('tools.extract')}
+      description={t('split.description')}
       footer={
         <div className="flex justify-between">
           <Button variant="outline" onClick={onClose} disabled={isExtracting}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <div className="flex gap-2">
             <Button variant="outline" onClick={selectAll} disabled={isExtracting}>

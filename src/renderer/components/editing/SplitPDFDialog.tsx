@@ -4,7 +4,8 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Dialog, Button, Spinner } from '../ui';
+import { useTranslation } from 'react-i18next';
+import { Dialog, Button, Spinner, useToast } from '../ui';
 import { pdfManipulationService, PageRange } from '../../lib/pdf-manipulation.service';
 import { useEditingStore } from '../../store/editing-store';
 import { usePDFStore } from '../../store/pdf-store';
@@ -33,6 +34,8 @@ export function SplitPDFDialog({ open, onClose }: SplitPDFDialogProps) {
 
   const { setModifiedPdf, setProcessing } = useEditingStore();
   const { document, fileName, totalPages } = usePDFStore();
+  const toast = useToast();
+  const { t } = useTranslation();
 
   // Reset state when dialog opens
   useEffect(() => {
@@ -212,6 +215,7 @@ export function SplitPDFDialog({ open, onClose }: SplitPDFDialogProps) {
       }
 
       // All files saved successfully
+      toast.success('PDF split successfully!', `Created ${splitPdfBytes.length} files`);
       onClose();
       setRanges([{ id: 1, start: '1', end: '' }]);
       setNextId(2);
@@ -228,11 +232,11 @@ export function SplitPDFDialog({ open, onClose }: SplitPDFDialogProps) {
       <Dialog
         open={open}
         onClose={onClose}
-        title="Split PDF"
-        description="No document is currently open"
+        title={t('split.title')}
+        description={t('errors.fileNotFound')}
       >
         <div className="text-center text-gray-600 dark:text-gray-400">
-          Please open a PDF document first
+          {t('common.openFile')}
         </div>
       </Dialog>
     );
@@ -242,15 +246,15 @@ export function SplitPDFDialog({ open, onClose }: SplitPDFDialogProps) {
     <Dialog
       open={open}
       onClose={onClose}
-      title="Split PDF"
-      description={`Split ${fileName || 'document'} into multiple files`}
+      title={t('split.title')}
+      description={t('split.description')}
       footer={
         <div className="flex justify-between">
           <Button variant="outline" onClick={onClose} disabled={isSplitting}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleSplit} disabled={ranges.length === 0 || isSplitting}>
-            {isSplitting ? <Spinner size="sm" /> : `Split into ${ranges.length} file${ranges.length !== 1 ? 's' : ''}`}
+            {isSplitting ? <Spinner size="sm" /> : t('split.splitButton')}
           </Button>
         </div>
       }

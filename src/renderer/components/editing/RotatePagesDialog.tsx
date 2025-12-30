@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dialog, Button, Spinner } from '../ui';
 import { pdfManipulationService } from '../../lib/pdf-manipulation.service';
 import { useEditingStore } from '../../store/editing-store';
@@ -22,6 +23,7 @@ export function RotatePagesDialog({ open, onClose }: RotatePagesDialogProps) {
 
   const { setModifiedPdf, setProcessing } = useEditingStore();
   const { document, fileName, totalPages } = usePDFStore();
+  const { t } = useTranslation();
 
   // Reset state when dialog opens
   useEffect(() => {
@@ -109,11 +111,11 @@ export function RotatePagesDialog({ open, onClose }: RotatePagesDialogProps) {
       <Dialog
         open={open}
         onClose={onClose}
-        title="Rotate Pages"
-        description="No document is currently open"
+        title={t('tools.rotate')}
+        description={t('errors.fileNotFound')}
       >
         <div className="text-center text-gray-600 dark:text-gray-400">
-          Please open a PDF document first
+          {t('common.openFile')}
         </div>
       </Dialog>
     );
@@ -123,12 +125,12 @@ export function RotatePagesDialog({ open, onClose }: RotatePagesDialogProps) {
     <Dialog
       open={open}
       onClose={onClose}
-      title="Rotate Pages"
-      description={`Select pages to rotate in ${fileName || 'document'}`}
+      title={t('tools.rotate')}
+      description={t('split.description')}
       footer={
         <div className="flex justify-between">
           <Button variant="outline" onClick={onClose} disabled={isRotating}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <div className="flex gap-2">
             <Button variant="outline" onClick={selectAll} disabled={isRotating}>

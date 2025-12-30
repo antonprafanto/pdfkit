@@ -1,9 +1,9 @@
 /**
  * Create Field Dialog Component
- * Dialog for configuring new form field properties
+ * Auto-generates field names with option to customize
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { FormField, FormFieldType } from '../../lib/pdf-forms.service';
 
 interface CreateFieldDialogProps {
@@ -28,47 +28,15 @@ export const CreateFieldDialog: React.FC<CreateFieldDialogProps> = ({
   const [multiline, setMultiline] = useState(false);
   const [options, setOptions] = useState('');
 
-  // Reference to field name input for auto-focus
-  const fieldNameInputRef = useRef<HTMLInputElement>(null);
-
-  // Auto-focus field name input when dialog opens
-  useEffect(() => {
-    if (isOpen) {
-      // Disable annotation layer pointer events when dialog is open
-      const annotationLayers = document.querySelectorAll('.annotationLayer');
-      annotationLayers.forEach((layer) => {
-        (layer as HTMLElement).style.pointerEvents = 'none';
-      });
-
-      // Focus the input
-      if (fieldNameInputRef.current) {
-        setTimeout(() => {
-          fieldNameInputRef.current?.focus();
-        }, 100);
-      }
-
-      // Cleanup: re-enable annotation layers when dialog closes
-      return () => {
-        annotationLayers.forEach((layer) => {
-          (layer as HTMLElement).style.pointerEvents = 'auto';
-        });
-      };
-    }
-  }, [isOpen]);
-
-  if (!isOpen) return null;
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!fieldName.trim()) {
-      alert('Please enter a field name');
-      return;
-    }
+    // Auto-generate field name if not provided
+    const finalFieldName = fieldName.trim() || `field_${Date.now()}`;
 
     const field: Partial<FormField> = {
       id: `field_${Date.now()}`,
-      name: fieldName,
+      name: finalFieldName,
       type: fieldType,
       page: pageNumber,
       rect: [position.x, position.y, 200, fieldType === 'text' && multiline ? 80 : 30],
@@ -93,22 +61,28 @@ export const CreateFieldDialog: React.FC<CreateFieldDialogProps> = ({
     setOptions('');
   };
 
+  const handleCancel = () => {
+    onCancel();
+    resetForm();
+  };
+
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      handleCancel();
+    }
+  };
+
+  if (!isOpen) return null;
+
   return (
     <div
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
-      style={{ zIndex: 9999 }}
-      onClick={(e) => {
-        // Close dialog when clicking backdrop
-        if (e.target === e.currentTarget) {
-          onCancel();
-          resetForm();
-        }
-      }}
+      style={{ zIndex: 99999 }}
+      onClick={handleBackdropClick}
     >
       <div
         className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md"
-        style={{ position: 'relative', zIndex: 10000 }}
-        onClick={(e) => e.stopPropagation()} // Prevent backdrop click when clicking inside dialog
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
@@ -139,42 +113,28 @@ export const CreateFieldDialog: React.FC<CreateFieldDialogProps> = ({
           {/* Field Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Field Name *
+              Field Name (optional - auto-generated if empty)
             </label>
             <input
-              ref={fieldNameInputRef}
               type="text"
               value={fieldName}
               onChange={(e) => setFieldName(e.target.value)}
-              onKeyDown={(e) => e.stopPropagation()}
-              onKeyUp={(e) => e.stopPropagation()}
-              onKeyPress={(e) => e.stopPropagation()}
-              onMouseDown={(e) => e.stopPropagation()}
-              onClick={(e) => e.stopPropagation()}
-              placeholder="e.g., firstName"
+              placeholder="e.g., firstName (leave empty for auto-generated)"
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-              style={{ pointerEvents: 'auto', userSelect: 'text', zIndex: 1 }}
-              required
-              autoFocus
-              autoComplete="off"
             />
           </div>
 
           {/* Default Value */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Default Value
+              Default Value (optional)
             </label>
             <input
               type="text"
               value={defaultValue}
               onChange={(e) => setDefaultValue(e.target.value)}
-              onKeyDown={(e) => e.stopPropagation()}
-              onKeyUp={(e) => e.stopPropagation()}
-              onKeyPress={(e) => e.stopPropagation()}
               placeholder="Optional default value"
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-              autoComplete="off"
             />
           </div>
 
@@ -187,10 +147,7 @@ export const CreateFieldDialog: React.FC<CreateFieldDialogProps> = ({
               <textarea
                 value={options}
                 onChange={(e) => setOptions(e.target.value)}
-                onKeyDown={(e) => e.stopPropagation()}
-                onKeyUp={(e) => e.stopPropagation()}
-                onKeyPress={(e) => e.stopPropagation()}
-                placeholder="Option 1&#10;Option 2&#10;Option 3"
+                placeholder={"Option 1\nOption 2\nOption 3"}
                 rows={4}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 font-mono text-sm"
               />
@@ -201,12 +158,12 @@ export const CreateFieldDialog: React.FC<CreateFieldDialogProps> = ({
           <div className="flex items-center">
             <input
               type="checkbox"
-              id="required"
+              id="create-field-required"
               checked={required}
               onChange={(e) => setRequired(e.target.checked)}
               className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
             />
-            <label htmlFor="required" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+            <label htmlFor="create-field-required" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
               Required field
             </label>
           </div>
@@ -216,12 +173,12 @@ export const CreateFieldDialog: React.FC<CreateFieldDialogProps> = ({
             <div className="flex items-center">
               <input
                 type="checkbox"
-                id="multiline"
+                id="create-field-multiline"
                 checked={multiline}
                 onChange={(e) => setMultiline(e.target.checked)}
                 className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
               />
-              <label htmlFor="multiline" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+              <label htmlFor="create-field-multiline" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
                 Multiline (textarea)
               </label>
             </div>
@@ -236,10 +193,7 @@ export const CreateFieldDialog: React.FC<CreateFieldDialogProps> = ({
           <div className="flex gap-3 pt-4">
             <button
               type="button"
-              onClick={() => {
-                onCancel();
-                resetForm();
-              }}
+              onClick={handleCancel}
               className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
             >
               Cancel

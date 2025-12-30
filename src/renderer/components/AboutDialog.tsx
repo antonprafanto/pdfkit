@@ -4,6 +4,7 @@
  */
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dialog } from './ui/Dialog';
 
 interface AboutDialogProps {
@@ -12,12 +13,14 @@ interface AboutDialogProps {
 }
 
 export const AboutDialog: React.FC<AboutDialogProps> = ({ isOpen, onClose }) => {
+  const { t } = useTranslation();
+  
   const handleOpenLink = (url: string) => {
     window.electronAPI.openExternal(url);
   };
 
   return (
-    <Dialog open={isOpen} onClose={onClose} title="About PDF Kit">
+    <Dialog open={isOpen} onClose={onClose} title={t('about.title')}>
       <div className="space-y-6">
         {/* App Icon & Name */}
         <div className="flex flex-col items-center text-center">

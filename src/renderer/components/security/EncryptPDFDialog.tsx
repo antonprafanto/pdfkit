@@ -4,7 +4,8 @@
  */
 
 import { useState } from 'react';
-import { Dialog, Button, Spinner } from '../ui';
+import { useTranslation } from 'react-i18next';
+import { Dialog, Button, Spinner, useToast } from '../ui';
 import { PasswordStrengthMeter } from './PasswordStrengthMeter';
 import { securityService } from '../../lib/security.service';
 import { usePDFStore } from '../../store/pdf-store';
@@ -29,6 +30,8 @@ export function EncryptPDFDialog({ open, onClose }: EncryptPDFDialogProps) {
   const [error, setError] = useState<string | null>(null);
 
   const { document, fileName } = usePDFStore();
+  const toast = useToast();
+  const { t } = useTranslation();
 
   const handleEncrypt = async () => {
     if (!document || !fileName) {
@@ -65,6 +68,7 @@ export function EncryptPDFDialog({ open, onClose }: EncryptPDFDialogProps) {
         const result = await window.electronAPI.savePdfFile(filePath, encryptedBytes);
 
         if (result.success) {
+          toast.success('PDF encrypted successfully!', `Saved to ${filePath.split(/[\\/]/).pop()}`);
           onClose();
           // Reset form
           setUserPassword('');
@@ -76,6 +80,7 @@ export function EncryptPDFDialog({ open, onClose }: EncryptPDFDialogProps) {
             annotating: true,
           });
         } else {
+          toast.error('Failed to save encrypted PDF', result.error);
           setError(result.error || 'Failed to save encrypted PDF');
         }
       }
@@ -94,15 +99,15 @@ export function EncryptPDFDialog({ open, onClose }: EncryptPDFDialogProps) {
     <Dialog
       open={open}
       onClose={onClose}
-      title="🔒 Encrypt PDF"
-      description={`Add password protection to ${fileName || 'document'}`}
+      title={`\ud83d\udd12 ${t('encrypt.title')}`}
+      description={t('encrypt.description')}
       footer={
         <div className="flex justify-between">
           <Button variant="outline" onClick={onClose} disabled={isEncrypting}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleEncrypt} disabled={isEncrypting}>
-            {isEncrypting ? <Spinner size="sm" /> : 'Encrypt PDF'}
+            {isEncrypting ? <Spinner size="sm" /> : t('encrypt.encryptButton')}
           </Button>
         </div>
       }

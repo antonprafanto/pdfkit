@@ -7,9 +7,10 @@ interface DialogProps {
   description?: string;
   children: ReactNode;
   footer?: ReactNode;
+  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
 }
 
-export function Dialog({ open, onClose, title, description, children, footer }: DialogProps) {
+export function Dialog({ open, onClose, title, description, children, footer, size = 'md' }: DialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -32,8 +33,16 @@ export function Dialog({ open, onClose, title, description, children, footer }: 
 
   if (!open) return null;
 
+  const sizeClasses = {
+    sm: 'max-w-sm',
+    md: 'max-w-lg',
+    lg: 'max-w-2xl',
+    xl: 'max-w-4xl',
+    full: 'max-w-[90vw]',
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/50 backdrop-blur-sm"
@@ -44,7 +53,7 @@ export function Dialog({ open, onClose, title, description, children, footer }: 
       {/* Dialog */}
       <div
         ref={dialogRef}
-        className="relative z-50 w-full max-w-lg max-h-[90vh] flex flex-col rounded-lg bg-white shadow-xl dark:bg-gray-800"
+        className={`relative z-50 w-full ${sizeClasses[size]} max-h-[90vh] flex flex-col rounded-lg bg-white shadow-xl dark:bg-gray-800`}
         role="dialog"
         aria-modal="true"
         aria-labelledby={title ? 'dialog-title' : undefined}

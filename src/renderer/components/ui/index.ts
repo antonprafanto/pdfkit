@@ -5,7 +5,7 @@
 
 export { Button } from './Button';
 export { Dialog } from './Dialog';
-export { Toast, ToastContainer } from './Toast';
+export { Toast, ToastContainer, ToastProvider, useToast } from './Toast';
 export { Input } from './Input';
 export { Spinner, LoadingOverlay } from './Spinner';
 export { DropdownMenu } from './DropdownMenu';

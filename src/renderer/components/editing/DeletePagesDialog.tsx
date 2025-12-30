@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dialog, Button, Spinner } from '../ui';
 import { pdfManipulationService } from '../../lib/pdf-manipulation.service';
 import { useEditingStore } from '../../store/editing-store';
@@ -21,6 +22,7 @@ export function DeletePagesDialog({ open, onClose }: DeletePagesDialogProps) {
 
   const { setModifiedPdf, setProcessing } = useEditingStore();
   const { document, fileName, totalPages } = usePDFStore();
+  const { t } = useTranslation();
 
   // Reset state when dialog opens
   useEffect(() => {
@@ -112,11 +114,11 @@ export function DeletePagesDialog({ open, onClose }: DeletePagesDialogProps) {
       <Dialog
         open={open}
         onClose={onClose}
-        title="Delete Pages"
-        description="No document is currently open"
+        title={t('tools.delete')}
+        description={t('errors.fileNotFound')}
       >
         <div className="text-center text-gray-600 dark:text-gray-400">
-          Please open a PDF document first
+          {t('common.openFile')}
         </div>
       </Dialog>
     );
@@ -126,19 +128,19 @@ export function DeletePagesDialog({ open, onClose }: DeletePagesDialogProps) {
     <Dialog
       open={open}
       onClose={onClose}
-      title="Delete Pages"
-      description={`Select pages to delete from ${fileName || 'document'}`}
+      title={t('tools.delete')}
+      description={t('split.description')}
       footer={
         <div className="flex justify-between">
           <Button variant="outline" onClick={onClose} disabled={isDeleting}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <div className="flex gap-2">
             <Button variant="outline" onClick={selectAll} disabled={isDeleting}>
-              Select All
+              {t('common.selectAll')}
             </Button>
             <Button variant="outline" onClick={clearSelection} disabled={isDeleting}>
-              Clear
+              {t('common.none')}
             </Button>
             <Button
               onClick={handleDelete}

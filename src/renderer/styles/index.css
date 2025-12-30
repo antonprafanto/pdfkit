@@ -157,3 +157,229 @@ html.dark select {
   color: #000000 !important;
   border: 2px solid #f59e0b !important;
 }
+
+/* ============================== */
+/* Accessibility - High Contrast  */
+/* ============================== */
+
+html.high-contrast {
+  --background: 0 0% 0%;
+  --foreground: 0 0% 100%;
+  --primary: 60 100% 50%;
+  --primary-foreground: 0 0% 0%;
+  --border: 0 0% 100%;
+}
+
+html.high-contrast * {
+  border-color: white !important;
+}
+
+html.high-contrast button,
+html.high-contrast a,
+html.high-contrast [role="button"] {
+  border: 2px solid white !important;
+  outline: none;
+}
+
+html.high-contrast button:focus,
+html.high-contrast a:focus,
+html.high-contrast [role="button"]:focus,
+html.high-contrast input:focus,
+html.high-contrast select:focus,
+html.high-contrast textarea:focus {
+  outline: 3px solid yellow !important;
+  outline-offset: 2px;
+}
+
+html.high-contrast .text-gray-400,
+html.high-contrast .text-gray-500,
+html.high-contrast .text-gray-600,
+html.high-contrast .text-muted-foreground {
+  color: #e0e0e0 !important;
+}
+
+html.high-contrast img {
+  filter: contrast(1.2);
+}
+
+/* ============================== */
+/* Accessibility - Reduced Motion */
+/* ============================== */
+
+html.reduced-motion *,
+html.reduced-motion *::before,
+html.reduced-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Skip link for keyboard navigation */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: #000;
+  color: #fff;
+  padding: 8px 16px;
+  z-index: 9999;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* Focus visible for better keyboard navigation */
+*:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* Screen reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ============================== */
+/* Landing Page Animations */
+/* ============================== */
+
+/* Stagger animation keyframes */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Upload area animation */
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+/* Stagger delay classes */
+.animate-fade-in-up-delay-1 {
+  animation: fadeInUp 0.6s ease-out 0.1s forwards;
+  opacity: 0;
+}
+
+.animate-fade-in-up-delay-2 {
+  animation: fadeInUp 0.6s ease-out 0.2s forwards;
+  opacity: 0;
+}
+
+/* Card stagger animations */
+.animate-stagger-1 {
+  animation: scaleIn 0.4s ease-out 0.1s forwards;
+  opacity: 0;
+}
+
+.animate-stagger-2 {
+  animation: scaleIn 0.4s ease-out 0.2s forwards;
+  opacity: 0;
+}
+
+.animate-stagger-3 {
+  animation: scaleIn 0.4s ease-out 0.3s forwards;
+  opacity: 0;
+}
+
+.animate-stagger-4 {
+  animation: scaleIn 0.4s ease-out 0.4s forwards;
+  opacity: 0;
+}
+
+/* Quick Action Card hover effects */
+.quick-action-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.quick-action-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.quick-action-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 12px 40px -8px rgba(0, 0, 0, 0.3);
+}
+
+.quick-action-card:hover::before {
+  opacity: 1;
+}
+
+/* Dark mode glow effect on hover */
+.dark .quick-action-card:hover {
+  box-shadow: 
+    0 12px 40px -8px rgba(0, 0, 0, 0.5),
+    0 0 20px -5px rgba(99, 102, 241, 0.2);
+}
+
+/* Icon animation on card hover */
+.quick-action-card:hover .card-icon {
+  transform: scale(1.15);
+}
+
+.card-icon {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Upload area hover effect */
+.upload-area {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.upload-area:hover {
+  transform: scale(1.01);
+  border-color: hsl(var(--primary) / 0.5);
+  box-shadow: 0 8px 30px -10px rgba(0, 0, 0, 0.2);
+}
+
+.dark .upload-area:hover {
+  box-shadow: 
+    0 8px 30px -10px rgba(0, 0, 0, 0.5),
+    0 0 30px -10px rgba(99, 102, 241, 0.15);
+}

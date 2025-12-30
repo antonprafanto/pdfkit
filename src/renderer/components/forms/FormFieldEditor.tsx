@@ -1,6 +1,7 @@
 /**
  * Form Field Editor Component
  * Handles field creation mode with click-to-place functionality
+ * Updated to not block interaction with existing fields
  */
 
 import React, { useState } from 'react';
@@ -19,7 +20,7 @@ export const FormFieldEditor: React.FC<FormFieldEditorProps> = ({
   scale,
   onFieldCreated,
 }) => {
-  const { editMode, addField } = useFormsStore();
+  const { editMode, addField, fields, selectField } = useFormsStore();
   const [showDialog, setShowDialog] = useState(false);
   const [clickPosition, setClickPosition] = useState({ x: 0, y: 0 });
 
@@ -28,10 +29,21 @@ export const FormFieldEditor: React.FC<FormFieldEditorProps> = ({
   }
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Check if we clicked on an existing field - if so, let it handle the event
+    const target = e.target as HTMLElement;
+    const fieldElement = target.closest('[data-field-id]');
+    if (fieldElement) {
+      // Click was on a field, don't create new one
+      return;
+    }
+
     // Get click position relative to the canvas
     const rect = e.currentTarget.getBoundingClientRect();
     const x = (e.clientX - rect.left) / scale;
     const y = (e.clientY - rect.top) / scale;
+
+    // Deselect any selected field when clicking empty area
+    selectField(null);
 
     setClickPosition({ x, y });
     setShowDialog(true);
@@ -67,22 +79,46 @@ export const FormFieldEditor: React.FC<FormFieldEditorProps> = ({
     setShowDialog(false);
   };
 
+  // Count fields on this page
+  const pageFieldCount = fields.filter(f => f.page === pageNumber).length;
+
   return (
     <>
-      {/* Click overlay - disable when dialog is open */}
+      {/* Click overlay for adding new fields - lower z-index so fields are on top */}
       <div
         onClick={handleCanvasClick}
-        className="absolute inset-0 cursor-crosshair z-20 bg-blue-500 bg-opacity-10"
-        style={{ pointerEvents: editMode && !showDialog ? 'auto' : 'none' }}
+        className="absolute inset-0 cursor-crosshair"
+        style={{ 
+          zIndex: 5, // Lower than FormFieldOverlay (z-10)
+          backgroundColor: 'rgba(59, 130, 246, 0.05)', // Very subtle blue tint
+        }}
         title="Click to add a form field"
-      >
-        {/* Visual indicator - hide when dialog is open */}
-        {!showDialog && (
-          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-4 py-2 rounded shadow-lg text-sm">
-            Click anywhere to add a form field
-          </div>
-        )}
-      </div>
+      />
+
+      {/* Visual indicator - always on top */}
+      {!showDialog && (
+        <div 
+          className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-4 py-2 rounded shadow-lg text-sm pointer-events-none"
+          style={{ zIndex: 100 }}
+        >
+          Click anywhere to add a form field
+          {pageFieldCount > 0 && (
+            <span className="ml-2 opacity-75">
+              ({pageFieldCount} field{pageFieldCount !== 1 ? 's' : ''} on this page)
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Instructions for existing fields */}
+      {pageFieldCount > 0 && !showDialog && (
+        <div 
+          className="absolute top-14 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-3 py-1.5 rounded shadow-lg text-xs pointer-events-none"
+          style={{ zIndex: 100 }}
+        >
+          💡 Click a field to select it, then drag/resize/delete
+        </div>
+      )}
 
       {/* Create field dialog */}
       <CreateFieldDialog
