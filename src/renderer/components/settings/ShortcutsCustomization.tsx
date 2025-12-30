@@ -5,12 +5,12 @@
 
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button } from './ui/Button';
+import { Button } from '../ui/Button';
 import { 
   useShortcutsStore, 
   ShortcutBinding, 
   formatKeyForDisplay 
-} from '../store/shortcuts-store';
+} from '../../store/shortcuts-store';
 
 interface ShortcutsCustomizationProps {
   className?: string;
