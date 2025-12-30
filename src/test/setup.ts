@@ -88,5 +88,14 @@ global.IntersectionObserver = vi.fn().mockImplementation(() => ({
   disconnect: vi.fn(),
 }));
 
+// Mock zustand persist to avoid localStorage issues in tests
+vi.mock('zustand/middleware', async () => {
+  const actual = await vi.importActual('zustand/middleware');
+  return {
+    ...actual,
+    persist: (fn: any) => fn,
+  };
+});
+
 // Suppress console errors during tests
 vi.spyOn(console, 'error').mockImplementation(() => {});
