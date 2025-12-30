@@ -1,0 +1,114 @@
+/* Empty State Styles */
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--color-text-secondary, #666);
+}
+
+.empty-state__icon {
+  margin-bottom: 16px;
+  opacity: 0.5;
+  color: var(--color-text-tertiary, #999);
+}
+
+.empty-state__icon svg {
+  width: 64px;
+  height: 64px;
+}
+
+.empty-state__title {
+  margin: 0 0 8px;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #333);
+}
+
+.empty-state__description {
+  margin: 0 0 24px;
+  font-size: 0.95rem;
+  max-width: 320px;
+  line-height: 1.5;
+}
+
+.empty-state__action {
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: white;
+  background-color: var(--color-primary, #3b82f6);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.empty-state__action:hover {
+  background-color: var(--color-primary-hover, #2563eb);
+  transform: translateY(-1px);
+}
+
+.empty-state__action:active {
+  transform: translateY(0);
+}
+
+/* Error variant */
+.empty-state--error .empty-state__icon {
+  color: var(--color-error, #ef4444);
+  opacity: 0.7;
+}
+
+.empty-state--error .empty-state__action {
+  background-color: var(--color-error, #ef4444);
+}
+
+.empty-state--error .empty-state__action:hover {
+  background-color: var(--color-error-hover, #dc2626);
+}
+
+/* Compact variant */
+.empty-state--compact {
+  padding: 24px 16px;
+}
+
+.empty-state--compact .empty-state__icon svg {
+  width: 40px;
+  height: 40px;
+}
+
+.empty-state--compact .empty-state__title {
+  font-size: 1rem;
+}
+
+.empty-state--compact .empty-state__description {
+  font-size: 0.85rem;
+  margin-bottom: 16px;
+}
+
+/* Dark mode */
+:root[data-theme='dark'] .empty-state,
+.dark .empty-state {
+  --color-text-primary: #f0f0f0;
+  --color-text-secondary: #999;
+  --color-text-tertiary: #666;
+}
+
+/* Animation */
+.empty-state {
+  animation: empty-state-fade-in 0.3s ease;
+}
+
+@keyframes empty-state-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

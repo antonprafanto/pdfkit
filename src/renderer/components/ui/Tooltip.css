@@ -1,0 +1,105 @@
+/* Tooltip Styles */
+
+.tooltip {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
+  animation: tooltip-fade-in 0.15s ease;
+}
+
+@keyframes tooltip-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.tooltip__content {
+  padding: 6px 10px;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: white;
+  background-color: #1f2937;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  max-width: 250px;
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+.tooltip__arrow {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background-color: #1f2937;
+  transform: rotate(45deg);
+}
+
+/* Arrow positions */
+.tooltip--top .tooltip__arrow {
+  bottom: -4px;
+  left: 50%;
+  margin-left: -4px;
+}
+
+.tooltip--bottom .tooltip__arrow {
+  top: -4px;
+  left: 50%;
+  margin-left: -4px;
+}
+
+.tooltip--left .tooltip__arrow {
+  right: -4px;
+  top: 50%;
+  margin-top: -4px;
+}
+
+.tooltip--right .tooltip__arrow {
+  left: -4px;
+  top: 50%;
+  margin-top: -4px;
+}
+
+/* Shortcut tooltip */
+.tooltip-shortcut {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tooltip-shortcut__label {
+  flex: 1;
+}
+
+.tooltip-shortcut__key {
+  padding: 2px 6px;
+  font-size: 0.7rem;
+  font-family: monospace;
+  background-color: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+/* Light mode */
+:root[data-theme='light'] .tooltip__content,
+.light .tooltip__content {
+  color: #1f2937;
+  background-color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+:root[data-theme='light'] .tooltip__arrow,
+.light .tooltip__arrow {
+  background-color: white;
+}
+
+:root[data-theme='light'] .tooltip-shortcut__key,
+.light .tooltip-shortcut__key {
+  background-color: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.1);
+}

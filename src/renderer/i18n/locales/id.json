@@ -475,5 +475,36 @@
     "translate": "Terjemahkan",
     "translateDoc": "Terjemahkan",
     "translateNote": "Menerjemahkan 5 halaman pertama"
+  },
+  "emptyState": {
+    "noPdf": {
+      "title": "Belum Ada PDF",
+      "description": "Buka file PDF untuk memulai"
+    },
+    "favorites": {
+      "title": "Belum Ada Favorit",
+      "description": "Bintangi file penting agar mudah ditemukan"
+    },
+    "collections": {
+      "title": "Belum Ada Koleksi",
+      "description": "Buat koleksi untuk mengatur file Anda"
+    },
+    "tags": {
+      "title": "Belum Ada Tag",
+      "description": "Tambah tag untuk mengkategorikan file Anda"
+    },
+    "search": {
+      "title": "Tidak Ada Hasil",
+      "description": "Coba kata kunci lain",
+      "descriptionWithQuery": "Tidak ada hasil untuk \"{{query}}\""
+    },
+    "recent": {
+      "title": "Belum Ada File Terbaru",
+      "description": "File yang Anda buka akan muncul di sini"
+    },
+    "error": {
+      "title": "Terjadi Kesalahan",
+      "description": "Terjadi error. Silakan coba lagi."
+    }
   }
 }

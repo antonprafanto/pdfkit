@@ -475,5 +475,36 @@
     "translate": "Translate",
     "translateDoc": "Translate",
     "translateNote": "Translates first 5 pages"
+  },
+  "emptyState": {
+    "noPdf": {
+      "title": "No PDF Open",
+      "description": "Open a PDF file to get started"
+    },
+    "favorites": {
+      "title": "No Favorites Yet",
+      "description": "Star important files to find them quickly"
+    },
+    "collections": {
+      "title": "No Collections",
+      "description": "Create collections to organize your files"
+    },
+    "tags": {
+      "title": "No Tags",
+      "description": "Add tags to categorize your files"
+    },
+    "search": {
+      "title": "No Results Found",
+      "description": "Try a different search term",
+      "descriptionWithQuery": "No results for \"{{query}}\""
+    },
+    "recent": {
+      "title": "No Recent Files",
+      "description": "Files you open will appear here"
+    },
+    "error": {
+      "title": "Something Went Wrong",
+      "description": "An error occurred. Please try again."
+    }
   }
 }
