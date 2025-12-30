@@ -310,7 +310,23 @@
     "color": "Warna",
     "assign": "Tetapkan Tag",
     "unassign": "Hapus Tag",
-    "empty": "Belum ada tag"
+    "empty": "Belum ada tag",
+    "assigned": "Tag yang Ditetapkan",
+    "clickToAssign": "Klik untuk menetapkan/menghapus",
+    "allTags": "Semua Tag",
+    "manage": "Kelola Tag"
+  },
+  "search": {
+    "advanced": "Pencarian Lanjutan",
+    "placeholder": "Cari file...",
+    "favoritesOnly": "Hanya favorit",
+    "allCollections": "Semua Koleksi",
+    "allTags": "Semua Tag",
+    "recentSearches": "Pencarian Terakhir",
+    "clearHistory": "Hapus",
+    "noResults": "Tidak ada hasil",
+    "startSearching": "Mulai mencari...",
+    "results": "hasil"
   },
   "metadata": {
     "title": "Edit Metadata PDF",

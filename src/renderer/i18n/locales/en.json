@@ -310,7 +310,23 @@
     "color": "Color",
     "assign": "Assign Tag",
     "unassign": "Remove Tag",
-    "empty": "No tags yet"
+    "empty": "No tags yet",
+    "assigned": "Assigned Tags",
+    "clickToAssign": "Click to assign/unassign",
+    "allTags": "All Tags",
+    "manage": "Manage Tags"
+  },
+  "search": {
+    "advanced": "Advanced Search",
+    "placeholder": "Search files...",
+    "favoritesOnly": "Favorites only",
+    "allCollections": "All Collections",
+    "allTags": "All Tags",
+    "recentSearches": "Recent Searches",
+    "clearHistory": "Clear",
+    "noResults": "No results found",
+    "startSearching": "Start searching...",
+    "results": "results"
   },
   "metadata": {
     "title": "Edit PDF Metadata",
