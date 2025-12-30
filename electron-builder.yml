@@ -1,0 +1,113 @@
+appId: com.pdfkit.app
+productName: PDF Kit
+copyright: Copyright © 2025 PDF Kit Contributors
+
+# Directories
+directories:
+  output: release
+  buildResources: assets
+
+# Files to include
+files:
+  - dist/**/*
+  - dist-electron/**/*
+  - package.json
+
+# Assets
+extraResources:
+  - from: assets/
+    to: assets/
+    filter:
+      - "**/*"
+
+# Windows configuration
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+    - target: portable
+      arch:
+        - x64
+  icon: assets/icon.svg
+  artifactName: "PDF-Kit-${version}-Setup-${arch}.${ext}"
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  deleteAppDataOnUninstall: false
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: PDF Kit
+  uninstallDisplayName: PDF Kit
+
+# macOS configuration
+mac:
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+    - target: zip
+      arch:
+        - x64
+        - arm64
+  icon: assets/icon.svg
+  category: public.app-category.productivity
+  artifactName: "PDF-Kit-${version}-${arch}.${ext}"
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: null
+  entitlementsInherit: null
+
+dmg:
+  title: PDF Kit
+  iconSize: 100
+  contents:
+    - x: 130
+      y: 220
+    - x: 410
+      y: 220
+      type: link
+      path: /Applications
+
+# Linux configuration
+linux:
+  target:
+    - target: AppImage
+      arch:
+        - x64
+    - target: deb
+      arch:
+        - x64
+    - target: rpm
+      arch:
+        - x64
+  icon: assets/icon.svg
+  category: Office
+  maintainer: PDF Kit Contributors
+  vendor: PDF Kit
+  artifactName: "PDF-Kit-${version}-${arch}.${ext}"
+  synopsis: Complete offline PDF toolkit
+  description: |
+    PDF Kit is a comprehensive desktop application for managing PDF documents.
+    All operations run locally on your device - your documents never leave your computer.
+    Features include split, merge, compress, encrypt, annotate, and AI-powered chat.
+
+# Publish configuration (for auto-update)
+publish:
+  provider: github
+  owner: user
+  repo: pdf-kit
+  releaseType: release
+
+# Compression
+compression: maximum
+
+# Remove build directory content before build
+removePackageScripts: true
+
+# Generate release notes
+releaseInfo:
+  releaseNotesFile: RELEASE_NOTES.md
