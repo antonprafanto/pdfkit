@@ -111,6 +111,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('plugin:notification', subscription);
     return () => ipcRenderer.removeListener('plugin:notification', subscription);
   },
+
+  // Auto-Updater
+  updaterCheck: () => ipcRenderer.invoke('updater:check'),
+  updaterDownload: () => ipcRenderer.invoke('updater:download'),
+  updaterInstall: () => ipcRenderer.invoke('updater:install'),
+  updaterGetStatus: () => ipcRenderer.invoke('updater:status'),
+  updaterGetVersion: () => ipcRenderer.invoke('updater:version'),
+  onUpdaterStatusChanged: (callback: (status: any) => void) => {
+    const subscription = (_event: Electron.IpcRendererEvent, status: any) => callback(status);
+    ipcRenderer.on('updater:status-changed', subscription);
+    return () => ipcRenderer.removeListener('updater:status-changed', subscription);
+  },
 });
 
 // Type definitions for TypeScript
@@ -172,6 +184,13 @@ export interface ElectronAPI {
   openPluginsFolder: () => Promise<void>;
   openFolderDialog: () => Promise<string[] | null>;
   onPluginNotification: (callback: (data: { pluginId: string; message: string; type: string }) => void) => () => void;
+  // Auto-Updater
+  updaterCheck: () => Promise<any>;
+  updaterDownload: () => Promise<boolean>;
+  updaterInstall: () => Promise<void>;
+  updaterGetStatus: () => Promise<any>;
+  updaterGetVersion: () => Promise<string>;
+  onUpdaterStatusChanged: (callback: (status: any) => void) => () => void;
 }
 
 declare global {

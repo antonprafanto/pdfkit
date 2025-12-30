@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { ConnectivityService } from './services/connectivity.service';
 import { officeConversionService } from './services/office-conversion.service';
+import { autoUpdaterService } from './services/auto-updater.service';
 import { createMenu } from './menu';
 import { pluginLifecycle, pluginLoader, pluginSettings } from './plugins';
 
@@ -78,6 +79,11 @@ app.whenReady().then(async () => {
     const enabledPlugins = pluginSettings.getEnabledPlugins();
     pluginLifecycle.loadEnabledPlugins(enabledPlugins);
     await pluginLifecycle.initializePlugins();
+    
+    // Initialize auto-updater (production only)
+    if (!isDev) {
+      autoUpdaterService.initialize(mainWindow);
+    }
   }
 
   // macOS: Re-create window when dock icon is clicked

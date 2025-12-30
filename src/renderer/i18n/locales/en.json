@@ -354,6 +354,21 @@
     "credits": "Credits",
     "checkUpdates": "Check for Updates"
   },
+  "updates": {
+    "checking": "Checking for updates...",
+    "available": "Update available",
+    "downloading": "Downloading update",
+    "ready": "Update ready to install",
+    "error": "Update error",
+    "download": "Download",
+    "installRestart": "Install & Restart",
+    "changelog": "Changelog",
+    "changelogTitle": "What's New in v{{version}}",
+    "currentVersion": "Current version",
+    "noNotes": "No release notes available.",
+    "checkNow": "Check for Updates",
+    "upToDate": "You have the latest version"
+  },
   "shortcuts": {
     "title": "Keyboard Shortcuts",
     "search": "Search shortcuts...",

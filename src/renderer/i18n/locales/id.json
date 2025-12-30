@@ -354,6 +354,21 @@
     "credits": "Kredit",
     "checkUpdates": "Periksa Pembaruan"
   },
+  "updates": {
+    "checking": "Memeriksa pembaruan...",
+    "available": "Pembaruan tersedia",
+    "downloading": "Mengunduh pembaruan",
+    "ready": "Pembaruan siap diinstal",
+    "error": "Kesalahan pembaruan",
+    "download": "Unduh",
+    "installRestart": "Instal & Mulai Ulang",
+    "changelog": "Catatan Perubahan",
+    "changelogTitle": "Yang Baru di v{{version}}",
+    "currentVersion": "Versi saat ini",
+    "noNotes": "Tidak ada catatan rilis.",
+    "checkNow": "Periksa Pembaruan",
+    "upToDate": "Anda sudah menggunakan versi terbaru"
+  },
   "shortcuts": {
     "title": "Pintasan Keyboard",
     "search": "Cari pintasan...",
