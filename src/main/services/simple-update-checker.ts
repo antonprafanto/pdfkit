@@ -3,7 +3,7 @@
  * Checks GitHub releases directly without electron-updater complexity
  */
 
-import { BrowserWindow, shell } from 'electron';
+import { shell } from 'electron';
 import * as https from 'https';
 
 export interface SimpleUpdateInfo {
