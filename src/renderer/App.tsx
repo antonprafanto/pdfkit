@@ -40,6 +40,8 @@ import { pdfFormsService } from './lib/pdf-forms.service';
 import { recentFilesManager, RecentFile } from './lib/recent-files';
 import { extractAnnotationsFromPdf } from './lib/pdf-annotation-extract.service';
 import { Button, Dialog } from './components/ui';
+import { UpdateNotification } from './components/UpdateNotification';
+import { FeatureHighlightsDialog, shouldShowFeatureHighlights } from './components/FeatureHighlightsDialog';
 
 function App() {
   const [isOnline, setIsOnline] = useState<boolean>(true);
@@ -74,6 +76,7 @@ function App() {
   const [showSettingsDialog, setShowSettingsDialog] = useState(false);
   const [showPluginManagerDialog, setShowPluginManagerDialog] = useState(false);
   const [showKeyboardShortcutsDialog, setShowKeyboardShortcutsDialog] = useState(false);
+  const [showFeatureHighlights, setShowFeatureHighlights] = useState(() => shouldShowFeatureHighlights());
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { t } = useTranslation();
 
@@ -123,6 +126,30 @@ function App() {
   // Initialize AI service with stored API keys on app load
   useEffect(() => {
     initializeAIService();
+  }, []);
+
+  // Listen for PDF file opened from OS (file association)
+  useEffect(() => {
+    const unsubscribe = window.electronAPI.onOpenPdfFile?.(async (filePath: string) => {
+      try {
+        console.log('Opening PDF from file association:', filePath);
+        const result = await window.electronAPI.readFileFromPath(filePath);
+        if (result.success && result.data && result.name) {
+          // Create a File object from the data
+          const blob = new Blob([new Uint8Array(result.data)], { type: 'application/pdf' });
+          const file = new File([blob], result.name, { type: 'application/pdf' });
+          handleFileOpen(file);
+        } else {
+          console.error('Failed to read file:', result.error);
+        }
+      } catch (error) {
+        console.error('Error opening file from association:', error);
+      }
+    });
+
+    return () => {
+      unsubscribe?.();
+    };
   }, []);
 
   // Keyboard shortcuts listener (F1 or ? for help)
@@ -427,9 +454,12 @@ function App() {
 
   return (
     <div className="flex h-screen flex-col bg-gray-50 dark:bg-gray-900">
+      {/* Auto-Update Notification Banner */}
+      <UpdateNotification />
+
       {/* Header / Toolbar - Minimalist */}
-      <header className={`sticky top-0 z-50 flex items-center justify-between border-b border-border bg-background transition-all duration-300 ${isHeaderMinimized ? 'h-12' : 'h-14'}`}>
-        <div className="flex items-center gap-4 px-6">
+      <header className={`sticky top-0 z-50 flex items-center justify-between border-b border-border bg-background transition-all duration-300 ${isHeaderMinimized ? 'h-8' : 'h-14'}`}>
+        <div className={`flex items-center gap-4 ${isHeaderMinimized ? 'px-3' : 'px-6'}`}>
           {!isHeaderMinimized && (
             <>
               <div className="flex items-center justify-center p-1.5 rounded bg-primary">
@@ -443,7 +473,7 @@ function App() {
             </>
           )}
           {isHeaderMinimized && (
-            <h1 className="text-sm font-semibold text-foreground">PDF Kit</h1>
+            <h1 className="text-xs font-medium text-muted-foreground">PDF Kit</h1>
           )}
         </div>
 
@@ -484,10 +514,10 @@ function App() {
           {/* Minimize/Maximize Button */}
           <button
             onClick={() => setIsHeaderMinimized(!isHeaderMinimized)}
-            className="rounded-md p-2 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+            className="rounded p-1 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
             title={isHeaderMinimized ? 'Expand Header' : 'Minimize Header'}
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               {isHeaderMinimized ? (
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               ) : (
@@ -867,6 +897,12 @@ function App() {
       <KeyboardShortcutsDialog
         open={showKeyboardShortcutsDialog}
         onClose={() => setShowKeyboardShortcutsDialog(false)}
+      />
+
+      {/* Feature Highlights Dialog (Onboarding) */}
+      <FeatureHighlightsDialog
+        open={showFeatureHighlights}
+        onClose={() => setShowFeatureHighlights(false)}
       />
     </div>
   );

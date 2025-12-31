@@ -506,5 +506,40 @@
       "title": "Terjadi Kesalahan",
       "description": "Terjadi error. Silakan coba lagi."
     }
+  },
+  "featureHighlights": {
+    "title": "Selamat Datang di PDF Kit!",
+    "subtitle": "Temukan apa yang bisa kamu lakukan",
+    "dontShowAgain": "Jangan tampilkan lagi",
+    "getStarted": "Mulai",
+    "next": "Berikutnya",
+    "prev": "Sebelumnya",
+    "features": {
+      "viewing": {
+        "title": "Lihat PDF",
+        "description": "Buka dan lihat dokumen PDF dengan berbagai mode tampilan - halaman tunggal, gulir berkelanjutan, atau halaman berhadapan."
+      },
+      "editing": {
+        "title": "Edit & Manipulasi",
+        "description": "Pisah, gabung, putar, hapus, ekstrak, susun ulang, dan duplikat halaman di PDF kamu."
+      },
+      "conversion": {
+        "title": "Konversi Dokumen",
+        "description": "Konversi file Office ke PDF, gambar ke PDF, dan ekspor halaman PDF sebagai gambar."
+      },
+      "security": {
+        "title": "Amankan PDF",
+        "description": "Enkripsi dengan kata sandi, tambah watermark, tanda tangani dokumen, dan lihat tanda tangan yang ada."
+      },
+      "ai": {
+        "title": "AI & OCR",
+        "description": "Ekstrak teks dari dokumen scan dengan OCR, dan gunakan AI untuk chat, ringkas, dan analisis PDF kamu."
+      },
+      "organization": {
+        "title": "Tetap Terorganisir",
+        "description": "Gunakan koleksi, tag, dan favorit untuk mengatur perpustakaan PDF kamu dengan efisien."
+      }
+    }
   }
 }
+

@@ -1,6 +1,6 @@
-import { Menu, BrowserWindow, shell, app } from 'electron';
+import { Menu, app } from 'electron';
 
-export function createMenu(mainWindow: BrowserWindow): Menu {
+export function createMenu(): Menu {
   const isMac = process.platform === 'darwin';
 
   const template: Electron.MenuItemConstructorOptions[] = [
@@ -24,48 +24,17 @@ export function createMenu(mainWindow: BrowserWindow): Menu {
         ]
       : []),
 
-    // File Menu
-    {
-      label: 'File',
-      submenu: [
-        {
-          label: 'Open PDF',
-          accelerator: 'CmdOrCtrl+O',
-          click: () => {
-            mainWindow.webContents.send('menu-open-file');
+    // File Menu - Minimal (just quit on Windows)
+    ...(!isMac
+      ? [
+          {
+            label: 'File',
+            submenu: [{ role: 'quit' as const }],
           },
-        },
-        {
-          label: 'Open Recent',
-          role: 'recentDocuments' as const,
-          submenu: [
-            {
-              label: 'Clear Recent',
-              role: 'clearRecentDocuments' as const,
-            },
-          ],
-        },
-        { type: 'separator' },
-        {
-          label: 'Save',
-          accelerator: 'CmdOrCtrl+S',
-          click: () => {
-            mainWindow.webContents.send('menu-save-file');
-          },
-        },
-        {
-          label: 'Save As...',
-          accelerator: 'CmdOrCtrl+Shift+S',
-          click: () => {
-            mainWindow.webContents.send('menu-save-file-as');
-          },
-        },
-        { type: 'separator' },
-        isMac ? { role: 'close' as const } : { role: 'quit' as const },
-      ],
-    },
+        ]
+      : []),
 
-    // Edit Menu
+    // Edit Menu - Built-in clipboard operations
     {
       label: 'Edit',
       submenu: [
@@ -81,35 +50,17 @@ export function createMenu(mainWindow: BrowserWindow): Menu {
       ],
     },
 
-    // View Menu
+    // View Menu - Dev tools and fullscreen
     {
       label: 'View',
       submenu: [
-        {
-          label: 'Zoom In',
-          accelerator: 'CmdOrCtrl+Plus',
-          click: () => {
-            mainWindow.webContents.send('menu-zoom-in');
-          },
-        },
-        {
-          label: 'Zoom Out',
-          accelerator: 'CmdOrCtrl+-',
-          click: () => {
-            mainWindow.webContents.send('menu-zoom-out');
-          },
-        },
-        {
-          label: 'Reset Zoom',
-          accelerator: 'CmdOrCtrl+0',
-          click: () => {
-            mainWindow.webContents.send('menu-zoom-reset');
-          },
-        },
-        { type: 'separator' },
         { role: 'reload' as const },
         { role: 'forceReload' as const },
         { role: 'toggleDevTools' as const },
+        { type: 'separator' },
+        { role: 'resetZoom' as const },
+        { role: 'zoomIn' as const },
+        { role: 'zoomOut' as const },
         { type: 'separator' },
         { role: 'togglefullscreen' as const },
       ],
@@ -131,40 +82,8 @@ export function createMenu(mainWindow: BrowserWindow): Menu {
           : [{ role: 'close' as const }]),
       ],
     },
-
-    // Help Menu
-    {
-      label: 'Help',
-      submenu: [
-        {
-          label: 'Check for Updates',
-          click: () => {
-            mainWindow.webContents.send('menu-check-updates');
-          },
-        },
-        { type: 'separator' },
-        {
-          label: 'Documentation',
-          click: async () => {
-            await shell.openExternal('https://github.com/pdfkit/pdfkit');
-          },
-        },
-        {
-          label: 'Report Issue',
-          click: async () => {
-            await shell.openExternal('https://github.com/pdfkit/pdfkit/issues');
-          },
-        },
-        { type: 'separator' },
-        {
-          label: 'About PDF Kit',
-          click: () => {
-            mainWindow.webContents.send('menu-about');
-          },
-        },
-      ],
-    },
   ];
 
   return Menu.buildFromTemplate(template);
 }
+

@@ -27,6 +27,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   savePdfFile: (filePath: string, pdfBytes: Uint8Array) =>
     ipcRenderer.invoke('save-pdf-file', filePath, pdfBytes),
   openMultipleFilesDialog: () => ipcRenderer.invoke('open-multiple-files-dialog'),
+  readFileFromPath: (filePath: string) => ipcRenderer.invoke('read-file-from-path', filePath),
   
   // PDF Operations
   encryptPDF: (pdfBytes: Uint8Array, options: {
@@ -123,6 +124,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('updater:status-changed', subscription);
     return () => ipcRenderer.removeListener('updater:status-changed', subscription);
   },
+
+  // File Association - Open PDF from OS
+  onOpenPdfFile: (callback: (filePath: string) => void) => {
+    const subscription = (_event: Electron.IpcRendererEvent, filePath: string) => callback(filePath);
+    ipcRenderer.on('open-pdf-file', subscription);
+    return () => ipcRenderer.removeListener('open-pdf-file', subscription);
+  },
 });
 
 // Type definitions for TypeScript
@@ -136,6 +144,7 @@ export interface ElectronAPI {
   saveFileDialog: (defaultName: string) => Promise<string | null>;
   savePdfFile: (filePath: string, pdfBytes: Uint8Array) => Promise<{ success: boolean; error?: string }>;
   openMultipleFilesDialog: () => Promise<Array<{ name: string; data: Uint8Array }> | null>;
+  readFileFromPath: (filePath: string) => Promise<{ success: boolean; name?: string; data?: Uint8Array; error?: string }>;
   encryptPDF: (pdfBytes: Uint8Array, options: {
     userPassword?: string;
     ownerPassword?: string;
@@ -191,6 +200,8 @@ export interface ElectronAPI {
   updaterGetStatus: () => Promise<any>;
   updaterGetVersion: () => Promise<string>;
   onUpdaterStatusChanged: (callback: (status: any) => void) => () => void;
+  // File Association
+  onOpenPdfFile: (callback: (filePath: string) => void) => () => void;
 }
 
 declare global {

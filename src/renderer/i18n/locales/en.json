@@ -506,5 +506,40 @@
       "title": "Something Went Wrong",
       "description": "An error occurred. Please try again."
     }
+  },
+  "featureHighlights": {
+    "title": "Welcome to PDF Kit!",
+    "subtitle": "Discover what you can do",
+    "dontShowAgain": "Don't show this again",
+    "getStarted": "Get Started",
+    "next": "Next",
+    "prev": "Previous",
+    "features": {
+      "viewing": {
+        "title": "View PDFs",
+        "description": "Open and view PDF documents with multiple viewing modes - single page, continuous scroll, or facing pages."
+      },
+      "editing": {
+        "title": "Edit & Manipulate",
+        "description": "Split, merge, rotate, delete, extract, reorder, and duplicate pages in your PDFs."
+      },
+      "conversion": {
+        "title": "Convert Documents",
+        "description": "Convert Office files to PDF, images to PDF, and export PDF pages as images."
+      },
+      "security": {
+        "title": "Secure Your PDFs",
+        "description": "Encrypt with passwords, add watermarks, sign documents, and view existing signatures."
+      },
+      "ai": {
+        "title": "AI & OCR",
+        "description": "Extract text from scanned documents with OCR, and use AI to chat, summarize, and analyze your PDFs."
+      },
+      "organization": {
+        "title": "Stay Organized",
+        "description": "Use collections, tags, and favorites to organize your PDF library efficiently."
+      }
+    }
   }
 }
+

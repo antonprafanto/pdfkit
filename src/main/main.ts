@@ -14,8 +14,31 @@ if (require('electron-squirrel-startup')) {
 
 let mainWindow: BrowserWindow | null = null;
 let connectivityService: ConnectivityService;
+// Store file path to open (when launched via file association)
+let fileToOpen: string | null = null;
 
 const isDev = process.env.NODE_ENV === 'development';
+
+// Check for file path in command line arguments (Windows/Linux)
+const args = process.argv.slice(1);
+for (const arg of args) {
+  if (arg.endsWith('.pdf') && fs.existsSync(arg)) {
+    fileToOpen = arg;
+    break;
+  }
+}
+
+// Handle file open event from macOS
+app.on('open-file', (event, filePath) => {
+  event.preventDefault();
+  if (filePath.endsWith('.pdf')) {
+    fileToOpen = filePath;
+    // If window is already open, send file to renderer
+    if (mainWindow && mainWindow.webContents) {
+      mainWindow.webContents.send('open-pdf-file', filePath);
+    }
+  }
+});
 
 function createWindow(): void {
   // Create the browser window
@@ -40,12 +63,21 @@ function createWindow(): void {
     mainWindow.loadURL('http://localhost:5173');
     mainWindow.webContents.openDevTools();
   } else {
-    mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
+    mainWindow.loadFile(path.join(__dirname, '../../renderer/index.html'));
   }
 
   // Show window when ready
   mainWindow.once('ready-to-show', () => {
     mainWindow?.show();
+    
+    // If launched with a PDF file, send it to renderer after a short delay
+    // to ensure React is fully mounted
+    if (fileToOpen && mainWindow) {
+      setTimeout(() => {
+        mainWindow?.webContents.send('open-pdf-file', fileToOpen);
+        fileToOpen = null; // Clear after sending
+      }, 500);
+    }
   });
 
   // Cleanup on close
@@ -54,7 +86,7 @@ function createWindow(): void {
   });
 
   // Setup menu
-  const menu = createMenu(mainWindow);
+  const menu = createMenu();
   Menu.setApplicationMenu(menu);
 }
 
@@ -122,6 +154,22 @@ ipcMain.handle('get-app-version', () => {
 
 ipcMain.handle('get-platform', () => {
   return process.platform;
+});
+
+// Read file from path (for file association)
+ipcMain.handle('read-file-from-path', async (_, filePath: string) => {
+  try {
+    const buffer = await fs.promises.readFile(filePath);
+    const name = path.basename(filePath);
+    return {
+      success: true,
+      name,
+      data: new Uint8Array(buffer),
+    };
+  } catch (error: any) {
+    console.error('Error reading file:', error);
+    return { success: false, error: error.message };
+  }
 });
 
 // File save handlers

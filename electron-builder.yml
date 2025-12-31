@@ -5,7 +5,7 @@ copyright: Copyright © 2025 PDF Kit Contributors
 # Directories
 directories:
   output: release
-  buildResources: assets
+  buildResources: build
 
 # Files to include
 files:
@@ -20,6 +20,15 @@ extraResources:
     filter:
       - "**/*"
 
+# File associations - Register as PDF handler
+fileAssociations:
+  - ext: pdf
+    name: PDF Document
+    description: Portable Document Format
+    mimeType: application/pdf
+    role: Viewer
+    icon: build/pdf-icon.ico
+
 # Windows configuration
 win:
   target:
@@ -29,8 +38,14 @@ win:
     - target: portable
       arch:
         - x64
-  icon: assets/icon.svg
+  icon: build/icon.ico
   artifactName: "PDF-Kit-${version}-Setup-${arch}.${ext}"
+  # File associations for Windows
+  fileAssociations:
+    - ext: pdf
+      name: PDF Document
+      description: Portable Document Format
+      icon: build/pdf-icon.ico
 
 nsis:
   oneClick: false
@@ -41,6 +56,8 @@ nsis:
   createStartMenuShortcut: true
   shortcutName: PDF Kit
   uninstallDisplayName: PDF Kit
+  # Register file associations during install
+  include: build/installer.nsh
 
 # macOS configuration
 mac:
@@ -60,6 +77,12 @@ mac:
   gatekeeperAssess: false
   entitlements: null
   entitlementsInherit: null
+  # File associations for macOS
+  fileAssociations:
+    - ext: pdf
+      name: PDF Document
+      role: Viewer
+      icon: assets/pdf-icon.icns
 
 dmg:
   title: PDF Kit
@@ -94,12 +117,15 @@ linux:
     PDF Kit is a comprehensive desktop application for managing PDF documents.
     All operations run locally on your device - your documents never leave your computer.
     Features include split, merge, compress, encrypt, annotate, and AI-powered chat.
+  # File associations for Linux
+  mimeTypes:
+    - application/pdf
 
 # Publish configuration (for auto-update)
 publish:
   provider: github
-  owner: user
-  repo: pdf-kit
+  owner: antonprafanto
+  repo: pdfkit
   releaseType: release
 
 # Compression
@@ -111,3 +137,4 @@ removePackageScripts: true
 # Generate release notes
 releaseInfo:
   releaseNotesFile: RELEASE_NOTES.md
+
