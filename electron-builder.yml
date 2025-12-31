@@ -38,14 +38,14 @@ win:
     - target: portable
       arch:
         - x64
-  icon: assets/icon.ico
+  icon: build/icon.ico
   artifactName: "PDF-Kit-${version}-Setup-${arch}.${ext}"
   # File associations for Windows
   fileAssociations:
     - ext: pdf
       name: PDF Document
       description: Portable Document Format
-      icon: assets/pdf-icon.ico
+      icon: build/pdf-icon.ico
 
 nsis:
   oneClick: false
