@@ -34,7 +34,12 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk-3-0 libnotify4 libnss3 libxss1 libxtst6 xauth xvfb libgbm1
+          sudo apt-get install -y libgtk-3-0 libnotify4 libnss3 libxss1 libxtst6 xauth xvfb libgbm1 libasound2 libatk-bridge2.0-0 libdrm2 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libcups2 libpango-1.0-0 libcairo2
+          
+      # Rebuild native modules for current platform
+      - name: Rebuild native modules
+        if: runner.os == 'Linux'
+        run: npm rebuild
           
       # Build and package
       - name: Build and Package (Windows)
@@ -52,7 +57,7 @@ jobs:
       - name: Build and Package (Linux)
         if: runner.os == 'Linux'
         run: |
-          xvfb-run --auto-servernum npm run package:linux
+          npm run package:linux
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
