@@ -153,20 +153,36 @@ class AutoUpdaterService {
 
   async checkForUpdates(): Promise<UpdateStatus> {
     try {
+      console.log('[Auto-Updater] Starting update check...');
+      log.info('[Auto-Updater] Starting update check...');
+      
       // Check internet connectivity first
       const isOnline = await this.checkConnectivity();
+      console.log('[Auto-Updater] Connectivity check:', isOnline);
+      
       if (!isOnline) {
+        const msg = 'No internet connection';
+        console.warn('[Auto-Updater]', msg);
         log.info('Skipping update check - no internet connection');
+        this.status.error = msg;
+        this.sendStatusToRenderer();
         return this.status;
       }
 
-      await autoUpdater.checkForUpdates();
+      console.log('[Auto-Updater] Calling autoUpdater.checkForUpdates()...');
+      const result = await autoUpdater.checkForUpdates();
+      console.log('[Auto-Updater] Check result:', result);
+      
       return this.status;
     } catch (error: any) {
-      log.error('Failed to check for updates:', error.message);
-      this.status.error = error.message;
+      const errorMsg = error.message || 'Unknown error';
+      console.error('[Auto-Updater] Failed to check for updates:', errorMsg, error);
+      log.error('Failed to check for updates:', errorMsg);
+      
+      this.status.error = errorMsg;
       this.status.checking = false;
       this.sendStatusToRenderer();
+      
       return this.status;
     }
   }
