@@ -506,9 +506,23 @@ function App() {
               <button
                 onClick={async () => {
                   try {
-                    await window.electronAPI.updaterCheck();
+                    console.log('[App] Check Updates button clicked');
+                    const result = await window.electronAPI.simpleUpdateCheck();
+                    console.log('[App] Update check result:', result);
+                    
+                    if (result.error) {
+                      alert(`Failed to check for updates:\n${result.error}`);
+                    } else if (result.hasUpdate) {
+                      const message = `New version available!\n\nCurrent: ${result.currentVersion}\nLatest: ${result.latestVersion}\n\nClick OK to download the update.`;
+                      if (confirm(message)) {
+                        await window.electronAPI.openDownloadUrl(result.downloadUrl);
+                      }
+                    } else {
+                      alert(`You're up to date!\n\nCurrent version: ${result.currentVersion}`);
+                    }
                   } catch (error) {
-                    console.error('Failed to check for updates:', error);
+                    console.error('[App] Failed to check for updates:', error);
+                    alert(`Error checking for updates:\n${error}`);
                   }
                 }}
                 className="rounded-md px-3 py-1.5 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950 transition-all flex items-center gap-1.5"

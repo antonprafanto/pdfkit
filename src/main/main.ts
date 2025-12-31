@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import { ConnectivityService } from './services/connectivity.service';
 import { officeConversionService } from './services/office-conversion.service';
 import { autoUpdaterService } from './services/auto-updater.service';
+import { SimpleUpdateChecker } from './services/simple-update-checker';
 import { createMenu } from './menu';
 import { pluginLifecycle, pluginLoader, pluginSettings } from './plugins';
 
@@ -172,6 +173,33 @@ ipcMain.handle('read-file-from-path', async (_, filePath: string) => {
     console.error('Error reading file:', error);
     return { success: false, error: error.message };
   }
+});
+
+// Simple update check using GitHub API directly
+ipcMain.handle('simple-update-check', async () => {
+  try {
+    console.log('[Main] simple-update-check called');
+    const updateChecker = new SimpleUpdateChecker(app.getVersion());
+    const result = await updateChecker.checkForUpdates();
+    console.log('[Main] Update check result:', result);
+    return result;
+  } catch (error: any) {
+    console.error('[Main] Update check error:', error);
+    return {
+      hasUpdate: false,
+      latestVersion: app.getVersion(),
+      currentVersion: app.getVersion(),
+      downloadUrl: '',
+      releaseNotes: '',
+      error: error.message
+    };
+  }
+});
+
+// Open download URL
+ipcMain.handle('open-download-url', async (_, url: string) => {
+  console.log('[Main] Opening download URL:', url);
+  shell.openExternal(url);
 });
 
 // File save handlers

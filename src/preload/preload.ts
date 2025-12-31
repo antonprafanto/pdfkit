@@ -29,6 +29,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openMultipleFilesDialog: () => ipcRenderer.invoke('open-multiple-files-dialog'),
   readFileFromPath: (filePath: string) => ipcRenderer.invoke('read-file-from-path', filePath),
   
+  // Simple Update Check (GitHub API direct)
+  simpleUpdateCheck: () => ipcRenderer.invoke('simple-update-check'),
+  openDownloadUrl: (url: string) => ipcRenderer.invoke('open-download-url', url),
+  
   // PDF Operations
   encryptPDF: (pdfBytes: Uint8Array, options: {
     userPassword?: string;
@@ -145,6 +149,8 @@ export interface ElectronAPI {
   savePdfFile: (filePath: string, pdfBytes: Uint8Array) => Promise<{ success: boolean; error?: string }>;
   openMultipleFilesDialog: () => Promise<Array<{ name: string; data: Uint8Array }> | null>;
   readFileFromPath: (filePath: string) => Promise<{ success: boolean; name?: string; data?: Uint8Array; error?: string }>;
+  simpleUpdateCheck: () => Promise<{ hasUpdate: boolean; latestVersion: string; currentVersion: string; downloadUrl: string; releaseNotes: string; error?: string }>;
+  openDownloadUrl: (url: string) => Promise<void>;
   encryptPDF: (pdfBytes: Uint8Array, options: {
     userPassword?: string;
     ownerPassword?: string;
