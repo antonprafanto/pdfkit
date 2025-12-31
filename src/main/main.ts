@@ -44,12 +44,21 @@ app.on('open-file', (event, filePath) => {
 });
 
 function createWindow(): void {
+  // Determine icon path based on development/production
+  const iconPath = isDev 
+    ? path.join(__dirname, '../../assets/icon.ico')
+    : path.join(process.resourcesPath, 'assets/icon.ico');
+  
+  console.log('[Main] Using icon path:', iconPath);
+  console.log('[Main] Icon exists:', fs.existsSync(iconPath));
+  
   // Create the browser window
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
     minWidth: 800,
     minHeight: 600,
+    icon: iconPath,
     webPreferences: {
       preload: path.join(__dirname, '../preload/preload.js'),
       nodeIntegration: false,

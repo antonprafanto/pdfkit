@@ -73,8 +73,17 @@ export const UpdateNotification: React.FC<UpdateNotificationProps> = ({
     onDismiss?.();
   };
 
-  // Don't show if dismissed or no update
-  if (!status || dismissed || (!status.available && !status.downloading && !status.downloaded && !status.checking && !status.error)) {
+  // Don't show if:
+  // - dismissed by user
+  // - no status
+  // - error-only state (no other meaningful state) - we hide updater errors as they're usually not critical
+  // - no relevant state (no check/download/available)
+  if (
+    !status || 
+    dismissed || 
+    (status.error && !status.available && !status.downloading && !status.downloaded && !status.checking) ||
+    (!status.available && !status.downloading && !status.downloaded && !status.checking && !status.error)
+  ) {
     return null;
   }
 
