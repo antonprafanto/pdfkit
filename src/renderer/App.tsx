@@ -502,6 +502,24 @@ function App() {
                 {t('footer.about')}
               </button>
 
+              {/* Check for Updates Button */}
+              <button
+                onClick={async () => {
+                  try {
+                    await window.electronAPI.updaterCheck();
+                  } catch (error) {
+                    console.error('Failed to check for updates:', error);
+                  }
+                }}
+                className="rounded-md px-3 py-1.5 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950 transition-all flex items-center gap-1.5"
+                title="Check for Updates"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Check Updates
+              </button>
+
               {/* Connectivity Indicator */}
               <div className="flex items-center gap-2 px-2 py-1 rounded-md bg-secondary/50">
                  <ConnectivityIndicator isOnline={isOnline} />
