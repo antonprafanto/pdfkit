@@ -44,18 +44,12 @@ app.on('open-file', (event, filePath) => {
 });
 
 function createWindow(): void {
-  // Set icon path - works in both dev and production
-  const iconPath = isDev
-    ? path.join(__dirname, '../../assets/icon.png')
-    : path.join(process.resourcesPath, 'assets/icon.png');
-
   // Create the browser window
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
     minWidth: 800,
     minHeight: 600,
-    icon: iconPath,
     webPreferences: {
       preload: path.join(__dirname, '../preload/preload.js'),
       nodeIntegration: false,
