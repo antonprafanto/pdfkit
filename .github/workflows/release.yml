@@ -9,14 +9,8 @@ permissions:
   contents: write
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
-        
+  build-windows:
+    runs-on: windows-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,56 +23,92 @@ jobs:
       - name: Install dependencies
         run: npm install
         
-      # Linux dependencies for Electron
-      - name: Install Linux dependencies
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgtk-3-0 libnotify4 libnss3 libxss1 libxtst6 xauth xvfb libgbm1 libasound2 libatk-bridge2.0-0 libdrm2 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libcups2 libpango-1.0-0 libcairo2
-          
-      # Rebuild native modules for current platform
-      - name: Rebuild native modules
-        if: runner.os == 'Linux'
-        run: npm rebuild
-          
-      # Build and package
-      - name: Build and Package (Windows)
-        if: runner.os == 'Windows'
+      - name: Build and Package
         run: npm run package:win
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
-      - name: Build and Package (macOS)
-        if: runner.os == 'macOS'
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-windows
+          path: |
+            release/*.exe
+            release/*.yml
+          if-no-files-found: warn
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install dependencies
+        run: npm install
+        
+      - name: Build and Package
         run: npm run package:mac
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
-      - name: Build and Package (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          npm run package:linux
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
-      # Upload artifacts
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: release-${{ matrix.os }}
+          name: release-macos
           path: |
-            release/*.exe
             release/*.dmg
             release/*.zip
+            release/*.yml
+          if-no-files-found: warn
+
+  build-linux:
+    runs-on: ubuntu-latest
+    continue-on-error: true  # Linux build is optional
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install dependencies
+        run: npm install
+        
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-0 libnotify4 libnss3 libxss1 libxtst6 xauth xvfb libgbm1 libasound2 libatk-bridge2.0-0 libdrm2 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libcups2 libpango-1.0-0 libcairo2
+          
+      - name: Rebuild native modules
+        run: npm rebuild
+        
+      - name: Build and Package
+        run: npm run package:linux
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-linux
+          path: |
             release/*.AppImage
             release/*.deb
             release/*.rpm
             release/*.yml
           if-no-files-found: warn
-          
+
   release:
-    needs: build
+    needs: [build-windows, build-macos]  # Only depends on Windows and macOS
     runs-on: ubuntu-latest
+    if: always() && (needs.build-windows.result == 'success' || needs.build-macos.result == 'success')
     
     steps:
       - name: Checkout
@@ -89,9 +119,10 @@ jobs:
         with:
           path: artifacts
           merge-multiple: true
+        continue-on-error: true
           
       - name: List artifacts
-        run: ls -la artifacts/
+        run: ls -la artifacts/ || echo "No artifacts found"
         
       - name: Create Release
         uses: softprops/action-gh-release@v1
