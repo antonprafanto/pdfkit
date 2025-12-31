@@ -17,7 +17,9 @@ let connectivityService: ConnectivityService;
 // Store file path to open (when launched via file association)
 let fileToOpen: string | null = null;
 
-const isDev = process.env.NODE_ENV === 'development';
+// Reliable production detection - app.isPackaged is true when built/packaged
+const isDev = !app.isPackaged;
+console.log('[Main] isDev:', isDev, 'isPackaged:', app.isPackaged);
 
 // Check for file path in command line arguments (Windows/Linux)
 const args = process.argv.slice(1);
