@@ -1,7 +1,7 @@
 # PDF Kit
 
 <p align="center">
-  <img src="docs/assets/logo.png" alt="PDF Kit Logo" width="120" height="120">
+  <img width="512" height="512" alt="PDF Kit Logo" width="120" height="120" src="https://github.com/user-attachments/assets/522212f0-1d73-44b8-a38b-304e470025ec" />
 </p>
 
 <p align="center">
