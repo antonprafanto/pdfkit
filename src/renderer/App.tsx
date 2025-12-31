@@ -735,7 +735,7 @@ function App() {
              ? `Page ${usePDFStore.getState().currentPage} of ${usePDFStore.getState().totalPages}`
              : 'Ready'}
         </div>
-        <div>PDF Kit v0.1.0</div>
+        <div>PDF Kit</div>
       </footer>
 
       {/* Hidden file input */}

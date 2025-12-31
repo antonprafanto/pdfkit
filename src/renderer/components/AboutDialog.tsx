@@ -3,7 +3,7 @@
  * Displays app information, version, credits, and license
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Dialog } from './ui/Dialog';
 
@@ -14,6 +14,16 @@ interface AboutDialogProps {
 
 export const AboutDialog: React.FC<AboutDialogProps> = ({ isOpen, onClose }) => {
   const { t } = useTranslation();
+  const [appVersion, setAppVersion] = useState<string>('...');
+  
+  useEffect(() => {
+    // Get version from Electron API
+    window.electronAPI.getAppVersion().then((version) => {
+      setAppVersion(version);
+    }).catch(() => {
+      setAppVersion('1.0.0');
+    });
+  }, []);
   
   const handleOpenLink = (url: string) => {
     window.electronAPI.openExternal(url);
@@ -45,7 +55,7 @@ export const AboutDialog: React.FC<AboutDialogProps> = ({ isOpen, onClose }) => 
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div>
               <p className="font-semibold text-gray-700 dark:text-gray-300">Version</p>
-              <p className="text-gray-600 dark:text-gray-400">0.1.0 (Development)</p>
+              <p className="text-gray-600 dark:text-gray-400">{appVersion}</p>
             </div>
             <div>
               <p className="font-semibold text-gray-700 dark:text-gray-300">Platform</p>
@@ -57,7 +67,7 @@ export const AboutDialog: React.FC<AboutDialogProps> = ({ isOpen, onClose }) => 
             </div>
             <div>
               <p className="font-semibold text-gray-700 dark:text-gray-300">Build Date</p>
-              <p className="text-gray-600 dark:text-gray-400">Dec 28, 2025</p>
+              <p className="text-gray-600 dark:text-gray-400">Dec 31, 2025</p>
             </div>
           </div>
         </div>
