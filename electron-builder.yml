@@ -27,7 +27,7 @@ fileAssociations:
     description: Portable Document Format
     mimeType: application/pdf
     role: Viewer
-    icon: build/pdf-icon.ico
+    icon: assets/pdf-icon.ico
 
 # Windows configuration
 win:
