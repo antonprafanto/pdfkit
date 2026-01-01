@@ -18,6 +18,7 @@ export interface KeyboardShortcutHandlers {
   onToggleSearch?: () => void;
   onFirstPage?: () => void;
   onLastPage?: () => void;
+  onPrint?: () => void;
 }
 
 export function useKeyboardShortcuts(handlers: KeyboardShortcutHandlers) {
@@ -82,9 +83,12 @@ export function useKeyboardShortcuts(handlers: KeyboardShortcutHandlers) {
         event.preventDefault();
         handlers.onToggleSearch?.();
       }
+      // Note: Print (Ctrl+P) is NOT handled here - use Print button instead
+      // Electron's menu accelerator handles Ctrl+P
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handlers]);
 }
+

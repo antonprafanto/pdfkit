@@ -1,6 +1,6 @@
-import { Menu, app } from 'electron';
+import { Menu, app, BrowserWindow } from 'electron';
 
-export function createMenu(): Menu {
+export function createMenu(mainWindow: BrowserWindow | null): Menu {
   const isMac = process.platform === 'darwin';
 
   const template: Electron.MenuItemConstructorOptions[] = [
@@ -24,15 +24,25 @@ export function createMenu(): Menu {
         ]
       : []),
 
-    // File Menu - Minimal (just quit on Windows)
-    ...(!isMac
-      ? [
-          {
-            label: 'File',
-            submenu: [{ role: 'quit' as const }],
+    // File Menu
+    {
+      label: 'File',
+      submenu: [
+        // Custom Print handler - intercepts Ctrl+P
+        {
+          label: 'Print',
+          accelerator: 'CommandOrControl+P',
+          click: () => {
+            console.log('[Menu] Print accelerator triggered - sending to renderer');
+            if (mainWindow && mainWindow.webContents) {
+              mainWindow.webContents.send('trigger-print');
+            }
           },
-        ]
-      : []),
+        },
+        { type: 'separator' },
+        isMac ? { role: 'close' as const } : { role: 'quit' as const },
+      ],
+    },
 
     // Edit Menu - Built-in clipboard operations
     {
@@ -86,4 +96,3 @@ export function createMenu(): Menu {
 
   return Menu.buildFromTemplate(template);
 }
-

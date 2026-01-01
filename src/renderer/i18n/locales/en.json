@@ -73,12 +73,21 @@
     "settings": "Settings",
     "about": "About"
   },
+  "ribbon": {
+    "home": "Home",
+    "edit": "Edit",
+    "page": "Page",
+    "tools": "Tools",
+    "view": "View"
+  },
   "toolbar": {
     "zoomIn": "Zoom In",
     "zoomOut": "Zoom Out",
     "fitWidth": "Fit Width",
     "fitPage": "Fit Page",
     "rotate": "Rotate",
+    "rotateClockwise": "Rotate Right",
+    "rotateCounterClockwise": "Rotate Left",
     "previousPage": "Previous Page",
     "nextPage": "Next Page",
     "firstPage": "First Page",
@@ -89,8 +98,23 @@
     "facingPages": "Facing Pages",
     "showThumbnails": "Show Thumbnails",
     "hideThumbnails": "Hide Thumbnails",
+    "enterAnnotation": "Enter Annotation Mode",
+    "exitAnnotation": "Exit Annotation Mode",
+    "enterForms": "Enter Forms Mode",
+    "exitForms": "Exit Forms Mode",
+    "enterAI": "Enter AI Mode",
+    "exitAI": "Exit AI Mode",
     "properties": "Properties",
-    "shortcuts": "Keyboard Shortcuts"
+    "shortcuts": "Keyboard Shortcuts",
+    "print": "Print",
+    "share": "Share"
+  },
+  "share": {
+    "title": "Share PDF Kit",
+    "description": "Share this app with your friends and colleagues",
+    "copyLink": "Copy Link",
+    "copied": "Link copied!",
+    "scanQR": "Scan QR code to open"
   },
   "tools": {
     "merge": "Merge PDFs",
@@ -269,6 +293,9 @@
     "maxMemory": "Max Memory Usage",
     "privacy": "Privacy",
     "clearRecentOnExit": "Clear recent files on exit",
+    "helpOnboarding": "Help & Onboarding",
+    "showWelcomeGuide": "Show Welcome Guide",
+    "showWelcomeGuideDesc": "View the welcome guide that shows PDF Kit features",
     "shortcuts": {
       "title": "Keyboard Shortcuts",
       "navigation": "Navigation",
@@ -390,6 +417,14 @@
     "print": "Print",
     "fullscreen": "Fullscreen",
     "escape": "Close/Cancel"
+  },
+  "print": {
+    "preparing": "Preparing PDF for printing...",
+    "preparingDescription": "Please wait while we prepare your document",
+    "opened": "PDF opened in browser",
+    "openedDescription": "You can now print using the browser's print dialog (usually Ctrl+P)",
+    "failed": "Failed to open PDF",
+    "failedDescription": "Failed to prepare PDF for printing"
   },
   "errors": {
     "fileNotFound": "File not found",

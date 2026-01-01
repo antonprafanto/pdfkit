@@ -73,12 +73,21 @@
     "settings": "Pengaturan",
     "about": "Tentang"
   },
+  "ribbon": {
+    "home": "Beranda",
+    "edit": "Edit",
+    "page": "Halaman",
+    "tools": "Alat",
+    "view": "Tampilan"
+  },
   "toolbar": {
     "zoomIn": "Perbesar",
     "zoomOut": "Perkecil",
     "fitWidth": "Sesuai Lebar",
     "fitPage": "Sesuai Halaman",
     "rotate": "Putar",
+    "rotateClockwise": "Putar Kanan",
+    "rotateCounterClockwise": "Putar Kiri",
     "previousPage": "Halaman Sebelumnya",
     "nextPage": "Halaman Berikutnya",
     "firstPage": "Halaman Pertama",
@@ -89,8 +98,23 @@
     "facingPages": "Halaman Berhadapan",
     "showThumbnails": "Tampilkan Thumbnail",
     "hideThumbnails": "Sembunyikan Thumbnail",
+    "enterAnnotation": "Masuk Mode Anotasi",
+    "exitAnnotation": "Keluar Mode Anotasi",
+    "enterForms": "Masuk Mode Formulir",
+    "exitForms": "Keluar Mode Formulir",
+    "enterAI": "Masuk Mode AI",
+    "exitAI": "Keluar Mode AI",
     "properties": "Properti",
-    "shortcuts": "Pintasan Keyboard"
+    "shortcuts": "Pintasan Keyboard",
+    "print": "Cetak",
+    "share": "Bagikan"
+  },
+  "share": {
+    "title": "Bagikan PDF Kit",
+    "description": "Bagikan aplikasi ini ke teman dan kolega Anda",
+    "copyLink": "Salin Tautan",
+    "copied": "Tautan disalin!",
+    "scanQR": "Pindai kode QR untuk membuka"
   },
   "tools": {
     "merge": "Gabung PDF",
@@ -269,6 +293,9 @@
     "maxMemory": "Maksimal Penggunaan Memori",
     "privacy": "Privasi",
     "clearRecentOnExit": "Hapus file terbaru saat keluar",
+    "helpOnboarding": "Bantuan & Pengenalan",
+    "showWelcomeGuide": "Tampilkan Panduan Selamat Datang",
+    "showWelcomeGuideDesc": "Lihat panduan selamat datang yang menampilkan fitur PDF Kit",
     "shortcuts": {
       "title": "Pintasan Keyboard",
       "navigation": "Navigasi",
@@ -390,6 +417,14 @@
     "print": "Cetak",
     "fullscreen": "Layar Penuh",
     "escape": "Tutup/Batal"
+  },
+  "print": {
+    "preparing": "Menyiapkan PDF untuk dicetak...",
+    "preparingDescription": "Mohon tunggu sementara kami menyiapkan dokumen Anda",
+    "opened": "PDF dibuka di browser",
+    "openedDescription": "Anda sekarang dapat mencetak menggunakan dialog cetak browser (biasanya Ctrl+P)",
+    "failed": "Gagal membuka PDF",
+    "failedDescription": "Gagal menyiapkan PDF untuk dicetak"
   },
   "errors": {
     "fileNotFound": "File tidak ditemukan",

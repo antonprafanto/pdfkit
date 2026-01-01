@@ -21,6 +21,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getAppVersion: () => ipcRenderer.invoke('get-app-version'),
   getPlatform: () => ipcRenderer.invoke('get-platform'),
   openExternal: (url: string) => ipcRenderer.invoke('open-external', url),
+  
+  // Print
+  printPDF: (options?: { pdfPath?: string; pdfBytes?: Uint8Array; fileName?: string }) => 
+    ipcRenderer.invoke('print-pdf', options),
 
   // File Operations
   saveFileDialog: (defaultName: string) => ipcRenderer.invoke('save-file-dialog', defaultName),
@@ -135,6 +139,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('open-pdf-file', subscription);
     return () => ipcRenderer.removeListener('open-pdf-file', subscription);
   },
+
+  // Print trigger from main process (globalShortcut Ctrl+P)
+  onTriggerPrint: (callback: () => void) => {
+    const subscription = () => callback();
+    ipcRenderer.on('trigger-print', subscription);
+    return () => ipcRenderer.removeListener('trigger-print', subscription);
+  },
 });
 
 // Type definitions for TypeScript
@@ -145,6 +156,7 @@ export interface ElectronAPI {
   getAppVersion: () => Promise<string>;
   getPlatform: () => Promise<string>;
   openExternal: (url: string) => Promise<void>;
+  printPDF: (options?: { pdfPath?: string; pdfBytes?: Uint8Array; fileName?: string }) => Promise<{ success: boolean; error?: string }>;
   saveFileDialog: (defaultName: string) => Promise<string | null>;
   savePdfFile: (filePath: string, pdfBytes: Uint8Array) => Promise<{ success: boolean; error?: string }>;
   openMultipleFilesDialog: () => Promise<Array<{ name: string; data: Uint8Array }> | null>;
@@ -208,6 +220,8 @@ export interface ElectronAPI {
   onUpdaterStatusChanged: (callback: (status: any) => void) => () => void;
   // File Association
   onOpenPdfFile: (callback: (filePath: string) => void) => () => void;
+  // Print trigger from main process
+  onTriggerPrint: (callback: () => void) => () => void;
 }
 
 declare global {

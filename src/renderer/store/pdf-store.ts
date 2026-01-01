@@ -22,6 +22,7 @@ interface PDFState {
   document: PDFDocumentProxy | null;
   metadata: PDFMetadata | null;
   fileName: string | null;
+  filePath: string | null; // Full path for printing
   totalPages: number;
 
   // View state
@@ -40,6 +41,7 @@ interface PDFState {
   setDocument: (document: PDFDocumentProxy | null) => void;
   setMetadata: (metadata: PDFMetadata | null) => void;
   setFileName: (fileName: string | null) => void;
+  setFilePath: (filePath: string | null) => void;
   setCurrentPage: (page: number) => void;
   setScale: (scale: number) => void;
   setRotation: (rotation: number) => void;
@@ -73,6 +75,7 @@ export const usePDFStore = create<PDFState>((set, get) => ({
   document: null,
   metadata: null,
   fileName: null,
+  filePath: null,
   totalPages: 0,
   currentPage: 1,
   scale: 1.0,
@@ -89,6 +92,7 @@ export const usePDFStore = create<PDFState>((set, get) => ({
   }),
   setMetadata: (metadata) => set({ metadata }),
   setFileName: (fileName) => set({ fileName }),
+  setFilePath: (filePath) => set({ filePath }),
   setCurrentPage: (currentPage) => set({ currentPage }),
   setScale: (scale) => set({ scale: Math.max(0.25, Math.min(5.0, scale)) }),
   setRotation: (rotation) => set({ rotation: rotation % 360 }),
@@ -167,11 +171,11 @@ export const usePDFStore = create<PDFState>((set, get) => ({
 
   resetRotation: () => set({ rotation: 0 }),
 
-  // Reset
   reset: () => set({
     document: null,
     metadata: null,
     fileName: null,
+    filePath: null,
     totalPages: 0,
     currentPage: 1,
     scale: 1.0,

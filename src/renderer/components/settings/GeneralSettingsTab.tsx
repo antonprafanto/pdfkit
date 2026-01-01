@@ -222,6 +222,30 @@ export const GeneralSettingsTab: React.FC<GeneralSettingsTabProps> = ({
           </span>
         </label>
       </section>
+
+      {/* Help & Onboarding */}
+      <section>
+        <h3 className="text-sm font-semibold text-foreground mb-3">
+          {t('settings.helpOnboarding', 'Help & Onboarding')}
+        </h3>
+        <div className="flex flex-col gap-2">
+          <p className="text-sm text-muted-foreground">
+            {t('settings.showWelcomeGuideDesc', 'View the welcome guide that shows PDF Kit features')}
+          </p>
+          <Button
+            variant="outline"
+            onClick={() => {
+              // Reset the localStorage flag to show the welcome dialog
+              localStorage.removeItem('pdf_kit_feature_highlights_seen');
+              // Reload the page to trigger the dialog
+              window.location.reload();
+            }}
+            className="w-fit"
+          >
+            {t('settings.showWelcomeGuide', 'Show Welcome Guide')}
+          </Button>
+        </div>
+      </section>
     </div>
   );
 };

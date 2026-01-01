@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Menu, dialog, shell } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu, dialog, shell, globalShortcut } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
 import { ConnectivityService } from './services/connectivity.service';
@@ -92,13 +92,22 @@ function createWindow(): void {
     }
   });
 
+  // Block native Ctrl+P to prevent Electron's print dialog
+  // The renderer will handle print via IPC to open with system PDF viewer
+  mainWindow.webContents.on('before-input-event', (event, input) => {
+    if ((input.control || input.meta) && input.key.toLowerCase() === 'p') {
+      console.log('[Main] Blocking native Ctrl+P - renderer will handle via IPC');
+      event.preventDefault();
+    }
+  });
+
   // Cleanup on close
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
 
-  // Setup menu
-  const menu = createMenu();
+  // Setup menu with mainWindow reference for Print handler
+  const menu = createMenu(mainWindow);
   Menu.setApplicationMenu(menu);
 }
 
@@ -128,6 +137,7 @@ app.whenReady().then(async () => {
     if (!isDev) {
       autoUpdaterService.initialize(mainWindow);
     }
+    // Note: Ctrl+P is handled by menu accelerator in menu.ts
   }
 
   // macOS: Re-create window when dock icon is clicked
@@ -142,6 +152,9 @@ app.whenReady().then(async () => {
 app.on('window-all-closed', async () => {
   // Shutdown plugins
   await pluginLifecycle.shutdown();
+  
+  // Unregister all global shortcuts
+  globalShortcut.unregisterAll();
   
   if (process.platform !== 'darwin') {
     connectivityService?.stopMonitoring();
@@ -162,6 +175,93 @@ ipcMain.handle('check-connectivity', async () => {
 // App info
 ipcMain.handle('get-app-version', () => {
   return app.getVersion();
+});
+
+// Print PDF - Uses Chromium's built-in print system with preview
+ipcMain.handle('print-pdf', async (_event, options?: { pdfPath?: string; pdfBytes?: Uint8Array; fileName?: string }) => {
+  try {
+    console.log('[Main] print-pdf called with options:', {
+      hasPdfPath: !!options?.pdfPath,
+      pdfPath: options?.pdfPath,
+      hasPdfBytes: !!options?.pdfBytes,
+      pdfBytesLength: options?.pdfBytes?.length || 0,
+      fileName: options?.fileName
+    });
+
+    let pdfBuffer: Buffer | null = null;
+
+    // Priority 1: Always prefer pdfBytes if available (most reliable for current document state)
+    if (options?.pdfBytes && options.pdfBytes.length > 0) {
+      pdfBuffer = Buffer.from(options.pdfBytes);
+      console.log('[Main] Using PDF bytes for printing, size:', pdfBuffer.length);
+    }
+    // Priority 2: Use pdfPath if pdfBytes not available and path exists
+    else if (options?.pdfPath && fs.existsSync(options.pdfPath)) {
+      console.log('[Main] Reading PDF from path for printing:', options.pdfPath);
+      pdfBuffer = await fs.promises.readFile(options.pdfPath);
+    }
+
+    if (pdfBuffer) {
+      // Save to temporary file
+      const tempDir = app.getPath('temp');
+      const safeFileName = (options?.fileName || 'print_document.pdf')
+        .replace(/[<>:"/\\|?*]/g, '_')
+        .replace(/\s+/g, '_');
+      const tempPdfPath = path.join(tempDir, `pdfkit_print_${Date.now()}_${safeFileName}`);
+
+      await fs.promises.writeFile(tempPdfPath, pdfBuffer);
+      console.log('[Main] Saved PDF to temp file:', tempPdfPath);
+
+      // Open with specific PDF viewer (not default) to avoid opening PDF Kit itself
+      // Try Microsoft Edge first (available on all Windows 10/11), then fallback to others
+      let openCommand: string;
+
+      if (process.platform === 'win32') {
+        // Windows: Use Microsoft Edge with explicit path
+        // Edge on Windows 10/11 is at: C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe
+        const edgePath = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
+        if (fs.existsSync(edgePath)) {
+          openCommand = `"${edgePath}" "${tempPdfPath}"`;
+        } else {
+          // Fallback: try to find Edge in x64 folder
+          const edge64Path = 'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe';
+          if (fs.existsSync(edge64Path)) {
+            openCommand = `"${edge64Path}" "${tempPdfPath}"`;
+          } else {
+            // Last resort: use shell.openExternal with explicit URL
+            await shell.openExternal(`file://${tempPdfPath}`);
+            console.log('[Main] Opened PDF with shell.openExternal');
+            return { success: true, method: 'shell-external' };
+          }
+        }
+      } else if (process.platform === 'darwin') {
+        // macOS: use Preview app
+        openCommand = `open -a Preview "${tempPdfPath}"`;
+      } else {
+        // Linux: try common PDF viewers
+        openCommand = `xdg-open "${tempPdfPath}"`;
+      }
+
+      // Execute command to open PDF with specific app
+      const { exec } = require('child_process');
+      exec(openCommand, (error: any) => {
+        if (error) {
+          console.error('[Main] Failed to open PDF:', error);
+        } else {
+          console.log('[Main] PDF opened with external viewer');
+        }
+      });
+
+      return { success: true, method: 'external-viewer' };
+    } else {
+      // No valid PDF data available
+      console.error('[Main] No valid PDF path or bytes provided');
+      return { success: false, error: 'No PDF data available for printing' };
+    }
+  } catch (error: any) {
+    console.error('[Main] Print error:', error);
+    return { success: false, error: error.message };
+  }
 });
 
 ipcMain.handle('get-platform', () => {

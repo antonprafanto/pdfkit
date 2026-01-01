@@ -42,6 +42,7 @@ import { extractAnnotationsFromPdf } from './lib/pdf-annotation-extract.service'
 import { Button, Dialog } from './components/ui';
 import { UpdateNotification } from './components/UpdateNotification';
 import { FeatureHighlightsDialog, shouldShowFeatureHighlights } from './components/FeatureHighlightsDialog';
+import { ShareDialog } from './components/ShareDialog';
 
 function App() {
   const [isOnline, setIsOnline] = useState<boolean>(true);
@@ -77,6 +78,7 @@ function App() {
   const [showPluginManagerDialog, setShowPluginManagerDialog] = useState(false);
   const [showKeyboardShortcutsDialog, setShowKeyboardShortcutsDialog] = useState(false);
   const [showFeatureHighlights, setShowFeatureHighlights] = useState(() => shouldShowFeatureHighlights());
+  const [showShareDialog, setShowShareDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { t } = useTranslation();
 
@@ -86,6 +88,7 @@ function App() {
     setDocument,
     setMetadata,
     setFileName,
+    setFilePath,
     setIsLoading,
     setError,
     reset,
@@ -94,6 +97,19 @@ function App() {
   const { hasUnsavedChanges, reset: resetEditingStore, setOriginalFile } = useEditingStore();
   const { setFields, fields, toggleEditMode, setDirty } = useFormsStore();
   const { theme } = useThemeStore();
+
+  // Override window.print to prevent native Electron print dialog
+  // This must be done early before any print action can be triggered
+  useEffect(() => {
+    const originalPrint = window.print;
+    window.print = () => {
+      console.log('[App] window.print blocked - use Print button or Ctrl+P handler');
+      // Don't call original print - our custom handler opens PDF in system viewer
+    };
+    return () => {
+      window.print = originalPrint;
+    };
+  }, []);
 
   // Initialize theme on mount
   useEffect(() => {
@@ -139,6 +155,8 @@ function App() {
           const blob = new Blob([new Uint8Array(result.data)], { type: 'application/pdf' });
           const file = new File([blob], result.name, { type: 'application/pdf' });
           handleFileOpen(file);
+          // Store full path for printing
+          setFilePath(filePath);
         } else {
           console.error('Failed to read file:', result.error);
         }
@@ -500,6 +518,18 @@ function App() {
                 title={t('footer.about')}
               >
                 {t('footer.about')}
+              </button>
+
+              {/* Share Button */}
+              <button
+                onClick={() => setShowShareDialog(true)}
+                className="rounded-md px-3 py-1.5 text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950 transition-all flex items-center gap-1.5"
+                title={t('toolbar.share')}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                </svg>
+                {t('toolbar.share')}
               </button>
 
               {/* Check for Updates Button */}
@@ -935,6 +965,12 @@ function App() {
       <FeatureHighlightsDialog
         open={showFeatureHighlights}
         onClose={() => setShowFeatureHighlights(false)}
+      />
+
+      {/* Share Dialog */}
+      <ShareDialog
+        isOpen={showShareDialog}
+        onClose={() => setShowShareDialog(false)}
       />
     </div>
   );
