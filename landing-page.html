@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Kit - Alat PDF Gratis & Offline | Your Complete PDF Toolkit</title>
+    <meta name="description" content="Gabung, Pisah, Kompres, Konversi, dan Tanda Tangani PDF secara offline. Gratis, open-source, dan menjaga privasi. Free, offline, and secure PDF tools for Windows.">
+    <meta name="keywords" content="PDF Tool, PDF Merger, PDF Splitter, OCR, Offline PDF, Open Source, Windows App">
+    <meta name="author" content="Anton Prafanto">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://pdfkit.my.id/">
+    <meta property="og:title" content="PDF Kit - Alat PDF Gratis & Offline | Your Complete PDF Toolkit">
+    <meta property="og:description" content="Aplikasi PDF All-in-One: Merge, Split, Compress, OCR, & Sign. 100% Offline & Gratis. Download untuk Windows sekarang!">
+    <meta property="og:image" content="https://pdfkit.my.id/assets/icon.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://pdfkit.my.id/">
+    <meta property="twitter:title" content="PDF Kit - The Ultimate Free & Offline PDF Tool">
+    <meta property="twitter:description" content="Merge, Split, Compress, Edit, and Sign PDFs without uploading your files anywhere. Keep your sensitive data on your device.">
+    <meta property="twitter:image" content="https://pdfkit.my.id/assets/icon.png">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- AOS Animation CSS -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="assets/icon.png">
+    
+    <!-- Schema.org JSON-LD -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "PDF Kit",
+      "operatingSystem": "Windows 10, Windows 11",
+      "applicationCategory": "ProductivityApplication",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "downloadUrl": "https://github.com/antonprafanto/pdfkit/releases/download/v1.0.14/PDF.Kit.Setup.1.0.14.exe",
+      "featureList": "Merge PDF, Split PDF, Compress PDF, OCR, Digital Signature, Image to PDF",
+      "screenshot": "https://pdfkit.my.id/assets/icon.png",
+      "author": {
+          "@type": "Person",
+          "name": "Anton Prafanto",
+          "url": "https://github.com/antonprafanto"
+      }
+    }
+    </script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .lang-hidden {
+            display: none !important;
+        }
+        @keyframes blob {
+            0% { transform: translate(0px, 0px) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+            100% { transform: translate(0px, 0px) scale(1); }
+        }
+        .animate-blob {
+            animation: blob 7s infinite;
+        }
+        .animation-delay-2000 {
+            animation-delay: 2s;
+        }
+        .animation-delay-4000 {
+            animation-delay: 4s;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 antialiased overflow-x-hidden">
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 glass-nav transition-all duration-300" data-aos="fade-down" data-aos-duration="800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <img src="assets/icon.png" alt="PDF Kit Logo" class="h-10 w-10 hover:rotate-12 transition-transform duration-300">
+                    <span class="font-bold text-xl tracking-tight text-gray-900">PDF Kit</span>
+                </div>
+                <div class="flex items-center space-x-8">
+                    <div class="hidden md:flex space-x-8">
+                        <a href="#features" class="text-gray-600 hover:text-brand-600 transition-colors font-medium relative group" data-lang="id">
+                            Fitur
+                            <span class="absolute bottom-0 left-0 w-full h-0.5 bg-brand-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
+                        </a>
+                        <a href="#features" class="text-gray-600 hover:text-brand-600 transition-colors font-medium lang-hidden relative group" data-lang="en">
+                            Features
+                            <span class="absolute bottom-0 left-0 w-full h-0.5 bg-brand-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
+                        </a>
+                        
+                        <a href="#privacy" class="text-gray-600 hover:text-brand-600 transition-colors font-medium relative group" data-lang="id">
+                            Privasi
+                            <span class="absolute bottom-0 left-0 w-full h-0.5 bg-brand-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
+                        </a>
+                        <a href="#privacy" class="text-gray-600 hover:text-brand-600 transition-colors font-medium lang-hidden relative group" data-lang="en">
+                            Privacy
+                            <span class="absolute bottom-0 left-0 w-full h-0.5 bg-brand-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
+                        </a>
+                    </div>
+                    
+                    <!-- Language Toggle -->
+                    <div class="flex items-center bg-gray-200 rounded-full p-1 shadow-inner">
+                        <button onclick="setLang('id')" id="btn-id" class="px-3 py-1 rounded-full text-xs font-bold transition-all bg-white text-brand-600 shadow-sm">ID</button>
+                        <button onclick="setLang('en')" id="btn-en" class="px-3 py-1 rounded-full text-xs font-bold transition-all text-gray-500 hover:text-gray-900">EN</button>
+                    </div>
+
+                    <a href="https://github.com/antonprafanto/pdfkit" target="_blank" class="text-gray-600 hover:text-gray-900 transition-colors hidden md:block" aria-label="GitHub">
+                        <svg class="h-6 w-6 transform hover:scale-110 transition-transform duration-200" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.943 0-1.091.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.597 1.028 2.688 0 3.848-2.339 4.687-4.566 4.935.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"></path></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="relative pt-32 pb-20 sm:pt-40 sm:pb-24 overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+            
+            <!-- Indonesian Hero -->
+            <div data-lang="id" data-aos="zoom-in-up" data-aos-duration="1000">
+                <h1 class="text-4xl sm:text-6xl font-extrabold text-gray-900 tracking-tight mb-6">
+                    Toolkit <span class="text-brand-600">PDF Terlengkap</span> Anda. <br class="hidden sm:block" />
+                    Gratis, Offline & Aman.
+                </h1>
+                <p class="mt-4 text-xl text-gray-600 max-w-2xl mx-auto mb-10">
+                    Gabungkan, Pisah, Kompres, Edit, dan Tanda Tangani PDF tanpa mengunggah file Anda ke mana pun. 
+                    Data sensitif Anda tetap aman di perangkat.
+                </p>
+            </div>
+
+            <!-- English Hero -->
+            <div data-lang="en" class="lang-hidden" data-aos="zoom-in-up" data-aos-duration="1000">
+                <h1 class="text-4xl sm:text-6xl font-extrabold text-gray-900 tracking-tight mb-6">
+                    Your Complete <span class="text-brand-600">PDF Toolkit</span>. <br class="hidden sm:block" />
+                    Free, Offline & Secure.
+                </h1>
+                <p class="mt-4 text-xl text-gray-600 max-w-2xl mx-auto mb-10">
+                    Merge, Split, Compress, Edit, and Sign PDFs without uploading your files anywhere. 
+                    Keep your sensitive data on your device.
+                </p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row justify-center items-center gap-4" data-aos="fade-up" data-aos-delay="200" data-aos-duration="1000">
+                <a href="https://github.com/antonprafanto/pdfkit/releases/download/v1.0.14/PDF.Kit.Setup.1.0.14.exe" 
+                   class="inline-flex items-center px-8 py-4 border border-transparent text-lg font-semibold rounded-full shadow-lg text-white bg-brand-600 hover:bg-brand-700 hover:scale-105 transform transition duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 ring-offset-2">
+                    <svg class="w-6 h-6 mr-2 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    <span data-lang="id">Download untuk Windows</span>
+                    <span data-lang="en" class="lang-hidden">Download for Windows</span>
+                    <span class="ml-2 text-brand-200 text-sm font-normal">(v1.0.14)</span>
+                </a>
+                <a href="https://github.com/antonprafanto/pdfkit" target="_blank"
+                   class="inline-flex items-center px-8 py-4 border border-gray-300 text-lg font-medium rounded-full text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 transition shadow-sm hover:scale-105 transform duration-200">
+                    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" class="w-5 h-5 mr-2" alt="GitHub">
+                    <span data-lang="id">Lihat di GitHub</span>
+                    <span data-lang="en" class="lang-hidden">View on GitHub</span>
+                </a>
+            </div>
+            <p class="mt-4 text-sm text-gray-500" data-aos="fade-up" data-aos-delay="300">
+                <span data-lang="id">Gratis & Open Source • Windows 10/11 • v1.0.14</span>
+                <span data-lang="en" class="lang-hidden">Free & Open Source • Windows 10/11 • v1.0.14</span>
+            </p>
+
+            <!-- App Screenshots -->
+            <div class="mt-16 relative mx-auto max-w-6xl" data-aos="fade-up" data-aos-delay="400" data-aos-duration="1200">
+                <div class="relative bg-gray-900 rounded-xl shadow-2xl overflow-hidden p-4 sm:p-8 transform transition hover:scale-[1.01] duration-500">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                        <div class="relative group">
+                            <div class="absolute -inset-1 bg-gradient-to-r from-brand-600 to-purple-600 rounded-lg blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
+                            <img src="assets/screenshot1.png" alt="PDF Kit Interface 1" class="relative rounded-lg shadow-xl ring-1 ring-white/10 w-full transform transition duration-500 hover:scale-[1.02]">
+                        </div>
+                        <div class="relative group">
+                            <div class="absolute -inset-1 bg-gradient-to-r from-purple-600 to-brand-600 rounded-lg blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
+                            <img src="assets/screenshot2.png" alt="PDF Kit Interface 2" class="relative rounded-lg shadow-xl ring-1 ring-white/10 w-full transform transition duration-500 hover:scale-[1.02]">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Background decoration -->
+        <div class="absolute top-0 left-1/2 transform -translate-x-1/2 w-full h-full z-0 pointer-events-none">
+            <div class="absolute top-[20%] left-[10%] w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+            <div class="absolute top-[20%] right-[10%] w-72 h-72 bg-brand-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
+            <div class="absolute -bottom-8 left-[20%] w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
+        </div>
+    </div>
+
+    <!-- Features Grid -->
+    <div id="features" class="py-24 bg-white relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16" data-aos="fade-up">
+                <h2 class="text-base text-brand-600 font-semibold tracking-wide uppercase">
+                    <span data-lang="id">Kapabilitas</span>
+                    <span data-lang="en" class="lang-hidden">Capabilities</span>
+                </h2>
+                <p class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+                    <span data-lang="id">Segala yang Anda butuhkan untuk mengelola PDF</span>
+                    <span data-lang="en" class="lang-hidden">Everything you need to manage PDFs</span>
+                </p>
+                <p class="mt-4 max-w-2xl text-xl text-gray-500 mx-auto">
+                    <span data-lang="id">Rangkaian alat lengkap yang dirancang untuk produktivitas dan kemudahan penggunaan.</span>
+                    <span data-lang="en" class="lang-hidden">A comprehensive suite of tools designed for productivity and ease of use.</span>
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                 <!-- Feature 1 -->
+                <div class="relative p-8 bg-gray-50 rounded-2xl transition hover:shadow-lg border border-gray-100 hover:-translate-y-1 hover:border-brand-200 duration-300" data-aos="fade-up" data-aos-delay="100">
+                    <div class="absolute top-8 left-8 bg-brand-500 rounded-lg p-3 shadow-lg">
+                        <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path></svg>
+                    </div>
+                    <div class="pt-16">
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">
+                            <span data-lang="id">Gabung & Pisah</span>
+                            <span data-lang="en" class="lang-hidden">Merge & Split</span>
+                        </h3>
+                        <p class="text-gray-600">
+                            <span data-lang="id">Gabungkan banyak PDF menjadi satu dokumen atau pisahkan halaman menjadi file tersendiri dengan mudah.</span>
+                            <span data-lang="en" class="lang-hidden">Combine multiple PDFs into one document or separate pages into individual files with ease.</span>
+                        </p>
+                    </div>
+                </div>
+
+                 <!-- Feature 2 -->
+                 <div class="relative p-8 bg-gray-50 rounded-2xl transition hover:shadow-lg border border-gray-100 hover:-translate-y-1 hover:border-green-200 duration-300" data-aos="fade-up" data-aos-delay="200">
+                    <div class="absolute top-8 left-8 bg-green-500 rounded-lg p-3 shadow-lg">
+                        <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                    </div>
+                    <div class="pt-16">
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">
+                            <span data-lang="id">Kompres & Optimalkan</span>
+                            <span data-lang="en" class="lang-hidden">Compress & Optimize</span>
+                        </h3>
+                        <p class="text-gray-600">
+                            <span data-lang="id">Kurangi ukuran file tanpa mengurangi kualitas. Sempurna untuk lampiran email dan unggahan.</span>
+                            <span data-lang="en" class="lang-hidden">Reduce file size without losing quality. Perfect for email attachments and uploads.</span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="relative p-8 bg-gray-50 rounded-2xl transition hover:shadow-lg border border-gray-100 hover:-translate-y-1 hover:border-purple-200 duration-300" data-aos="fade-up" data-aos-delay="300">
+                    <div class="absolute top-8 left-8 bg-purple-500 rounded-lg p-3 shadow-lg">
+                        <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                    </div>
+                    <div class="pt-16">
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">
+                            <span data-lang="id">Tanda Tangan & Edit</span>
+                            <span data-lang="en" class="lang-hidden">Sign & Edit</span>
+                        </h3>
+                        <p class="text-gray-600">
+                            <span data-lang="id">Tambahkan tanda tangan digital, isi formulir, dan lakukan pengeditan cepat langsung di aplikasi.</span>
+                            <span data-lang="en" class="lang-hidden">Add digital signatures, fill forms, and make quick edits directly in the application.</span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Feature 4 -->
+                <div class="relative p-8 bg-gray-50 rounded-2xl transition hover:shadow-lg border border-gray-100 hover:-translate-y-1 hover:border-yellow-200 duration-300" data-aos="fade-up" data-aos-delay="400">
+                    <div class="absolute top-8 left-8 bg-yellow-500 rounded-lg p-3 shadow-lg">
+                        <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.2-2.85.577-4.147"></path></svg>
+                    </div>
+                    <div class="pt-16">
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">
+                            <span data-lang="id">Teknologi OCR</span>
+                            <span data-lang="en" class="lang-hidden">OCR Technology</span>
+                        </h3>
+                        <p class="text-gray-600">
+                            <span data-lang="id">Ekstrak teks dari gambar dan PDF yang dipindai. Buat dokumen Anda dapat dicari dan diedit.</span>
+                            <span data-lang="en" class="lang-hidden">Extract text from scanned images and PDFs. Make your documents searchable and editable.</span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Feature 5 -->
+                <div class="relative p-8 bg-gray-50 rounded-2xl transition hover:shadow-lg border border-gray-100 hover:-translate-y-1 hover:border-red-200 duration-300" data-aos="fade-up" data-aos-delay="500">
+                    <div class="absolute top-8 left-8 bg-red-500 rounded-lg p-3 shadow-lg">
+                        <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    </div>
+                    <div class="pt-16">
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">
+                            <span data-lang="id">Aman & Privat</span>
+                            <span data-lang="en" class="lang-hidden">Secure & Private</span>
+                        </h3>
+                        <p class="text-gray-600">
+                            <span data-lang="id">Lindungi file Anda dengan kata sandi. Semua pemrosesan terjadi secara lokal di mesin Anda—tanpa unggahan cloud.</span>
+                            <span data-lang="en" class="lang-hidden">Password protect your files. All processing happens locally on your machine—no cloud uploads.</span>
+                        </p>
+                    </div>
+                </div>
+
+                 <!-- Feature 6 -->
+                 <div class="relative p-8 bg-gray-50 rounded-2xl transition hover:shadow-lg border border-gray-100 hover:-translate-y-1 hover:border-indigo-200 duration-300" data-aos="fade-up" data-aos-delay="600">
+                    <div class="absolute top-8 left-8 bg-indigo-500 rounded-lg p-3 shadow-lg">
+                         <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <div class="pt-16">
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">
+                            <span data-lang="id">Konversi ke Gambar</span>
+                            <span data-lang="en" class="lang-hidden">Convert to Image</span>
+                        </h3>
+                        <p class="text-gray-600">
+                            <span data-lang="id">Ubah halaman PDF menjadi gambar JPG atau PNG secara instan untuk berbagi mudah di media sosial.</span>
+                            <span data-lang="en" class="lang-hidden">Turn PDF pages into JPG or PNG images instantly for easy sharing on social media.</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Privacy/Offline Section -->
+    <div id="privacy" class="bg-gray-900 text-white py-24">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="lg:grid lg:grid-cols-2 lg:gap-16 items-center">
+                <div data-aos="fade-right" data-aos-duration="1000">
+                    <h2 class="text-3xl font-extrabold tracking-tight sm:text-4xl mb-6">
+                        <span data-lang="id">Data Anda Tetap Milik Anda.</span>
+                        <span data-lang="en" class="lang-hidden">Your Data Stays Yours.</span>
+                        <br>
+                        <span class="text-brand-400">100% Offline.</span>
+                    </h2>
+                    <p class="text-lg text-gray-300 mb-8">
+                        <span data-lang="id">Berbeda dengan alat online yang mengharuskan Anda mengunggah dokumen sensitif ke server mereka, PDF Kit berjalan sepenuhnya di mesin Windows Anda. Tidak perlu koneksi internet, tidak ada risiko privasi data.</span>
+                        <span data-lang="en" class="lang-hidden">Unlike online tools that require you to upload your sensitive documents to their servers, PDF Kit runs entirely on your Windows machine. No internet connection needed, no data privacy risks.</span>
+                    </p>
+                    <ul class="space-y-4 text-gray-300">
+                        <li class="flex items-center">
+                            <svg class="h-6 w-6 text-green-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            <span data-lang="id">Tidak ada batas unggahan file</span>
+                            <span data-lang="en" class="lang-hidden">No file uploads limit</span>
+                        </li>
+                        <li class="flex items-center">
+                            <svg class="h-6 w-6 text-green-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            <span data-lang="id">Nol risiko kebocoran data</span>
+                            <span data-lang="en" class="lang-hidden">Zero data leakage risk</span>
+                        </li>
+                        <li class="flex items-center">
+                            <svg class="h-6 w-6 text-green-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            <span data-lang="id">Bekerja tanpa internet</span>
+                            <span data-lang="en" class="lang-hidden">Works without internet</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="mt-12 lg:mt-0 flex justify-center" data-aos="fade-left" data-aos-duration="1000">
+                    <div class="relative">
+                        <div class="absolute -inset-4 bg-brand-500 rounded-full opacity-20 blur-xl animate-pulse"></div>
+                        <svg class="relative h-64 w-64 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA Section -->
+    <div class="bg-brand-600 py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center" data-aos="zoom-in">
+            <h2 class="text-3xl font-bold text-white mb-8">
+                <span data-lang="id">Siap mengambil kendali atas PDF Anda?</span>
+                <span data-lang="en" class="lang-hidden">Ready to take control of your PDFs?</span>
+            </h2>
+            <a href="https://github.com/antonprafanto/pdfkit/releases/download/v1.0.14/PDF.Kit.Setup.1.0.14.exe" 
+               class="inline-block px-8 py-4 bg-white text-brand-600 font-bold rounded-full shadow-lg hover:bg-gray-100 hover:scale-105 transition transform text-lg">
+                <span data-lang="id">Download PDF Kit Sekarang (Gratis)</span>
+                <span data-lang="en" class="lang-hidden">Download PDF Kit Now (Free)</span>
+            </a>
+            <p class="mt-4 text-brand-100 text-sm">
+                <span data-lang="id">Membutuhkan Windows 10 atau lebih tinggi</span>
+                <span data-lang="en" class="lang-hidden">Requires Windows 10 or higher</span>
+            </p>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-50 pt-12 pb-8 border-t border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center">
+            <div class="flex items-center space-x-3 mb-4 md:mb-0">
+                <img src="assets/icon.png" alt="Logo" class="h-8 w-8 grayscale opacity-50">
+                <span class="text-gray-500 font-medium">PDF Kit</span>
+            </div>
+            <div class="text-gray-400 text-sm">
+                &copy; 2025 PDF Kit. MIT License. Open Source.
+            </div>
+        </div>
+    </footer>
+
+    <!-- AOS Script -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({
+            once: true,
+            offset: 100,
+            duration: 800,
+            easing: 'ease-out-cubic',
+        });
+
+        function setLang(lang) {
+            // Update Toggle Button Styles
+            const btnId = document.getElementById('btn-id');
+            const btnEn = document.getElementById('btn-en');
+            
+            if (lang === 'id') {
+                btnId.className = "px-3 py-1 rounded-full text-xs font-bold transition-all bg-white text-brand-600 shadow-sm";
+                btnEn.className = "px-3 py-1 rounded-full text-xs font-bold transition-all text-gray-500 hover:text-gray-900";
+            } else {
+                btnEn.className = "px-3 py-1 rounded-full text-xs font-bold transition-all bg-white text-brand-600 shadow-sm";
+                btnId.className = "px-3 py-1 rounded-full text-xs font-bold transition-all text-gray-500 hover:text-gray-900";
+            }
+
+            // Toggle Visibility
+            document.querySelectorAll('[data-lang]').forEach(el => {
+                if (el.dataset.lang === lang) {
+                    el.classList.remove('lang-hidden');
+                } else {
+                    el.classList.add('lang-hidden');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

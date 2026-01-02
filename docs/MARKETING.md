@@ -147,3 +147,201 @@ Check it out: https://github.com/user/pdf-kit
 - "Get started in seconds"
 - "Download for Windows, macOS, or Linux"
 - "Star us on GitHub ⭐"
+
+---
+
+## 📅 Social Media Campaign 2025 (Ready to Copy-Paste)
+
+### 🟢 WhatsApp / Telegram Broadcast
+**Target: Teman Kerja / Grup Produktivitas**
+
+**Option 1: Solusi Masalah (Casual)**
+"Guys, siapa yg sering ribet mau edit PDF tapi males upload ke web online karena takut data bocor? 😅
+Gw nemu tools keren nih, **PDF Kit**. 
+✅ Bisa Merge, Split, Compress, Tanda Tangan
+✅ 100% Offline (Aman buat dokumen kantor/skripsi)
+✅ GRATIS selamanya, gak pake trial-trialan.
+Coba deh download disini: https://pdfkit.my.id/ 
+Semoga membantu! 🙏"
+
+**Option 2: To The Point (Professional)**
+"Izin share tools produktivitas yg berguna banget. **PDF Kit** - Aplikasi manajemen PDF All-in-One untuk Windows. 
+Fitur lengkap (OCR, Convert, Encrypt) dan berjalan offline tanpa internet. Lebih aman untuk data sensitif.
+Download Free (Open Source): https://pdfkit.my.id/"
+
+### 🐦 Twitter / X Thread
+**Hook:**
+"Stop uploading your sensitive IDs and Contracts to random online PDF tools. 🛑
+Here is a FREE, 100% OFFLINE alternative that does it all. 🧵👇"
+
+**Body:**
+"Meet **PDF Kit** 📄✨
+The Swiss Army Knife for your documents.
+
+Features:
+✂️ Split & Merge 
+🗜️ Compress (kecilin size file)
+✍️ Sign & Edit
+🔒 Encrypt (Password protect)
+
+❌ No Subscription
+❌ No Internet Required
+✅ Open Source & Free
+
+Download now for Windows: https://pdfkit.my.id/
+#PDF #Productivity #OpenSource #TechTips"
+
+**Bahasa Indonesia Version:**
+**Hook:**
+"Stop upload KTP dan Kontrak kerja ke sembarang website PDF online. 🛑
+Ini alternatif GRATIS dan 100% OFFLINE yang bisa semuanya. 🧵👇"
+
+**Body:**
+"Kenalin **PDF Kit** 📄✨
+Tools wajib buat produktivitas dokumen lo.
+
+Fitur:
+✂️ Split & Merge (Pisah & Gabung)
+🗜️ Compress (Kecilin ukuran file)
+✍️ Sign & Edit (Tanda tangan digital)
+🔒 Encrypt (Kunci password)
+
+❌ Gak ada langganan
+❌ Gak butuh Internet
+✅ Open Source & Gratis
+
+Download buat Windows: https://pdfkit.my.id/
+#PDF #Productivity #OpenSource #TechTips"
+
+### 💼 LinkedIn Post
+**Headline: Why are you still uploading sensitive company data to free online PDF tools?**
+
+**Body:**
+Data privacy is crucial in 2025. Yet, many of us still use online converters for confidential agreements, invoices, and slips.
+
+It's time to switch to a secure, offline solution.
+
+Introducing **PDF Kit** - The offline PDF toolkit for professionals.
+It runs entirely on your machine. Your data NEVER leaves your device.
+
+Why switch?
+🔹 **Security**: 100% Offline processing.
+🔹 **Power**: Merge, Split, Compress, OCR, and Digital Signatures.
+🔹 **Cost**: Completely Free & Open Source.
+
+Perfect for legal, HR, and finance professionals who need security without sacrificing convenience.
+
+📥 Download for Windows (Free): https://pdfkit.my.id/
+
+#DataPrivacy #Productivity #Software #WorkSmart #PDFKit
+
+**Bahasa Indonesia Version:**
+**Headline: Masih berani upload data rahasia kantor ke tools PDF online gratisan?**
+
+**Body:**
+Keamanan data di 2025 itu krusial. Tapi, masih banyak pro yang pake konverter online buat dokumen penting, invoice, atau slip gaji.
+
+Saatnya beralih ke solusi yang aman dan offline.
+
+Perkenalkan **PDF Kit** - Toolkit PDF offline untuk profesional.
+Berjalan sepenuhnya di laptop Anda. Data Anda TIDAK PERNAH keluar dari perangkat.
+
+Kenapa harus ganti?
+🔹 **Keamanan**: 100% Proses offline.
+🔹 **Power**: Merge, Split, Kompres, OCR, dan Tanda Tangan Digital.
+🔹 **Biaya**: Gratis & Open Source.
+
+Cocok banget buat HR, Finance, dan Legal yang butuh keamanan tanpa ribet.
+
+📥 Download via Windows (Gratis): https://pdfkit.my.id/
+
+#KeamananData #Produktivitas #Software #KerjaCerdas #PDFKit
+
+### 📸 Instagram / TikTok Caption
+**Visual Idea**: Tunjukkan layar laptop sedang merge file PDF dalam hitungan detik tanpa loading internet.
+
+**Caption:**
+"Akhirnya nemu aplikasi PDF yang GRATIS dan GAK PERLU INTERNET! 😭🙌
+Kenalin **PDF Kit**! 📄
+Bisa gabungin file, pisahin halaman, kompres ukuran, sampe tanda tangan digital. 
+Semuanya OFFLINE! Jadi aman banget buat data penting kayak KTP atau slip gaji. ✅
+Gak ada lagi drama 'limit harian' atau 'harus bayar premium'. 
+
+Link download ada di BIO ya! 🔗
+Save postingan ini biar gak lupa! 👇
+
+#PDFKit #TipsKerja #Mahasiswa #Skripsi #LifeHack #ProductivityTools #FreeApp"
+
+### 🎓 WhatsApp Broadcast (Khusus Dosen/Akademisi)
+**Target: Rekan Dosen / Grup Prodi**
+
+**Option 1: Formal & Solutif (Fokus ke Keamanan Soal/Skripsi)**
+"Yth. Bapak/Ibu Dosen,
+Sering khawatir upload dokumen *confidential* (seperti Soal Ujian, Draft Skripsi Mahasiswa, atau Laporan BKD) ke website PDF converter online karena risiko keamanan?
+
+Saya merekomendasikan **PDF Kit**. Aplikasi desktop gratis untuk Windows yang bisa menggabungkan, memisahkan, dan mengompres file PDF **100% Offline**.
+Aman karena data tidak pernah di-upload ke internet/cloud. Sangat membantu untuk administrasi dan pemberkasan.
+
+Silakan diunduh gratis di sini: https://pdfkit.my.id/
+Semoga bermanfaat untuk menunjang produktivitas Bapak/Ibu sekalian. 🙏"
+
+**Option 2: Santai (Fokus ke Kemudahan)**
+"Bapak/Ibu, kalau lagi ribet ngurusin file PDF mahasiswa atau pemberkasan yang harus digabung/dipisah, cobain aplikasi **PDF Kit** deh.
+Ini ringan, gratis, dan gak butuh internet. Jadi gak perlu takut kena limit harian kayak di website iLovePDF dkk. 😄
+
+Link downloadnya disini: https://pdfkit.my.id/
+Aman & Offline. 👍"
+
+### 🧵 Threads.net Post
+**Vibe: Casual, Storytelling, "Spill"**
+
+**Option 1: The "Life Saver" Angle**
+"Mau spill tools penyelamat hidup mahasiswa & pekerja kantoran. 😭✊
+Berapa kali kalian harus merge/compress PDF tapi web-nya minta bayar atau loading lama?
+
+Nemu nih: **PDF Kit**. 
+Gratis, Offline (gak butuh kuota), dan fiturnya lengkap banget.
+Gue pake buat gabungin bab skripsi aman banget karena file-nya nggak diupload ke cloud orang.
+
+Wajib install di laptop Windows kalian: 👇
+https://pdfkit.my.id/
+
+#tekno #mahasiswa #skripsi #workhack #freeware"
+
+**Option 2: Minimalist**
+"Website PDF Converter: *Limit reached. Pay $5/month.*
+Me: *Installs PDF Kit.*
+
+✅ Merge, Split, Compress
+✅ Unlimited
+✅ Offline
+✅ Free Forever
+
+Save your money. Get it here: https://pdfkit.my.id/ 🚀"
+
+**English Version:**
+
+**Option 1: The "Life Saver" Angle**
+"Need to spill about this life-saving tool for students & office workers. 😭✊
+How many times have you tried to merge/compress a PDF only for the site to ask for payment or load forever?
+
+Found this: **PDF Kit**.
+Free, Offline (no data needed), and fully featured.
+I use it to merge my thesis chapters safely since the files aren't uploaded to someone else's cloud.
+
+Must install on your Windows laptop: 👇
+https://pdfkit.my.id/
+
+#tech #students #thesis #workhack #freeware"
+
+**Option 2: Minimalist**
+"Website PDF Converter: *Limit reached. Pay $5/month.*
+Me: *Installs PDF Kit.*
+
+✅ Merge, Split, Compress
+✅ Unlimited
+✅ Offline
+✅ Free Forever
+
+Save your money. Get it here: https://pdfkit.my.id/ 🚀"
+

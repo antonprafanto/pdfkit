@@ -15,7 +15,9 @@
       "Bash(git add:*)",
       "Bash(git commit -m \"$\\(cat <<''EOF''\nInitial commit: PDF Kit with Forms & Template Save Feature\n\n✨ Features Implemented:\n- ✅ Core PDF Viewer \\(PDF.js\\) with 3 view modes\n- ✅ PDF Editing Tools \\(merge, split, rotate, reorder, extract\\)\n- ✅ Image Conversion \\(PDF to PNG/JPG/WEBP, Images to PDF\\)\n- ✅ Security Features \\(encryption, watermark, digital signatures\\)\n- ✅ Annotations System \\(comments, drawings, stamps\\)\n- ✅ Forms Support \\(detect fields, fill forms, export/import data\\)\n- ✅ **NEW: Save PDF with Interactive Fields** \\(create AcroForm templates\\)\n\n🎯 Latest Feature: Save PDF Template\n- Convert static PDFs to interactive forms\n- Create AcroForm fields \\(text, checkbox, radio, dropdown\\)\n- Compatible with Adobe Reader, Chrome, Edge, Foxit\n- Fields permanently embedded in PDF structure\n\n🛠️ Tech Stack:\n- Electron 28+ with TypeScript 5\n- React 18 + Vite 5\n- PDF.js for rendering\n- pdf-lib for manipulation\n- TailwindCSS + shadcn/ui\n- Zustand for state management\n\n📦 Build Status: ✅ Success \\(0 TypeScript errors\\)\n\n🤖 Generated with Claude Code \\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
       "Bash(git push:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git tag:*)",
+      "Bash(gh release create:*)"
     ]
   }
 }
