@@ -22,7 +22,7 @@
 
 | Platform | Minimum Requirements |
 |----------|---------------------|
-| Windows | Windows 10 or later, 4GB RAM |
+| Windows | Windows 11 or later, 4GB RAM |
 | macOS | macOS 10.15 (Catalina) or later |
 | Linux | Ubuntu 20.04 or equivalent |
 

@@ -145,7 +145,7 @@ Check it out: https://github.com/user/pdf-kit
 - "Download free on GitHub"
 - "Try PDF Kit free"
 - "Get started in seconds"
-- "Download for Windows, macOS, or Linux"
+- "Download for Windows 11"
 - "Star us on GitHub ⭐"
 
 ---

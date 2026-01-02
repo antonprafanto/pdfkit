@@ -9,7 +9,7 @@ PDF Kit is an open-source desktop application for managing PDF documents. It run
 Yes! PDF Kit is free and open-source under the MIT license.
 
 ### What platforms does PDF Kit support?
-- Windows 10 and later
+- Windows 11 and later
 - macOS 10.15 (Catalina) and later
 - Linux (Ubuntu 20.04 and equivalents)
 

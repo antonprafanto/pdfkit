@@ -65,7 +65,7 @@ Supports: **OpenAI**, **Anthropic Claude**, **Google Gemini**
 
 ## 🔧 Requirements
 
-- **Windows**: Windows 10 or later
+- **Windows**: Windows 11 or higher
 - **macOS**: macOS 10.15 (Catalina) or later
 - **Linux**: Ubuntu 20.04 or equivalent
 
