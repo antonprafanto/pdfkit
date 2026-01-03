@@ -1,6 +1,6 @@
 {
   "name": "pdf-kit",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "description": "Modern open-source PDF management desktop application with AI-powered features",
   "main": "dist/main/main/main.js",
   "author": "PDF Kit Contributors",

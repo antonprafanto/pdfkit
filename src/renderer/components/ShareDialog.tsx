@@ -13,7 +13,7 @@ interface ShareDialogProps {
   onClose: () => void;
 }
 
-const SHARE_URL = 'https://github.com/antonprafanto/pdfkit/releases';
+const SHARE_URL = 'https://pdfkit.my.id';
 const WHATSAPP_MESSAGE = encodeURIComponent('Check out PDF Kit - A comprehensive offline PDF toolkit! 📄\n\n' + SHARE_URL);
 
 export function ShareDialog({ isOpen, onClose }: ShareDialogProps) {

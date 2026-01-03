@@ -92,12 +92,16 @@ function createWindow(): void {
     }
   });
 
-  // Block native Ctrl+P to prevent Electron's print dialog
+  // Handle Ctrl+P - block native print and trigger custom print handler
   // The renderer will handle print via IPC to open with system PDF viewer
   mainWindow.webContents.on('before-input-event', (event, input) => {
     if ((input.control || input.meta) && input.key.toLowerCase() === 'p') {
-      console.log('[Main] Blocking native Ctrl+P - renderer will handle via IPC');
+      console.log('[Main] Ctrl+P pressed - blocking native print and triggering custom handler');
       event.preventDefault();
+      // Directly send trigger-print to renderer (more reliable than menu accelerator)
+      if (mainWindow && mainWindow.webContents) {
+        mainWindow.webContents.send('trigger-print');
+      }
     }
   });
 
@@ -136,6 +140,13 @@ app.whenReady().then(async () => {
     // Initialize auto-updater (production only)
     if (!isDev) {
       autoUpdaterService.initialize(mainWindow);
+    } else {
+      // Dev mode: register fallback handlers to prevent errors
+      ipcMain.handle('updater:check', async () => ({ checking: false, available: false, error: 'Dev mode - updater disabled' }));
+      ipcMain.handle('updater:download', async () => false);
+      ipcMain.handle('updater:install', async () => {});
+      ipcMain.handle('updater:status', async () => ({ checking: false, available: false, downloading: false, downloaded: false, progress: 0, error: null, updateInfo: null }));
+      ipcMain.handle('updater:version', async () => app.getVersion());
     }
     // Note: Ctrl+P is handled by menu accelerator in menu.ts
   }
@@ -177,7 +188,7 @@ ipcMain.handle('get-app-version', () => {
   return app.getVersion();
 });
 
-// Print PDF - Uses Chromium's built-in print system with preview
+// Print PDF - Opens PDF directly in Edge for proper printing
 ipcMain.handle('print-pdf', async (_event, options?: { pdfPath?: string; pdfBytes?: Uint8Array; fileName?: string }) => {
   try {
     console.log('[Main] print-pdf called with options:', {
@@ -202,59 +213,59 @@ ipcMain.handle('print-pdf', async (_event, options?: { pdfPath?: string; pdfByte
     }
 
     if (pdfBuffer) {
-      // Save to temporary file
+      // Save PDF to temporary file
       const tempDir = app.getPath('temp');
+      const timestamp = Date.now();
       const safeFileName = (options?.fileName || 'print_document.pdf')
         .replace(/[<>:"/\\|?*]/g, '_')
         .replace(/\s+/g, '_');
-      const tempPdfPath = path.join(tempDir, `pdfkit_print_${Date.now()}_${safeFileName}`);
+      const tempPdfPath = path.join(tempDir, `pdfkit_print_${timestamp}_${safeFileName}`);
 
       await fs.promises.writeFile(tempPdfPath, pdfBuffer);
       console.log('[Main] Saved PDF to temp file:', tempPdfPath);
 
-      // Open with specific PDF viewer (not default) to avoid opening PDF Kit itself
-      // Try Microsoft Edge first (available on all Windows 10/11), then fallback to others
-      let openCommand: string;
+      const { exec } = require('child_process');
 
       if (process.platform === 'win32') {
-        // Windows: Use Microsoft Edge with explicit path
-        // Edge on Windows 10/11 is at: C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe
-        const edgePath = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
-        if (fs.existsSync(edgePath)) {
-          openCommand = `"${edgePath}" "${tempPdfPath}"`;
-        } else {
-          // Fallback: try to find Edge in x64 folder
-          const edge64Path = 'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe';
-          if (fs.existsSync(edge64Path)) {
-            openCommand = `"${edge64Path}" "${tempPdfPath}"`;
-          } else {
-            // Last resort: use shell.openExternal with explicit URL
-            await shell.openExternal(`file://${tempPdfPath}`);
-            console.log('[Main] Opened PDF with shell.openExternal');
-            return { success: true, method: 'shell-external' };
+        // Find Edge browser path
+        let edgePath = '';
+        const paths = [
+          'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
+          'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe'
+        ];
+        for (const p of paths) {
+          if (fs.existsSync(p)) {
+            edgePath = p;
+            break;
           }
         }
-      } else if (process.platform === 'darwin') {
-        // macOS: use Preview app
-        openCommand = `open -a Preview "${tempPdfPath}"`;
-      } else {
-        // Linux: try common PDF viewers
-        openCommand = `xdg-open "${tempPdfPath}"`;
-      }
 
-      // Execute command to open PDF with specific app
-      const { exec } = require('child_process');
-      exec(openCommand, (error: any) => {
-        if (error) {
-          console.error('[Main] Failed to open PDF:', error);
+        if (edgePath) {
+          // Open PDF directly in Edge
+          exec(`"${edgePath}" "${tempPdfPath}"`, (error: any) => {
+            if (error) {
+              console.error('[Main] Failed to open PDF:', error);
+            } else {
+              console.log('[Main] PDF opened in Edge - user can press Ctrl+P to print');
+            }
+          });
+          return { success: true, method: 'edge-direct' };
         } else {
-          console.log('[Main] PDF opened with external viewer');
+          await shell.openExternal(`file://${tempPdfPath}`);
+          return { success: true, method: 'shell-external' };
         }
-      });
-
-      return { success: true, method: 'external-viewer' };
+      } else if (process.platform === 'darwin') {
+        exec(`open -a Preview "${tempPdfPath}"`, (error: any) => {
+          if (error) console.error('[Main] Failed to open PDF:', error);
+        });
+        return { success: true, method: 'preview' };
+      } else {
+        exec(`xdg-open "${tempPdfPath}"`, (error: any) => {
+          if (error) console.error('[Main] Failed to open PDF:', error);
+        });
+        return { success: true, method: 'xdg-open' };
+      }
     } else {
-      // No valid PDF data available
       console.error('[Main] No valid PDF path or bytes provided');
       return { success: false, error: 'No PDF data available for printing' };
     }
