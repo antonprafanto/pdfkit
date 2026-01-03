@@ -77,7 +77,7 @@ PDF Kit is a comprehensive, offline-first PDF toolkit built with Electron and Re
 
 Download the latest release for your platform:
 
-- **Windows**: [PDF-Kit-Setup.exe](https://github.com/antonprafanto/pdfkit/releases/download/v1.0.14/PDF.Kit.Setup.1.0.14.exe)
+- **Windows**: [PDF-Kit-Setup.exe](https://github.com/antonprafanto/pdfkit/releases/download/v1.0.15/PDF.Kit.Setup.1.0.15.exe)
 - **macOS**: coming soon
 - **Linux**: coming soon
 
