@@ -1,6 +1,6 @@
 {
   "name": "pdf-kit",
-  "version": "1.0.15",
+  "version": "1.0.16",
   "description": "Modern open-source PDF management desktop application with AI-powered features",
   "main": "dist/main/main/main.js",
   "author": "PDF Kit Contributors",
@@ -33,6 +33,7 @@
     "axios": "^1.6.5",
     "coherentpdf": "^2.5.5",
     "convertapi": "^1.15.0",
+    "docx": "^9.5.1",
     "electron-log": "^5.4.3",
     "electron-squirrel-startup": "^1.0.1",
     "electron-store": "^8.1.0",
@@ -40,6 +41,7 @@
     "i18next": "^23.16.8",
     "i18next-browser-languagedetector": "^8.2.0",
     "langchain": "^0.1.7",
+    "lucide-react": "^0.562.0",
     "mammoth": "^1.11.0",
     "node-forge": "^1.3.3",
     "openai": "^6.15.0",
@@ -52,6 +54,7 @@
     "react-i18next": "^14.1.3",
     "sharp": "^0.33.2",
     "tesseract.js": "^5.1.1",
+    "xlsx": "^0.18.5",
     "zustand": "^4.5.0"
   },
   "devDependencies": {

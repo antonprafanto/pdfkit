@@ -135,7 +135,7 @@ export const AboutDialog: React.FC<AboutDialogProps> = ({ isOpen, onClose }) => 
               <strong>Powered by:</strong> Claude Code (Anthropic)
             </p>
             <p>
-              <strong>Inspired by:</strong> Stirling PDF
+              <strong>Inspired by:</strong> Stirling PDF, PDF24
             </p>
           </div>
         </div>

@@ -17,6 +17,7 @@ interface PDFContinuousViewProps {
   showAnnotations?: boolean;
   showForms?: boolean;
   onPageChange: (page: number) => void;
+  onNoTextContent?: () => void;
 }
 
 export function PDFContinuousView({
@@ -29,6 +30,7 @@ export function PDFContinuousView({
   showAnnotations,
   showForms,
   onPageChange,
+  onNoTextContent,
 }: PDFContinuousViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const pageRefs = useRef<Map<number, HTMLDivElement>>(new Map());
@@ -73,7 +75,7 @@ export function PDFContinuousView({
 
   return (
     <div ref={containerRef} className="h-full overflow-auto bg-gray-100 p-4 dark:bg-gray-900">
-      <div className="mx-auto flex flex-col gap-4">
+      <div className="mx-auto flex flex-col gap-4 items-center">
         {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
           <div
             key={pageNum}
@@ -97,6 +99,7 @@ export function PDFContinuousView({
               searchHighlights={searchHighlights}
               showAnnotations={showAnnotations}
               showForms={showForms}
+              onNoTextContent={pageNum === 1 ? onNoTextContent : undefined}
             />
           </div>
         ))}

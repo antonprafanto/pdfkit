@@ -76,7 +76,7 @@ export function Dialog({ open, onClose, title, description, children, footer, si
         )}
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-6 text-gray-900 dark:text-white">{children}</div>
+        <div className="flex-1 overflow-y-auto px-6 pb-6 text-gray-900 dark:text-white">{children}</div>
 
         {/* Footer */}
         {footer && <div className="flex-shrink-0 p-6 pt-4 flex justify-end gap-3">{footer}</div>}

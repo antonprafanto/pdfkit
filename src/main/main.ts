@@ -7,10 +7,39 @@ import { autoUpdaterService } from './services/auto-updater.service';
 import { SimpleUpdateChecker } from './services/simple-update-checker';
 import { createMenu } from './menu';
 import { pluginLifecycle, pluginLoader, pluginSettings } from './plugins';
+import { convertWithLibreOffice, checkLibreOfficeInstalled, getLibreOfficeDownloadUrl } from './libreoffice-converter';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling
 if (require('electron-squirrel-startup')) {
   app.quit();
+}
+
+// Enforce single instance - if another instance is launched, pass file to existing instance
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+  // This is the second instance - quit immediately
+  // The first instance will handle the file
+  app.quit();
+} else {
+  // This is the first instance - handle second instance attempts
+  app.on('second-instance', (_event, commandLine, _workingDirectory) => {
+    // Someone tried to run a second instance
+    // Focus the main window and open the file
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+      
+      // Check if a PDF file was passed in command line
+      for (const arg of commandLine) {
+        if (arg.endsWith('.pdf') && fs.existsSync(arg)) {
+          // Send file to renderer to open
+          mainWindow.webContents.send('open-pdf-file', arg);
+          break;
+        }
+      }
+    }
+  });
 }
 
 let mainWindow: BrowserWindow | null = null;
@@ -450,6 +479,20 @@ ipcMain.handle('convert-office-to-pdf', async (_, filePath: string) => {
   return await officeConversionService.convertToPDF(filePath);
 });
 
+// PDF to Word/Excel conversion via LibreOffice
+ipcMain.handle('convert-pdf-with-libreoffice', async (_, pdfBytes: Uint8Array, format: 'docx' | 'xlsx') => {
+  const buffer = Buffer.from(pdfBytes);
+  return await convertWithLibreOffice(buffer, format);
+});
+
+ipcMain.handle('check-libreoffice-for-pdf', async () => {
+  return checkLibreOfficeInstalled();
+});
+
+ipcMain.handle('get-libreoffice-download-url', async () => {
+  return getLibreOfficeDownloadUrl();
+});
+
 ipcMain.handle('open-office-file-dialog', async () => {
   if (!mainWindow) return null;
 
@@ -825,7 +868,595 @@ ipcMain.handle('sign-pdf', async (_, pdfBytes: Uint8Array, p12Bytes: Uint8Array,
   }
 });
 
+// Add page numbers to PDF
+ipcMain.handle('add-page-numbers', async (_, pdfBytes: Uint8Array, options: {
+  position: 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right';
+  format: 'numbers' | 'page-of-total' | 'roman' | 'letters';
+  startNumber: number;
+  fontSize: number;
+  margin: number;
+  pageRange: string;
+}) => {
+  try {
+    const { PDFDocument, StandardFonts, rgb } = require('pdf-lib');
+    
+    // Helper functions
+    const toRoman = (num: number): string => {
+      const romanNumerals: [number, string][] = [
+        [1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'],
+        [100, 'C'], [90, 'XC'], [50, 'L'], [40, 'XL'],
+        [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I'],
+      ];
+      let result = '';
+      for (const [value, numeral] of romanNumerals) {
+        while (num >= value) {
+          result += numeral;
+          num -= value;
+        }
+      }
+      return result;
+    };
+
+    const toLetters = (num: number): string => {
+      let result = '';
+      while (num > 0) {
+        const remainder = (num - 1) % 26;
+        result = String.fromCharCode(65 + remainder) + result;
+        num = Math.floor((num - 1) / 26);
+      }
+      return result;
+    };
+
+    const parsePageRange = (rangeStr: string, totalPages: number): number[] => {
+      if (rangeStr === 'all') {
+        return Array.from({ length: totalPages }, (_, i) => i);
+      }
+      const pages = new Set<number>();
+      const parts = rangeStr.split(',').map(s => s.trim());
+      for (const part of parts) {
+        if (part.includes('-')) {
+          const [start, end] = part.split('-').map(s => parseInt(s.trim()));
+          if (isNaN(start) || isNaN(end)) continue;
+          const from = Math.max(1, Math.min(start, totalPages));
+          const to = Math.max(1, Math.min(end, totalPages));
+          for (let i = from; i <= to; i++) {
+            pages.add(i - 1);
+          }
+        } else {
+          const pageNum = parseInt(part);
+          if (!isNaN(pageNum) && pageNum >= 1 && pageNum <= totalPages) {
+            pages.add(pageNum - 1);
+          }
+        }
+      }
+      return Array.from(pages).sort((a, b) => a - b);
+    };
+
+    const formatPageNumber = (pageIndex: number, totalPages: number, format: string, startNumber: number): string => {
+      const actualNumber = pageIndex + startNumber;
+      switch (format) {
+        case 'numbers':
+          return actualNumber.toString();
+        case 'page-of-total':
+          return `Page ${actualNumber} of ${totalPages + startNumber - 1}`;
+        case 'roman':
+          return toRoman(actualNumber);
+        case 'letters':
+          return toLetters(actualNumber);
+        default:
+          return actualNumber.toString();
+      }
+    };
+
+    const getPosition = (position: string, pageWidth: number, pageHeight: number, textWidth: number, fontSize: number, margin: number): { x: number; y: number } => {
+      const positions: Record<string, { x: number; y: number }> = {
+        'top-left': { x: margin, y: pageHeight - margin - fontSize },
+        'top-center': { x: (pageWidth - textWidth) / 2, y: pageHeight - margin - fontSize },
+        'top-right': { x: pageWidth - margin - textWidth, y: pageHeight - margin - fontSize },
+        'bottom-left': { x: margin, y: margin },
+        'bottom-center': { x: (pageWidth - textWidth) / 2, y: margin },
+        'bottom-right': { x: pageWidth - margin - textWidth, y: margin },
+      };
+      return positions[position];
+    };
+
+    // Load PDF
+    const pdfDoc = await PDFDocument.load(pdfBytes);
+    const pages = pdfDoc.getPages();
+    const totalPages = pages.length;
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    
+    // Parse page range
+    const pageIndices = parsePageRange(options.pageRange, totalPages);
+
+    // Add page numbers to specified pages
+    for (const pageIndex of pageIndices) {
+      if (pageIndex >= totalPages) continue;
+      
+      const page = pages[pageIndex];
+      const { width, height } = page.getSize();
+      
+      // Format the page number
+      const text = formatPageNumber(pageIndex, totalPages, options.format, options.startNumber);
+      
+      // Calculate text width
+      const textWidth = font.widthOfTextAtSize(text, options.fontSize);
+      
+      // Get position
+      const { x, y } = getPosition(options.position, width, height, textWidth, options.fontSize, options.margin);
+      
+      // Draw text
+      page.drawText(text, {
+        x,
+        y,
+        size: options.fontSize,
+        font,
+        color: rgb(0, 0, 0),
+      });
+    }
+
+    // Save the modified PDF
+    const modifiedPdfBytes = await pdfDoc.save();
+    return { success: true, data: new Uint8Array(modifiedPdfBytes) };
+  } catch (error: any) {
+    console.error('Add page numbers error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// Extract images from PDF
+ipcMain.handle('extract-images', async (_, pdfBytes: Uint8Array, options: {
+  format: 'png' | 'jpeg';
+  quality: number;
+  minWidth: number;
+  minHeight: number;
+  fileName: string;
+}) => {
+  try {
+    const { PDFDocument, PDFName, PDFRawStream } = require('pdf-lib');
+    
+    // Load PDF
+    const pdfDoc = await PDFDocument.load(pdfBytes);
+    const pages = pdfDoc.getPages();
+    
+    const images: { data: Uint8Array; width: number; height: number; pageIndex: number; index: number }[] = [];
+    let imageIndex = 0;
+    
+    // Extract all images from PDF using XObject approach
+    for (let pageIndex = 0; pageIndex < pages.length; pageIndex++) {
+      const page = pages[pageIndex];
+      
+      try {
+        // Get page resources
+        const resources = page.node.Resources();
+        if (!resources) continue;
+        
+        const xObjects = resources.lookup(PDFName.of('XObject'));
+        if (!xObjects) continue;
+        
+        // Iterate through XObjects
+        const entries = xObjects.entries ? xObjects.entries() : [];
+        
+        for (const [_name, ref] of entries) {
+          try {
+            const xObject = pdfDoc.context.lookup(ref);
+            if (!xObject) continue;
+            
+            // Check if it's an image
+            const subtype = xObject.dict?.get(PDFName.of('Subtype'));
+            if (!subtype || subtype.toString() !== '/Image') continue;
+            
+            // Get dimensions
+            const widthObj = xObject.dict?.get(PDFName.of('Width'));
+            const heightObj = xObject.dict?.get(PDFName.of('Height'));
+            
+            const width = widthObj?.value || widthObj?.numberValue?.() || 0;
+            const height = heightObj?.value || heightObj?.numberValue?.() || 0;
+            
+            // Filter by minimum size
+            if (width < options.minWidth || height < options.minHeight) continue;
+            
+            // Try to get image data
+            if (xObject instanceof PDFRawStream) {
+              const imageData = xObject.contents;
+              if (imageData && imageData.length > 0) {
+                images.push({
+                  data: imageData,
+                  width,
+                  height,
+                  pageIndex,
+                  index: imageIndex++,
+                });
+              }
+            }
+          } catch (xObjErr) {
+            console.error('Error processing XObject:', xObjErr);
+          }
+        }
+      } catch (pageErr) {
+        console.error('Error processing page:', pageErr);
+      }
+    }
+    
+    // If no images found, return helpful message
+    if (images.length === 0) {
+      return { 
+        success: true, 
+        count: 0,
+        message: 'No traditional images found. For PDFs from Word/print, use "Export as Images" (Ekspor sebagai Gambar) instead.'
+      };
+    }
+    
+    // Create output folder
+    const outputDir = path.join(
+      app.getPath('downloads'),
+      `${options.fileName.replace('.pdf', '')}_images`
+    );
+    
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
+    }
+    
+    let savedCount = 0;
+    const sharp = require('sharp');
+    
+    // Save each image
+    for (const img of images) {
+      try {
+        const ext = options.format === 'png' ? 'png' : 'jpg';
+        const fileName = `image_${img.index + 1}_page${img.pageIndex + 1}.${ext}`;
+        const filePath = path.join(outputDir, fileName);
+        
+        try {
+          // Try processing with sharp
+          let processor = sharp(Buffer.from(img.data), {
+            failOnError: false,
+            unlimited: true,
+          });
+          
+          if (options.format === 'jpeg') {
+            processor = processor.jpeg({ quality: options.quality });
+          } else {
+            processor = processor.png();
+          }
+          
+          await processor.toFile(filePath);
+          savedCount++;
+        } catch (sharpError) {
+          // If sharp fails, save raw data with appropriate extension
+          console.error('Sharp processing failed:', sharpError);
+          try {
+            await fs.promises.writeFile(filePath, Buffer.from(img.data));
+            savedCount++;
+          } catch (writeError) {
+            console.error('Failed to save raw image:', writeError);
+          }
+        }
+      } catch (imgError) {
+        console.error('Error saving image:', imgError);
+      }
+    }
+    
+    // Open output folder
+    if (savedCount > 0) {
+      await shell.openPath(outputDir);
+    }
+    
+    return { success: true, count: savedCount, outputDir };
+  } catch (error: any) {
+    console.error('Extract images error:', error);
+    return { success: false, error: error.message || 'Failed to extract images' };
+  }
+});
+
+// Unlock PDF (remove password/encryption) using QPDF
+ipcMain.handle('unlock-pdf', async (_, pdfBytes: Uint8Array, password: string) => {
+  try {
+    const { execSync } = require('child_process');
+    const os = require('os');
+    
+    // Create temp files for input and output
+    const tempDir = os.tmpdir();
+    const inputPath = path.join(tempDir, `input_${Date.now()}.pdf`);
+    const outputPath = path.join(tempDir, `output_${Date.now()}.pdf`);
+    
+    // Write input PDF to temp file
+    fs.writeFileSync(inputPath, Buffer.from(pdfBytes));
+    
+    try {
+      // Use QPDF to decrypt the PDF
+      // Full path to QPDF (installed with PDF24)
+      const qpdfPath = 'C:\\\\Program Files\\\\PDF24\\\\qpdf\\\\bin\\\\qpdf.exe';
+      const command = `"${qpdfPath}" --password="${password}" --decrypt "${inputPath}" "${outputPath}"`;
+      execSync(command, { stdio: 'pipe' });
+      
+      // Read the decrypted PDF
+      const decryptedBytes = fs.readFileSync(outputPath);
+      
+      // Clean up temp files
+      try {
+        fs.unlinkSync(inputPath);
+        fs.unlinkSync(outputPath);
+      } catch (cleanupErr) {
+        console.warn('Failed to clean up temp files:', cleanupErr);
+      }
+      
+      return { success: true, data: new Uint8Array(decryptedBytes) };
+    } catch (qpdfError: any) {
+      // Clean up temp files on error
+      try {
+        if (fs.existsSync(inputPath)) fs.unlinkSync(inputPath);
+        if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
+      } catch (cleanupErr) {
+        console.warn('Failed to clean up temp files:', cleanupErr);
+      }
+      
+      // Check for common QPDF errors
+      const errorMsg = qpdfError.stderr?.toString() || qpdfError.message || '';
+      
+      if (errorMsg.includes('invalid password') || errorMsg.includes('password')) {
+        return { success: false, error: 'Wrong password' };
+      }
+      if (errorMsg.includes('not encrypted')) {
+        return { success: false, error: 'This PDF is not encrypted' };
+      }
+      
+      console.error('QPDF error:', errorMsg);
+      return { success: false, error: 'Failed to decrypt PDF: ' + errorMsg };
+    }
+  } catch (error: any) {
+    console.error('Unlock PDF error:', error);
+    return { success: false, error: error.message || 'Failed to unlock PDF' };
+  }
+});
+
+// Web Optimize PDF using Ghostscript
+ipcMain.handle('web-optimize-pdf', async (_, pdfBytes: Uint8Array, options: { quality: string }) => {
+  try {
+    const { execSync } = require('child_process');
+    const os = require('os');
+    
+    // Create temp files for input and output
+    const tempDir = os.tmpdir();
+    const inputPath = path.join(tempDir, `input_opt_${Date.now()}.pdf`);
+    const outputPath = path.join(tempDir, `output_opt_${Date.now()}.pdf`);
+    
+    // Write input PDF to temp file
+    fs.writeFileSync(inputPath, Buffer.from(pdfBytes));
+    
+    try {
+      // Full path to Ghostscript (installed with PDF24)
+      const gsPath = path.join('C:', 'Program Files', 'PDF24', 'gs', 'bin', 'gswin64c.exe');
+      
+      // Ghostscript quality settings for PDF optimization
+      // -dPDFSETTINGS options: /screen, /ebook, /printer, /prepress
+      const qualityMap: Record<string, string> = {
+        'screen': '/screen',     // 72 dpi, lowest quality, smallest size
+        'ebook': '/ebook',       // 150 dpi, medium quality
+        'printer': '/printer',   // 300 dpi, high quality
+        'prepress': '/prepress', // 300 dpi, highest quality, largest size
+      };
+      
+      const pdfSettings = qualityMap[options.quality] || '/ebook';
+      
+      // Ghostscript command for PDF optimization
+      const command = `"${gsPath}" -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=${pdfSettings} -dNOPAUSE -dQUIET -dBATCH -sOutputFile="${outputPath}" "${inputPath}"`;
+      
+      execSync(command, { stdio: 'pipe', timeout: 120000 }); // 2 minute timeout
+      
+      // Read the optimized PDF
+      const optimizedBytes = fs.readFileSync(outputPath);
+      
+      // Clean up temp files
+      try {
+        fs.unlinkSync(inputPath);
+        fs.unlinkSync(outputPath);
+      } catch (cleanupErr) {
+        console.warn('Failed to clean up temp files:', cleanupErr);
+      }
+      
+      return { success: true, data: new Uint8Array(optimizedBytes) };
+    } catch (gsError: any) {
+      // Clean up temp files on error
+      try {
+        if (fs.existsSync(inputPath)) fs.unlinkSync(inputPath);
+        if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
+      } catch (cleanupErr) {
+        console.warn('Failed to clean up temp files:', cleanupErr);
+      }
+      
+      console.error('Ghostscript error:', gsError);
+      return { success: false, error: 'Failed to optimize PDF: ' + (gsError.message || 'Ghostscript error') };
+    }
+  } catch (error: any) {
+    console.error('Web Optimize PDF error:', error);
+    return { success: false, error: error.message || 'Failed to optimize PDF' };
+  }
+});
+
+// Helper functions for image type detection
+function isPNG(bytes: Uint8Array): boolean {
+  // PNG magic number: 89 50 4E 47 0D 0A 1A 0A
+  return bytes.length > 8 && 
+    bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47;
+}
+
+function isJPEG(bytes: Uint8Array): boolean {
+  // JPEG magic number: FF D8 FF
+  return bytes.length > 3 && 
+    bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF;
+}
+
+function isImageBytes(bytes: Uint8Array): boolean {
+  return isPNG(bytes) || isJPEG(bytes);
+}
+
+// Overlay PDF (superimpose one PDF or image on another)
+ipcMain.handle('overlay-pdf', async (_, basePdfBytes: Uint8Array, overlayBytes: Uint8Array, options: {
+  position: 'foreground' | 'background';
+  pageNumbers: number[];
+  opacity: number;
+  isImage?: boolean;
+  imagePosition?: 'top' | 'bottom' | 'center' | 'full';
+}) => {
+  try {
+    const { PDFDocument } = require('pdf-lib');
+    
+    // Load base PDF
+    const basePdf = await PDFDocument.load(basePdfBytes);
+    const basePages = basePdf.getPages();
+    
+    // Detect if overlay is an image or PDF
+    const isImage = options.isImage || isImageBytes(overlayBytes);
+    
+    if (isImage) {
+      // Handle image overlay
+      let embeddedImage;
+      
+      // Detect image type from bytes
+      if (isPNG(overlayBytes)) {
+        embeddedImage = await basePdf.embedPng(overlayBytes);
+      } else if (isJPEG(overlayBytes)) {
+        embeddedImage = await basePdf.embedJpg(overlayBytes);
+      } else {
+        // Try PNG first, fall back to JPEG
+        try {
+          embeddedImage = await basePdf.embedPng(overlayBytes);
+        } catch {
+          embeddedImage = await basePdf.embedJpg(overlayBytes);
+        }
+      }
+      
+      const imgWidth = embeddedImage.width;
+      const imgHeight = embeddedImage.height;
+      
+      for (const pageNum of options.pageNumbers) {
+        if (pageNum < 1 || pageNum > basePages.length) continue;
+        
+        const page = basePages[pageNum - 1];
+        const { width, height } = page.getSize();
+        
+        let xOffset = 0;
+        let yOffset = 0;
+        let scaledWidth = width;
+        let scaledHeight = height;
+        
+        const imgPos = options.imagePosition || 'top';
+        
+        if (imgPos === 'full') {
+          // Stretch to fill entire page
+          scaledWidth = width;
+          scaledHeight = height;
+          xOffset = 0;
+          yOffset = 0;
+        } else {
+          // Scale image to fit page WIDTH while maintaining aspect ratio
+          const scale = width / imgWidth;
+          scaledWidth = width;
+          scaledHeight = imgHeight * scale;
+          
+          // Calculate Y position based on imagePosition
+          // PDF coordinate system: Y=0 is BOTTOM
+          switch (imgPos) {
+            case 'top':
+              yOffset = height - scaledHeight; // Top of page
+              break;
+            case 'bottom':
+              yOffset = 0; // Bottom of page
+              break;
+            case 'center':
+            default:
+              yOffset = (height - scaledHeight) / 2; // Center
+              break;
+          }
+        }
+        
+        page.drawImage(embeddedImage, {
+          x: xOffset,
+          y: yOffset,
+          width: scaledWidth,
+          height: scaledHeight,
+          opacity: options.opacity,
+        });
+      }
+    } else {
+      // Handle PDF overlay (original logic)
+      const overlayPdf = await PDFDocument.load(overlayBytes);
+      
+      // Get the first page of overlay as template
+      const overlayPages = overlayPdf.getPages();
+      if (overlayPages.length === 0) {
+        return { success: false, error: 'Overlay PDF has no pages' };
+      }
+      
+      // Embed overlay pages into base document
+      const embeddedPages = await basePdf.embedPages(overlayPages);
+    
+    for (const pageNum of options.pageNumbers) {
+      if (pageNum < 1 || pageNum > basePages.length) continue;
+      
+      const page = basePages[pageNum - 1];
+      const { width, height } = page.getSize();
+      
+      // Use first overlay page (or cycle through if multiple)
+      const overlayIndex = (pageNum - 1) % embeddedPages.length;
+      const embeddedPage = embeddedPages[overlayIndex];
+      
+      // Get overlay dimensions safely - embedded pages have width/height directly
+      const overlayWidth = embeddedPage.width || embeddedPage.size?.width || width;
+      const overlayHeight = embeddedPage.height || embeddedPage.size?.height || height;
+      
+      // Calculate scaling to fit overlay to page
+      const scaleX = width / overlayWidth;
+      const scaleY = height / overlayHeight;
+      const scale = Math.min(scaleX, scaleY);
+      
+      // Center the overlay
+      const scaledWidth = overlayWidth * scale;
+      const scaledHeight = overlayHeight * scale;
+      const xOffset = (width - scaledWidth) / 2;
+      const yOffset = (height - scaledHeight) / 2;
+      
+      // Ensure all values are valid numbers
+      const safeX = isNaN(xOffset) ? 0 : xOffset;
+      const safeY = isNaN(yOffset) ? 0 : yOffset;
+      const safeWidth = isNaN(scaledWidth) ? width : scaledWidth;
+      const safeHeight = isNaN(scaledHeight) ? height : scaledHeight;
+      const safeOpacity = isNaN(options.opacity) ? 1 : options.opacity;
+      
+      if (options.position === 'background') {
+        // For background, we need to create a new page and move content
+        // This is complex, so for now we'll just draw on top with low opacity for background effect
+        page.drawPage(embeddedPage, {
+          x: safeX,
+          y: safeY,
+          width: safeWidth,
+          height: safeHeight,
+          opacity: safeOpacity * 0.5, // Lower opacity for background
+        });
+      } else {
+        // Foreground - draw on top
+        page.drawPage(embeddedPage, {
+          x: safeX,
+          y: safeY,
+          width: safeWidth,
+          height: safeHeight,
+          opacity: safeOpacity,
+        });
+      }
+    }
+    } // Close else block for PDF overlay
+    
+    const resultBytes = await basePdf.save();
+    return { success: true, data: new Uint8Array(resultBytes) };
+  } catch (error: any) {
+    console.error('Overlay PDF error:', error);
+    return { success: false, error: error.message || 'Failed to overlay PDF' };
+  }
+});
+
 // Open P12 certificate file dialog
+
 ipcMain.handle('open-p12-file-dialog', async () => {
   const result = await dialog.showOpenDialog({
     title: 'Select Certificate File',
@@ -917,3 +1548,171 @@ ipcMain.handle('open-folder-dialog', async () => {
   if (result.canceled || result.filePaths.length === 0) return null;
   return result.filePaths;
 });
+
+// Webpage to PDF - Convert URL to PDF document
+ipcMain.handle('webpage-to-pdf', async (_, options: {
+  url: string;
+  pageSize: 'A4' | 'Letter' | 'Legal' | 'A3';
+  landscape: boolean;
+  margins: 'none' | 'minimal' | 'normal';
+  printBackground: boolean;
+  timeout: number; // in seconds
+}) => {
+  let hiddenWindow: BrowserWindow | null = null;
+  
+  try {
+    // 1. Validate URL format
+    let validUrl: URL;
+    try {
+      // Add https if no protocol specified
+      let urlString = options.url.trim();
+      if (!urlString.startsWith('http://') && !urlString.startsWith('https://')) {
+        urlString = 'https://' + urlString;
+      }
+      validUrl = new URL(urlString);
+    } catch (e) {
+      return { success: false, error: 'Invalid URL format' };
+    }
+    
+    // 2. Create hidden BrowserWindow with settings to bypass site restrictions
+    hiddenWindow = new BrowserWindow({
+      width: 1280,
+      height: 900,
+      show: false, // Hidden window
+      webPreferences: {
+        sandbox: false, // Disable sandbox to allow more flexibility
+        nodeIntegration: false,
+        contextIsolation: true,
+        webSecurity: false, // Disable to bypass CORS/CSP restrictions
+        allowRunningInsecureContent: true,
+      },
+    });
+    
+    // Set a real Chrome user-agent to avoid bot detection
+    const chromeUserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+    hiddenWindow.webContents.setUserAgent(chromeUserAgent);
+    
+    // 3. Handle SSL/certificate errors gracefully
+    hiddenWindow.webContents.on('certificate-error', (event, _url, _error, _certificate, callback) => {
+      event.preventDefault();
+      callback(true); // Accept the certificate
+    });
+    
+    // 4. Set timeout with Promise
+    const timeoutMs = (options.timeout || 30) * 1000;
+    
+    const loadPromise = new Promise<void>((resolve, reject) => {
+      const timeoutId = setTimeout(() => {
+        reject(new Error('Page load timeout - the webpage took too long to load'));
+      }, timeoutMs);
+      
+      hiddenWindow!.webContents.once('did-finish-load', () => {
+        clearTimeout(timeoutId);
+        resolve();
+      });
+      
+      hiddenWindow!.webContents.once('did-fail-load', (_event, errorCode, errorDescription) => {
+        clearTimeout(timeoutId);
+        reject(new Error(`Failed to load page: ${errorDescription} (${errorCode})`));
+      });
+    });
+    
+    // 5. Load URL
+    await hiddenWindow.loadURL(validUrl.toString());
+    await loadPromise;
+    
+    // 6. Scroll to bottom to trigger lazy-loaded content, then wait for rendering
+    await hiddenWindow.webContents.executeJavaScript(`
+      (async () => {
+        // Scroll to bottom multiple times to trigger all lazy loading
+        const scrollHeight = () => document.documentElement.scrollHeight;
+        const scrollTo = (y) => window.scrollTo(0, y);
+        
+        let lastHeight = 0;
+        let currentHeight = scrollHeight();
+        
+        // Keep scrolling until no new content loads (max 10 iterations)
+        for (let i = 0; i < 10 && currentHeight > lastHeight; i++) {
+          lastHeight = currentHeight;
+          scrollTo(currentHeight);
+          await new Promise(r => setTimeout(r, 500)); // Wait for lazy content
+          currentHeight = scrollHeight();
+        }
+        
+        // Scroll back to top
+        scrollTo(0);
+        
+        // Final wait for any remaining rendering
+        await new Promise(r => setTimeout(r, 1000));
+      })();
+    `);
+    
+    // Additional wait for complex pages
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // 7. Configure PDF options - use standard page sizes for reliable output
+    // Content will automatically span multiple pages as needed
+    const marginValues = {
+      none: { top: 0, bottom: 0, left: 0, right: 0 },
+      minimal: { top: 0.4, bottom: 0.4, left: 0.4, right: 0.4 },
+      normal: { top: 0.75, bottom: 0.75, left: 0.75, right: 0.75 },
+    };
+    
+    const pdfOptions = {
+      pageSize: options.pageSize || 'A4',
+      landscape: options.landscape || false,
+      printBackground: options.printBackground !== false,
+      margins: marginValues[options.margins || 'normal'],
+    };
+    
+    console.log('[Webpage to PDF] Using options:', JSON.stringify(pdfOptions));
+    
+    // 8. Generate PDF - content will automatically paginate
+    const pdfBuffer = await hiddenWindow.webContents.printToPDF(pdfOptions as any);
+    
+    // 9. Show save dialog
+    if (!mainWindow) {
+      return { success: false, error: 'Main window not available' };
+    }
+    
+    // Generate default filename from URL
+    const hostname = validUrl.hostname.replace(/[^a-z0-9]/gi, '_');
+    const timestamp = new Date().toISOString().slice(0, 10);
+    const defaultName = `${hostname}_${timestamp}.pdf`;
+    
+    const saveResult = await dialog.showSaveDialog(mainWindow, {
+      title: 'Save PDF',
+      defaultPath: path.join(app.getPath('downloads'), defaultName),
+      filters: [{ name: 'PDF Files', extensions: ['pdf'] }],
+    });
+    
+    if (saveResult.canceled || !saveResult.filePath) {
+      return { success: false, error: 'Save cancelled by user' };
+    }
+    
+    // 10. Save PDF file
+    await fs.promises.writeFile(saveResult.filePath, pdfBuffer);
+    
+    // Open the saved file location
+    shell.showItemInFolder(saveResult.filePath);
+    
+    return { 
+      success: true, 
+      filePath: saveResult.filePath,
+      pageTitle: await hiddenWindow.webContents.getTitle(),
+    };
+    
+  } catch (error: any) {
+    console.error('Webpage to PDF error:', error);
+    return { 
+      success: false, 
+      error: error.message || 'Failed to convert webpage to PDF' 
+    };
+  } finally {
+    // 11. Cleanup hidden window
+    if (hiddenWindow && !hiddenWindow.isDestroyed()) {
+      hiddenWindow.destroy();
+    }
+  }
+});
+

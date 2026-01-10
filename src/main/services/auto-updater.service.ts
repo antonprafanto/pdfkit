@@ -8,14 +8,6 @@ import { autoUpdater, UpdateInfo, ProgressInfo } from 'electron-updater';
 import { BrowserWindow, ipcMain, app } from 'electron';
 import * as log from 'electron-log';
 
-// Configure logging
-autoUpdater.logger = log;
-(autoUpdater.logger as any).transports.file.level = 'info';
-
-// Configure update settings
-autoUpdater.autoDownload = false; // Don't auto-download, let user decide
-autoUpdater.autoInstallOnAppQuit = true;
-
 export interface UpdateStatus {
   checking: boolean;
   available: boolean;
@@ -40,13 +32,26 @@ class AutoUpdaterService {
   };
 
   constructor() {
-    this.setupEventListeners();
-    this.setupIPCHandlers();
+    // Don't setup anything in constructor - wait for initialize()
   }
 
   initialize(window: BrowserWindow) {
     this.mainWindow = window;
-    
+
+    // Configure auto-updater only after app is ready
+    try {
+      autoUpdater.logger = log;
+      (autoUpdater.logger as any).transports.file.level = 'info';
+      autoUpdater.autoDownload = false; // Don't auto-download, let user decide
+      autoUpdater.autoInstallOnAppQuit = true;
+
+      this.setupEventListeners();
+      this.setupIPCHandlers();
+      console.log('[AutoUpdater] Initialized successfully');
+    } catch (error) {
+      console.error('[AutoUpdater] Failed to initialize:', error);
+    }
+
     // Check for updates on startup (after a short delay)
     setTimeout(() => {
       this.checkForUpdates();

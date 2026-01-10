@@ -92,7 +92,7 @@ export const CreateFieldDialog: React.FC<CreateFieldDialogProps> = ({
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 pb-6 space-y-4">
           {/* Field Type */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -101,7 +101,7 @@ export const CreateFieldDialog: React.FC<CreateFieldDialogProps> = ({
             <select
               value={fieldType}
               onChange={(e) => setFieldType(e.target.value as FormFieldType)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             >
               <option value="text">Text Input</option>
               <option value="checkbox">Checkbox</option>
@@ -120,7 +120,7 @@ export const CreateFieldDialog: React.FC<CreateFieldDialogProps> = ({
               value={fieldName}
               onChange={(e) => setFieldName(e.target.value)}
               placeholder="e.g., firstName (leave empty for auto-generated)"
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             />
           </div>
 
@@ -134,7 +134,7 @@ export const CreateFieldDialog: React.FC<CreateFieldDialogProps> = ({
               value={defaultValue}
               onChange={(e) => setDefaultValue(e.target.value)}
               placeholder="Optional default value"
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             />
           </div>
 
@@ -149,7 +149,7 @@ export const CreateFieldDialog: React.FC<CreateFieldDialogProps> = ({
                 onChange={(e) => setOptions(e.target.value)}
                 placeholder={"Option 1\nOption 2\nOption 3"}
                 rows={4}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 font-mono text-sm"
+                className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 font-mono text-sm"
               />
             </div>
           )}

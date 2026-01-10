@@ -45,6 +45,8 @@ interface RibbonToolbarProps {
   onOpenReorder?: () => void;
   onOpenExtract?: () => void;
   onOpenDuplicate?: () => void;
+  onOpenExtractImages?: () => void;
+  onOpenAddPageNumbers?: () => void;
   onOpenExportImages?: () => void;
   onOpenImportImages?: () => void;
   onOpenConvertOffice?: () => void;
@@ -55,13 +57,26 @@ interface RibbonToolbarProps {
   onOpenOCR?: () => void;
   onOpenCompress?: () => void;
   onOpenSignPDF?: () => void;
+  onOpenUnlockPDF?: () => void;
+  onOpenWebOptimize?: () => void;
+  onOpenOverlay?: () => void;
+  onOpenWebpageToPDF?: () => void;
   onOpenBatch?: () => void;
   onOpenPluginManager?: () => void;
+  onConvert?: () => void; // PDF to Word/Excel conversion
   // State
   hasDocument: boolean;
   filePath?: string; // Path to current PDF for printing
   fileName?: string; // Name of current PDF
   onPrint?: () => void; // Print callback
+  // Header actions - integrated into ribbon
+  onSettings?: () => void;
+  onAbout?: () => void;
+  onShare?: () => void;
+  onSearchTools?: () => void; // Open tool search dialog
+  onCheckUpdates?: () => void;
+  themeToggle?: React.ReactNode;
+  isOnline?: boolean;
 }
 
 type TabId = 'beranda' | 'edit' | 'halaman' | 'alat' | 'tampilan';
@@ -69,6 +84,20 @@ type TabId = 'beranda' | 'edit' | 'halaman' | 'alat' | 'tampilan';
 const RibbonToolbar: React.FC<RibbonToolbarProps> = (props) => {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<TabId>('beranda');
+  
+  // Ribbon minimize state - persisted to localStorage
+  const [isMinimized, setIsMinimized] = useState(() => {
+    const saved = localStorage.getItem('ribbonMinimized');
+    return saved === 'true';
+  });
+
+  const toggleMinimize = () => {
+    setIsMinimized(prev => {
+      const newValue = !prev;
+      localStorage.setItem('ribbonMinimized', String(newValue));
+      return newValue;
+    });
+  };
 
   const tabs: { id: TabId; label: string }[] = [
     { id: 'beranda', label: t('ribbon.home') },
@@ -78,7 +107,7 @@ const RibbonToolbar: React.FC<RibbonToolbarProps> = (props) => {
     { id: 'tampilan', label: t('ribbon.view') },
   ];
 
-  // Reusable button component for ribbon - COMPACT version
+  // Reusable button component for ribbon - COMPACT ICON-ONLY version
   const RibbonButton: React.FC<{
     icon: React.ReactNode;
     label: string;
@@ -89,18 +118,18 @@ const RibbonToolbar: React.FC<RibbonToolbarProps> = (props) => {
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`flex flex-col items-center justify-center px-1.5 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors min-w-[45px] ${
+      title={label}
+      className={`flex items-center justify-center p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
         disabled ? 'opacity-50 cursor-not-allowed' : ''
       } ${active ? 'bg-blue-100 dark:bg-blue-900' : ''}`}
     >
-      <div className="h-4 w-4 flex items-center justify-center">{icon}</div>
-      <span className="text-[10px] mt-0.5 text-gray-700 dark:text-gray-300 whitespace-nowrap leading-tight">{label}</span>
+      <div className="h-5 w-5 flex items-center justify-center">{icon}</div>
     </button>
   );
 
-  // Separator between groups - smaller
+  // Separator between groups - compact
   const Separator = () => (
-    <div className="w-px h-8 bg-gray-300 dark:bg-gray-600 mx-1" />
+    <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-0.5" />
   );
 
   // Tab content renderers
@@ -319,6 +348,29 @@ const RibbonToolbar: React.FC<RibbonToolbarProps> = (props) => {
         onClick={props.onOpenSignPDF}
         disabled={!props.hasDocument}
       />
+      <RibbonButton
+        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg>}
+        label={t('tools.unlockPDF')}
+        onClick={props.onOpenUnlockPDF}
+        disabled={!props.hasDocument}
+      />
+      <RibbonButton
+        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>}
+        label={t('tools.webOptimize')}
+        onClick={props.onOpenWebOptimize}
+        disabled={!props.hasDocument}
+      />
+      <RibbonButton
+        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2" /></svg>}
+        label={t('tools.overlay')}
+        onClick={props.onOpenOverlay}
+        disabled={!props.hasDocument}
+      />
+      <RibbonButton
+        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>}
+        label={t('tools.webpageToPdf')}
+        onClick={props.onOpenWebpageToPDF}
+      />
 
       <Separator />
 
@@ -326,6 +378,18 @@ const RibbonToolbar: React.FC<RibbonToolbarProps> = (props) => {
         icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>}
         label={t('tools.exportImages')}
         onClick={props.onOpenExportImages}
+        disabled={!props.hasDocument}
+      />
+      <RibbonButton
+        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 002 2v12a2 2 0 002 2z" /></svg>}
+        label={t('tools.extractImages')}
+        onClick={props.onOpenExtractImages}
+        disabled={!props.hasDocument}
+      />
+      <RibbonButton
+        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" /></svg>}
+        label={t('tools.addPageNumbers')}
+        onClick={props.onOpenAddPageNumbers}
         disabled={!props.hasDocument}
       />
       <RibbonButton
@@ -337,6 +401,12 @@ const RibbonToolbar: React.FC<RibbonToolbarProps> = (props) => {
         icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>}
         label={t('tools.officeToPdf')}
         onClick={props.onOpenConvertOffice}
+      />
+      <RibbonButton
+        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>}
+        label={t('tools.pdfToWord')}
+        onClick={props.onConvert}
+        disabled={!props.hasDocument}
       />
 
       <Separator />
@@ -417,13 +487,13 @@ const RibbonToolbar: React.FC<RibbonToolbarProps> = (props) => {
 
   return (
     <div className="border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-      {/* Tab Bar */}
+      {/* Compact Tab Bar */}
       <div className="flex items-center border-b border-gray-200 dark:border-gray-700 px-2">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2 text-sm font-medium transition-colors ${
+            className={`px-3 py-1.5 text-xs font-medium transition-colors ${
               activeTab === tab.id
                 ? 'text-blue-600 border-b-2 border-blue-600 dark:text-blue-400 dark:border-blue-400'
                 : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
@@ -432,14 +502,122 @@ const RibbonToolbar: React.FC<RibbonToolbarProps> = (props) => {
             {tab.label}
           </button>
         ))}
+        
+        {/* Spacer */}
+        <div className="flex-1" />
+        
+        {/* Header actions - integrated into ribbon */}
+        <div className="flex items-center gap-1">
+          {/* Search Tools Button */}
+          {props.onSearchTools && (
+            <button
+              onClick={props.onSearchTools}
+              className="flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white transition-colors rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+              title={t('tools.searchPlaceholder', 'Search tools... (Ctrl+K)')}
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <span className="hidden md:inline">{t('tools.search', 'Search')}</span>
+            </button>
+          )}
+
+          {/* Theme Toggle */}
+          {props.themeToggle}
+          
+          {/* Settings */}
+          {props.onSettings && (
+            <button
+              onClick={props.onSettings}
+              className="p-1.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white transition-colors rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+              title={t('footer.settings', 'Settings')}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </button>
+          )}
+          
+          {/* About */}
+          {props.onAbout && (
+            <button
+              onClick={props.onAbout}
+              className="p-1.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white transition-colors rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+              title={t('footer.about', 'About')}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </button>
+          )}
+          
+          {/* Share */}
+          {props.onShare && (
+            <button
+              onClick={props.onShare}
+              className="p-1.5 text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 transition-colors rounded hover:bg-emerald-50 dark:hover:bg-emerald-950"
+              title={t('toolbar.share', 'Share')}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+              </svg>
+            </button>
+          )}
+          
+          {/* Check Updates */}
+          {props.onCheckUpdates && (
+            <button
+              onClick={props.onCheckUpdates}
+              className="p-1.5 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors rounded hover:bg-blue-50 dark:hover:bg-blue-950"
+              title={t('ribbon.checkUpdates', 'Check Updates')}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
+          )}
+          
+          {/* Online indicator */}
+          {props.isOnline !== undefined && (
+            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded text-xs">
+              <div className={`w-2 h-2 rounded-full ${props.isOnline ? 'bg-green-500' : 'bg-red-500'}`} />
+              <span className="text-gray-500 dark:text-gray-400 hidden sm:inline">
+                {props.isOnline ? t('connectivity.online', 'Online') : t('connectivity.offline', 'Offline')}
+              </span>
+            </div>
+          )}
+          
+          {/* Separator before minimize */}
+          <div className="w-px h-4 bg-gray-300 dark:bg-gray-600 mx-1" />
+        </div>
+        
+        {/* Minimize toggle button */}
+        <button
+          onClick={toggleMinimize}
+          className="px-2 py-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white transition-colors"
+          title={isMinimized ? t('ribbon.expand', 'Expand Ribbon') : t('ribbon.minimize', 'Minimize Ribbon')}
+        >
+          <svg 
+            className={`w-4 h-4 transition-transform ${isMinimized ? 'rotate-180' : ''}`} 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+
+          </svg>
+        </button>
       </div>
 
-      {/* Tab Content - Scrollable */}
-      <div className="px-3 py-2 min-h-[52px] overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600" style={{ scrollbarWidth: 'thin' }}>
-        <div className="flex items-center min-w-max">
-          {renderTabContent()}
+      {/* Compact Tab Content - Scrollable (hidden when minimized) */}
+      {!isMinimized && (
+        <div className="px-2 py-1 min-h-[36px] overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600" style={{ scrollbarWidth: 'thin' }}>
+          <div className="flex items-center min-w-max gap-0.5">
+            {renderTabContent()}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

@@ -1,10 +1,10 @@
 /**
  * PDF Page Component
- * Renders a single PDF page using canvas
+ * Renders a single PDF page using canvas with text layer for selection
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { PDFDocumentProxy, PDFPageProxy } from '../lib/pdf-config';
+import { pdfjsLib, PDFDocumentProxy, PDFPageProxy } from '../lib/pdf-config';
 import { Spinner } from './ui';
 import { AnnotationOverlay } from './annotations';
 import { FormFieldOverlay } from './forms/FormFieldOverlay';
@@ -25,14 +25,17 @@ interface PDFPageProps {
   onPageLoad?: (page: PDFPageProxy) => void;
   showAnnotations?: boolean;
   showForms?: boolean;
+  onNoTextContent?: () => void; // Called when page has no selectable text (scan PDF)
 }
 
-export function PDFPage({ document, pageNumber, scale, rotation, searchHighlights, onPageLoad, showAnnotations = false, showForms = false }: PDFPageProps) {
+export function PDFPage({ document, pageNumber, scale, rotation, searchHighlights, onPageLoad, showAnnotations = false, showForms = false, onNoTextContent }: PDFPageProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const textLayerRef = useRef<HTMLDivElement>(null);
   const [isRendering, setIsRendering] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [viewport, setViewport] = useState<any>(null);
   const renderTaskRef = useRef<any>(null);
+  const textLayerInstanceRef = useRef<any>(null);
 
   // Forms store
   const { fields, editMode } = useFormsStore();
@@ -104,6 +107,53 @@ export function PDFPage({ document, pageNumber, scale, rotation, searchHighlight
 
         renderTaskRef.current = page.render(renderContext);
         await renderTaskRef.current.promise;
+        
+        // Store page for text layer rendering
+        // (page reference stored in closure, not needed in state)
+
+        // Render text layer for selection
+        if (!isCancelled && textLayerRef.current) {
+          // Clear previous text layer
+          textLayerRef.current.innerHTML = '';
+          
+          // Cancel previous text layer if exists
+          if (textLayerInstanceRef.current) {
+            textLayerInstanceRef.current.cancel();
+          }
+          
+          try {
+            // Get text content
+            const textContent = await page.getTextContent();
+            
+            // Check if PDF has selectable text - only on first page
+            const hasText = textContent.items && textContent.items.length > 0;
+            
+            if (!hasText && pageNumber === 1) {
+              // PDF appears to be scan/image-based - notify parent
+              onNoTextContent?.();
+            }
+            
+            // Create text layer using pdfjsLib if available
+            if (hasText) {
+              const TextLayerClass = (pdfjsLib as any).TextLayer;
+              
+              if (TextLayerClass && textLayerRef.current) {
+                textLayerInstanceRef.current = new TextLayerClass({
+                  textContentSource: textContent,
+                  container: textLayerRef.current,
+                  viewport: pageViewport,
+                });
+                
+                if (textLayerInstanceRef.current) {
+                  await textLayerInstanceRef.current.render();
+                }
+              }
+            }
+          } catch (textErr) {
+            console.warn('Text layer render warning:', textErr);
+            // Non-fatal - continue without text layer
+          }
+        }
 
         if (!isCancelled) {
           setIsRendering(false);
@@ -129,6 +179,14 @@ export function PDFPage({ document, pageNumber, scale, rotation, searchHighlight
       if (renderTaskRef.current) {
         try {
           renderTaskRef.current.cancel();
+        } catch (e) {
+          // Ignore cancellation errors
+        }
+      }
+      // Cleanup text layer
+      if (textLayerInstanceRef.current) {
+        try {
+          textLayerInstanceRef.current.cancel();
         } catch (e) {
           // Ignore cancellation errors
         }
@@ -174,6 +232,18 @@ export function PDFPage({ document, pageNumber, scale, rotation, searchHighlight
           display: 'inline-block',
         }}
       />
+
+      {/* Text layer for selection - positioned over canvas */}
+      {viewport && (
+        <div
+          ref={textLayerRef}
+          className="textLayer"
+          style={{
+            width: viewport.width,
+            height: viewport.height,
+          }}
+        />
+      )}
 
       {/* Search highlights overlay */}
       {viewport && currentPageHighlights.length > 0 && (

@@ -383,3 +383,200 @@ html.reduced-motion *::after {
     0 8px 30px -10px rgba(0, 0, 0, 0.5),
     0 0 30px -10px rgba(99, 102, 241, 0.15);
 }
+
+/* ============================== */
+/* PDF.js Text Layer Styles       */
+/* Official styles from pdfjs-dist */
+/* ============================== */
+
+.textLayer {
+  position: absolute;
+  text-align: initial;
+  inset: 0;
+  overflow: clip;
+  opacity: 1;
+  line-height: 1;
+  -webkit-text-size-adjust: none;
+  -moz-text-size-adjust: none;
+  text-size-adjust: none;
+  forced-color-adjust: none;
+  transform-origin: 0 0;
+  caret-color: CanvasText;
+  z-index: 0;
+}
+
+.textLayer :is(span, br) {
+  color: transparent;
+  position: absolute;
+  white-space: pre;
+  cursor: text;
+  transform-origin: 0% 0%;
+}
+
+.textLayer span.markedContent {
+  top: 0;
+  height: 0;
+}
+
+.textLayer .highlight {
+  margin: -1px;
+  padding: 1px;
+  background-color: rgb(180 0 170 / 0.25);
+  border-radius: 4px;
+}
+
+.textLayer .highlight.appended {
+  position: initial;
+}
+
+.textLayer .highlight.begin {
+  border-radius: 4px 0 0 4px;
+}
+
+.textLayer .highlight.end {
+  border-radius: 0 4px 4px 0;
+}
+
+.textLayer .highlight.middle {
+  border-radius: 0;
+}
+
+.textLayer .highlight.selected {
+  background-color: rgb(0 100 0 / 0.25);
+}
+
+/* Selection styles */
+.textLayer ::selection {
+  background: rgba(59, 130, 246, 0.4);
+}
+
+.textLayer ::-moz-selection {
+  background: rgba(59, 130, 246, 0.4);
+}
+
+/* ============================================
+   HIGH CONTRAST MODE SUPPORT
+   Windows High Contrast Mode accessibility fix
+   ============================================ */
+@media (forced-colors: active) {
+  /* Use system colors for proper visibility */
+  :root {
+    --background: Canvas;
+    --foreground: CanvasText;
+    --primary: Highlight;
+    --primary-foreground: HighlightText;
+    --secondary: Canvas;
+    --secondary-foreground: CanvasText;
+    --muted: Canvas;
+    --muted-foreground: CanvasText;
+    --accent: Highlight;
+    --accent-foreground: HighlightText;
+    --destructive: LinkText;
+    --destructive-foreground: Canvas;
+    --border: CanvasText;
+    --input: Canvas;
+    --ring: Highlight;
+  }
+
+  /* Force text visibility */
+  body,
+  .text-foreground,
+  .text-muted-foreground,
+  h1, h2, h3, h4, h5, h6,
+  p, span, label, a {
+    color: CanvasText !important;
+    forced-color-adjust: none;
+  }
+
+  /* Force background visibility */
+  .bg-background,
+  .bg-card,
+  .bg-popover,
+  .bg-muted,
+  .bg-secondary {
+    background-color: Canvas !important;
+    forced-color-adjust: none;
+  }
+
+  /* Button visibility */
+  button,
+  [role="button"],
+  .btn {
+    border: 2px solid CanvasText !important;
+    background-color: Canvas !important;
+    color: CanvasText !important;
+    forced-color-adjust: none;
+  }
+
+  button:hover,
+  [role="button"]:hover {
+    background-color: Highlight !important;
+    color: HighlightText !important;
+  }
+
+  /* Primary buttons */
+  .bg-primary,
+  button[class*="primary"] {
+    background-color: Highlight !important;
+    color: HighlightText !important;
+    border-color: HighlightText !important;
+  }
+
+  /* Input fields */
+  input,
+  textarea,
+  select {
+    border: 2px solid CanvasText !important;
+    background-color: Canvas !important;
+    color: CanvasText !important;
+    forced-color-adjust: none;
+  }
+
+  input:focus,
+  textarea:focus,
+  select:focus {
+    outline: 3px solid Highlight !important;
+    outline-offset: 2px;
+  }
+
+  /* Dialog/Modal visibility */
+  [role="dialog"],
+  .dialog,
+  .modal {
+    border: 3px solid CanvasText !important;
+    background-color: Canvas !important;
+  }
+
+  /* Border visibility */
+  .border,
+  .border-border,
+  [class*="border-"] {
+    border-color: CanvasText !important;
+  }
+
+  /* Link visibility */
+  a {
+    color: LinkText !important;
+    text-decoration: underline !important;
+  }
+
+  /* Icon visibility - use currentColor */
+  svg {
+    color: CanvasText !important;
+    fill: currentColor !important;
+  }
+
+  /* Ensure text layer in PDF is visible */
+  .textLayer span {
+    color: CanvasText !important;
+  }
+
+  /* Scrollbar visibility */
+  ::-webkit-scrollbar-thumb {
+    background-color: CanvasText !important;
+  }
+
+  ::-webkit-scrollbar-track {
+    background-color: Canvas !important;
+  }
+}

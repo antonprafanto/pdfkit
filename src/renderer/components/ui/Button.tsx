@@ -25,9 +25,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     };
 
     const sizeStyles = {
-      sm: 'h-8 px-3 text-sm',
-      md: 'h-10 px-4 text-sm',
-      lg: 'h-12 px-6 text-base',
+      sm: 'px-3 py-1.5 text-sm', // 20px leading + 6px padding + 6px = 32px height
+      md: 'px-6 py-2.5 text-sm', // 20px leading + 10px padding + 10px = 40px height
+      lg: 'px-8 py-3.5 text-base', // 24px leading + 14px padding + 14px = ~52px height
     };
 
     const widthStyle = fullWidth ? 'w-full' : '';

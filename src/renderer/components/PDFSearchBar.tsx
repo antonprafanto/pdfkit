@@ -3,11 +3,11 @@
  * Search for text within the PDF document
  */
 
-import { useState } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { PDFDocumentProxy } from '../lib/pdf-config';
 import { pdfService } from '../lib/pdf-service';
 import { SearchHighlight } from './PDFPage';
-import { Button, Input, Spinner } from './ui';
+import { Spinner } from './ui';
 
 interface SearchResult {
   pageNumber: number;
@@ -29,8 +29,30 @@ export function PDFSearchBar({ document, scale, rotation, onResultSelect, onHigh
   const [currentResultIndex, setCurrentResultIndex] = useState(0);
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  
+  // Ref for auto-focus
+  const inputRef = useRef<HTMLInputElement>(null);
+  
+  // Auto-focus on mount
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+  
+  // Debounced live search - triggers 400ms after user stops typing
+  useEffect(() => {
+    if (!document || !searchQuery.trim() || searchQuery.length < 2) {
+      return;
+    }
+    
+    const debounceTimer = setTimeout(() => {
+      handleSearchInternal();
+    }, 400);
+    
+    return () => clearTimeout(debounceTimer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery, document]);
 
-  const handleSearch = async () => {
+  const handleSearchInternal = useCallback(async () => {
     if (!document || !searchQuery.trim()) return;
 
     setIsSearching(true);
@@ -98,6 +120,11 @@ export function PDFSearchBar({ document, scale, rotation, onResultSelect, onHigh
     } finally {
       setIsSearching(false);
     }
+  }, [document, searchQuery, scale, rotation, onHighlightsChange, onResultSelect]);
+  
+  // Manual search handler (for Enter key)
+  const handleSearch = () => {
+    handleSearchInternal();
   };
 
   const goToNextResult = () => {
@@ -114,101 +141,121 @@ export function PDFSearchBar({ document, scale, rotation, onResultSelect, onHigh
     onResultSelect(results[prevIndex].pageNumber);
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSearch();
-    }
-  };
-
   return (
-    <div className="border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-      <div className="flex items-center gap-2 p-2">
+    <div className="absolute top-2 right-2 z-50 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+      {/* Compact search bar */}
+      <div className="flex items-center gap-1 p-2">
+        {/* Search icon */}
+        <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        
         {/* Search input */}
-        <div className="flex-1">
-          <Input
-            type="text"
-            placeholder="Search in document..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyPress={handleKeyPress}
-            disabled={!document || isSearching}
-          />
-        </div>
-
-        {/* Search button */}
-        <Button size="sm" onClick={handleSearch} disabled={!document || isSearching || !searchQuery.trim()}>
-          {isSearching ? <Spinner size="sm" /> : 'Search'}
-        </Button>
-
-        {/* Results navigation */}
+        <input
+          ref={inputRef}
+          type="text"
+          placeholder="Search..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleSearch();
+            if (e.key === 'Escape') {
+              setResults([]);
+              setSearchQuery('');
+              setShowResults(false);
+              onHighlightsChange([]);
+            }
+          }}
+          disabled={!document || isSearching}
+          className="flex-1 px-2 py-1 text-sm bg-transparent border-none focus:outline-none text-gray-900 dark:text-white placeholder-gray-400"
+        />
+        
+        {/* Loading indicator */}
+        {isSearching && <Spinner size="sm" />}
+        
+        {/* Results counter */}
+        {results.length > 0 && (
+          <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+            {currentResultIndex + 1}/{results.length}
+          </span>
+        )}
+        
+        {/* Navigation buttons */}
         {results.length > 0 && (
           <>
-            <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
-              <span>
-                {currentResultIndex + 1} / {results.length}
-              </span>
-            </div>
-
-            <Button size="sm" variant="outline" onClick={goToPreviousResult} title="Previous result">
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </Button>
-
-            <Button size="sm" variant="outline" onClick={goToNextResult} title="Next result">
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </Button>
-
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => {
-                setResults([]);
-                setSearchQuery('');
-                setShowResults(false);
-                onHighlightsChange([]);
-              }}
-              title="Clear search"
+            <button
+              onClick={goToPreviousResult}
+              className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+              title="Previous (↑)"
             >
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
               </svg>
-            </Button>
+            </button>
+            <button
+              onClick={goToNextResult}
+              className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+              title="Next (↓)"
+            >
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
           </>
+        )}
+        
+        {/* Close button */}
+        {(searchQuery || results.length > 0) && (
+          <button
+            onClick={() => {
+              setResults([]);
+              setSearchQuery('');
+              setShowResults(false);
+              onHighlightsChange([]);
+            }}
+            className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+            title="Clear (Esc)"
+          >
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         )}
       </div>
 
-      {/* Results dropdown */}
+      {/* Collapsible results list */}
       {showResults && results.length > 0 && (
-        <div className="max-h-48 overflow-y-auto border-t border-gray-200 dark:border-gray-700">
-          {results.map((result, index) => (
+        <div className="max-h-40 overflow-y-auto border-t border-gray-200 dark:border-gray-700">
+          {results.slice(0, 20).map((result, index) => (
             <button
               key={`${result.pageNumber}-${index}`}
               onClick={() => {
                 setCurrentResultIndex(index);
                 onResultSelect(result.pageNumber);
               }}
-              className={`w-full border-b border-gray-100 p-2 text-left text-sm transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700 ${
-                index === currentResultIndex ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+              className={`w-full px-3 py-1.5 text-left text-xs transition-colors hover:bg-gray-50 dark:hover:bg-gray-700 ${
+                index === currentResultIndex ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'
               }`}
             >
-              <div className="flex items-center justify-between">
-                <span className="font-medium text-gray-900 dark:text-white">Page {result.pageNumber}</span>
-              </div>
-              <p className="mt-1 truncate text-gray-600 dark:text-gray-400">{result.text}</p>
+              <span className="font-medium">P{result.pageNumber}</span>
+              <span className="ml-2 truncate">{result.text.substring(0, 50)}...</span>
             </button>
           ))}
+          {results.length > 20 && (
+            <div className="px-3 py-1.5 text-xs text-gray-400 text-center">
+              +{results.length - 20} more results
+            </div>
+          )}
         </div>
       )}
 
       {/* No results message */}
-      {showResults && results.length === 0 && !isSearching && searchQuery && (
-        <div className="border-t border-gray-200 p-4 text-center dark:border-gray-700">
-          <p className="text-sm text-gray-600 dark:text-gray-400">No results found for "{searchQuery}"</p>
+      {showResults && results.length === 0 && !isSearching && searchQuery.length >= 2 && (
+        <div className="px-3 py-2 text-center border-t border-gray-200 dark:border-gray-700">
+          <p className="text-xs text-gray-500 dark:text-gray-400">No results found</p>
         </div>
       )}
     </div>
   );
+
 }

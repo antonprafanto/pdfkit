@@ -83,8 +83,13 @@ export function useKeyboardShortcuts(handlers: KeyboardShortcutHandlers) {
         event.preventDefault();
         handlers.onToggleSearch?.();
       }
-      // Note: Print (Ctrl+P) is NOT handled here - use Print button instead
-      // Electron's menu accelerator handles Ctrl+P
+
+      // Print shortcut - Fallback if Electron menu doesn't work
+      else if ((ctrlKey || event.metaKey) && (key === 'p' || key === 'P')) {
+        event.preventDefault();
+        console.log('[useKeyboardShortcuts] Ctrl+P pressed, triggering print');
+        handlers.onPrint?.();
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);

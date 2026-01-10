@@ -4,6 +4,7 @@ import { ConnectivityIndicator } from './components/ConnectivityIndicator';
 import { ThemeToggle } from './components/ThemeToggle';
 import { AboutDialog } from './components/AboutDialog';
 import { SettingsDialog } from './components/SettingsDialog';
+import { PDFPasswordDialog } from './components/PDFPasswordDialog';
 import { PDFViewer } from './components/PDFViewer';
 import { RecentFilesList } from './components/RecentFilesList';
 import { MergeDialog } from './components/editing/MergeDialog';
@@ -12,6 +13,7 @@ import { RotatePagesDialog } from './components/editing/RotatePagesDialog';
 import { SplitPDFDialog } from './components/editing/SplitPDFDialog';
 import { ReorderPagesDialog } from './components/editing/ReorderPagesDialog';
 import { ExtractPagesDialog } from './components/editing/ExtractPagesDialog';
+import { ExtractImagesDialog } from './components/editing/ExtractImagesDialog';
 import { DuplicatePageDialog } from './components/editing/DuplicatePageDialog';
 import { UnsavedChangesDialog } from './components/editing/UnsavedChangesDialog';
 import { ExportImagesDialog } from './components/conversion/ExportImagesDialog';
@@ -20,10 +22,15 @@ import { ConvertOfficeToPDFDialog } from './components/conversion/ConvertOfficeT
 import { EncryptPDFDialog } from './components/security/EncryptPDFDialog';
 import { BulkEncryptDialog } from './components/security/BulkEncryptDialog';
 import { WatermarkDialog } from './components/security/WatermarkDialog';
+import { AddPageNumbersDialog } from './components/editing/AddPageNumbersDialog';
 import { SignatureViewerDialog } from './components/security/SignatureViewerDialog';
 import { SignPDFDialog } from './components/security/SignPDFDialog';
+import { UnlockPDFDialog } from './components/security/UnlockPDFDialog';
 import { OCRDialog } from './components/ocr';
-import { CompressionDialog } from './components/compression';
+import { CompressionDialog, WebOptimizePDFDialog } from './components/compression';
+import { OverlayPDFDialog } from './components/editing/OverlayPDFDialog';
+import { WebpageToPDFDialog } from './components/tools/WebpageToPDFDialog';
+import { PDFConvertDialog } from './components/PDFConvertDialog';
 import { BatchOperationsDialog } from './components/batch';
 import { PluginManagerDialog } from './components/plugins';
 import { KeyboardShortcutsDialog } from './components/KeyboardShortcutsDialog';
@@ -43,6 +50,12 @@ import { Button, Dialog } from './components/ui';
 import { UpdateNotification } from './components/UpdateNotification';
 import { FeatureHighlightsDialog, shouldShowFeatureHighlights } from './components/FeatureHighlightsDialog';
 import { ShareDialog } from './components/ShareDialog';
+import { TabBar } from './components/TabBar';
+import { ToolsGrid, ToolAction } from './components/home/ToolsGrid';
+import { ToolSearchDialog } from './components/ToolSearchDialog';
+
+// Define pending action type based on tool action but limited to file-dependent actions
+type PendingAction = ToolAction | null;
 
 function App() {
   const [isOnline, setIsOnline] = useState<boolean>(true);
@@ -54,6 +67,7 @@ function App() {
   const [showSplitPDFDialog, setShowSplitPDFDialog] = useState(false);
   const [showReorderPagesDialog, setShowReorderPagesDialog] = useState(false);
   const [showExtractPagesDialog, setShowExtractPagesDialog] = useState(false);
+  const [showExtractImagesDialog, setShowExtractImagesDialog] = useState(false);
   const [showDuplicatePageDialog, setShowDuplicatePageDialog] = useState(false);
   const [showExportImagesDialog, setShowExportImagesDialog] = useState(false);
   const [showImportImagesDialog, setShowImportImagesDialog] = useState(false);
@@ -61,8 +75,14 @@ function App() {
   const [showEncryptPDFDialog, setShowEncryptPDFDialog] = useState(false);
   const [showBulkEncryptDialog, setShowBulkEncryptDialog] = useState(false);
   const [showWatermarkDialog, setShowWatermarkDialog] = useState(false);
+  const [showAddPageNumbersDialog, setShowAddPageNumbersDialog] = useState(false);
   const [showSignatureViewerDialog, setShowSignatureViewerDialog] = useState(false);
   const [showSignPDFDialog, setShowSignPDFDialog] = useState(false);
+  const [showUnlockPDFDialog, setShowUnlockPDFDialog] = useState(false);
+  const [showWebOptimizeDialog, setShowWebOptimizeDialog] = useState(false);
+  const [showOverlayDialog, setShowOverlayDialog] = useState(false);
+  const [showWebpageToPDFDialog, setShowWebpageToPDFDialog] = useState(false);
+  const [showConvertDialog, setShowConvertDialog] = useState(false);
   const [showOCRDialog, setShowOCRDialog] = useState(false);
   const [showCompressionDialog, setShowCompressionDialog] = useState(false);
   const [showBatchDialog, setShowBatchDialog] = useState(false);
@@ -72,26 +92,34 @@ function App() {
   const [formsDataDialogMode, setFormsDataDialogMode] = useState<'import' | 'export'>('export');
   const [isDetectingForms, setIsDetectingForms] = useState(false);
   const [isSavingTemplate, setIsSavingTemplate] = useState(false);
-  const [pdfBytes, setPdfBytes] = useState<Uint8Array | null>(null);
   const [showAboutDialog, setShowAboutDialog] = useState(false);
   const [showSettingsDialog, setShowSettingsDialog] = useState(false);
   const [showPluginManagerDialog, setShowPluginManagerDialog] = useState(false);
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [showKeyboardShortcutsDialog, setShowKeyboardShortcutsDialog] = useState(false);
   const [showFeatureHighlights, setShowFeatureHighlights] = useState(() => shouldShowFeatureHighlights());
   const [showShareDialog, setShowShareDialog] = useState(false);
+  const [showToolSearch, setShowToolSearch] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { t } = useTranslation();
 
   const {
     document,
     fileName,
-    setDocument,
-    setMetadata,
-    setFileName,
+    // setDocument, setMetadata, setFileName - now handled via updateTab
     setFilePath,
     setIsLoading,
     setError,
     reset,
+    // Tab management
+    addTab,
+    findTabByFilePath,
+    canAddTab,
+    setActiveTab,
+    updateTab,
+    getActiveTab,
   } = usePDFStore();
 
   const { hasUnsavedChanges, reset: resetEditingStore, setOriginalFile } = useEditingStore();
@@ -111,6 +139,9 @@ function App() {
     };
   }, []);
 
+  // Pending action state for Quick Actions (e.g., clicking PDF to Word on home)
+  const [pendingAction, setPendingAction] = useState<PendingAction>(null);
+
   // Initialize theme on mount
   useEffect(() => {
     // Safety check for document (use window.document to avoid conflict with PDF document variable)
@@ -124,6 +155,97 @@ function App() {
       }
     }
   }, [theme]);
+
+  // Handle pending actions after document is loaded
+  useEffect(() => {
+    if (document && pendingAction) {
+      // Short timeout to ensure UI is ready
+      const timer = setTimeout(() => {
+        // Map pending actions to dialogs
+        switch (pendingAction) {
+          case 'pdf-to-word':
+          case 'pdf-to-excel':
+            setShowConvertDialog(true);
+            break;
+          case 'overlay':
+            setShowOverlayDialog(true);
+            break;
+          case 'split':
+            setShowSplitPDFDialog(true);
+            break;
+          case 'rotate':
+            setShowRotatePagesDialog(true);
+            break;
+          case 'reorder':
+            setShowReorderPagesDialog(true);
+            break;
+          case 'delete-pages':
+            setShowDeletePagesDialog(true);
+            break;
+          case 'extract-pages':
+            setShowExtractPagesDialog(true);
+            break;
+          case 'duplicate-page':
+            setShowDuplicatePageDialog(true);
+            break;
+          case 'extract-images':
+            setShowExtractImagesDialog(true);
+            break;
+          case 'encrypt':
+            setShowEncryptPDFDialog(true);
+            break;
+          case 'unlock':
+            setShowUnlockPDFDialog(true);
+            break;
+          case 'sign':
+            setShowSignPDFDialog(true);
+            break;
+          case 'watermark':
+            setShowWatermarkDialog(true);
+            break;
+          case 'compress':
+            setShowCompressionDialog(true);
+            break;
+          case 'add-page-numbers':
+            setShowAddPageNumbersDialog(true);
+            break;
+          case 'ocr':
+            setShowOCRDialog(true);
+            break;
+          // Metadata tool removed as component doesn't exist yet
+          // Standalone tools don't need pending action logic as they open directly
+        }
+        setPendingAction(null);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [document, pendingAction]);
+
+  const handleToolAction = (action: ToolAction) => {
+    // Some tools don't need a file open first
+    switch (action) {
+      case 'merge':
+        setShowMergeDialog(true);
+        break;
+      case 'office-to-pdf':
+        setShowConvertOfficeDialog(true);
+        break;
+      case 'images-to-pdf':
+        setShowImportImagesDialog(true);
+        break;
+      case 'webpage-to-pdf':
+        setShowWebpageToPDFDialog(true);
+        break;
+      case 'bulk-encrypt':
+        setShowBulkEncryptDialog(true);
+        break;
+      default:
+        // For other tools, require a file to be open
+        setPendingAction(action);
+        triggerFileInput();
+        break;
+    }
+  };
 
   useEffect(() => {
     // Get initial connectivity status
@@ -155,7 +277,8 @@ function App() {
           const blob = new Blob([new Uint8Array(result.data)], { type: 'application/pdf' });
           const file = new File([blob], result.name, { type: 'application/pdf' });
           handleFileOpen(file);
-          // Store full path for printing
+          // filePath is now stored in tab via updateTab in handleFileOpen
+          // Legacy setFilePath will also update active tab
           setFilePath(filePath);
         } else {
           console.error('Failed to read file:', result.error);
@@ -170,7 +293,7 @@ function App() {
     };
   }, []);
 
-  // Keyboard shortcuts listener (F1 or ? for help)
+  // Keyboard shortcuts listener (F1 or ? for help, Ctrl+O to open file)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Don't trigger shortcuts when user is typing in an input field
@@ -180,6 +303,20 @@ function App() {
         target.tagName === 'TEXTAREA' ||
         target.isContentEditable
       ) {
+        return;
+      }
+
+      // Ctrl+O to open file
+      if ((e.ctrlKey || e.metaKey) && e.key === 'o') {
+        e.preventDefault();
+        fileInputRef.current?.click();
+        return;
+      }
+
+      // Ctrl+K to open tool search
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setShowToolSearch(true);
         return;
       }
 
@@ -194,26 +331,77 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Handle file open
-  const handleFileOpen = async (file: File) => {
+  // Listen for new tab event from TabBar
+  useEffect(() => {
+    const handleNewTab = () => {
+      fileInputRef.current?.click();
+    };
+    window.addEventListener('open-new-tab', handleNewTab);
+    return () => window.removeEventListener('open-new-tab', handleNewTab);
+  }, []);
+
+  // Handle file open - now creates new tab
+  const handleFileOpen = async (file: File, password?: string) => {
     try {
+      // Check if file is already open in a tab
+      const existingTab = findTabByFilePath(file.name);
+      if (existingTab) {
+        // Switch to existing tab
+        setActiveTab(existingTab.id);
+        useAnnotationStore.getState().setCurrentDocument(existingTab.id);
+        return;
+      }
+
+      // Check if we can add more tabs
+      if (!canAddTab()) {
+        setError(t('tabs.tabLimitWarning'));
+        return;
+      }
+
+      // Create new tab
+      const tabId = addTab({ isLoading: true, fileName: file.name });
+      if (!tabId) {
+        setError('Failed to create tab');
+        return;
+      }
+
+
       setIsLoading(true);
       setError(null);
 
-      // Load PDF
-      const pdfDocument = await pdfService.loadFromFile(file);
-      setDocument(pdfDocument);
-      setFileName(file.name);
+      // Load PDF with password if provided
+      const pdfDocument = await pdfService.loadFromFile(file, password);
+      
+      // Update tab with document
+      updateTab(tabId, {
+        document: pdfDocument,
+        fileName: file.name,
+        filePath: file.name,
+        totalPages: pdfDocument.numPages,
+        currentPage: 1,
+        isLoading: false,
+      });
+
+      // If we get here, PDF loaded successfully - close password dialog if open
+      if (showPasswordDialog) {
+        setShowPasswordDialog(false);
+        setPasswordError(null);
+        setPendingFile(null);
+      }
 
       // Get metadata
       const metadata = await pdfService.getMetadata(pdfDocument);
       if (metadata) {
-        setMetadata(metadata);
+        updateTab(tabId, { metadata });
       }
+
+      // Read file bytes for operations
+      const arrayBuffer = await file.arrayBuffer();
+      updateTab(tabId, { pdfBytes: new Uint8Array(arrayBuffer) });
 
       // Add to recent files
       recentFilesManager.addRecentFile({
-        path: file.name, // In browser context, we use file.name as identifier
+        path: file.name,
         name: file.name,
         pageCount: pdfDocument.numPages,
       });
@@ -221,22 +409,28 @@ function App() {
       // Store original file for signature viewer and other features
       setOriginalFile(file);
 
-      // Load annotations for this document
-      useAnnotationStore.getState().setCurrentDocument(file.name);
+      // Load annotations for this tab
+      useAnnotationStore.getState().setCurrentDocument(tabId);
 
       // Extract and merge annotations from PDF file
       try {
         const buffer = await file.arrayBuffer();
         const pdfBytesData = new Uint8Array(buffer);
 
-        // Store PDF bytes for forms and other operations
-        setPdfBytes(pdfBytesData);
+        // Store PDF bytes for forms and other operations (now stored in tab)
+        // pdfBytes are already stored in updateTab call in handleFileOpen
 
-        const importedAnnotations = await extractAnnotationsFromPdf(pdfBytesData);
+        // Skip annotation extraction for encrypted PDFs
+        // pdf-lib doesn't support annotation extraction from encrypted PDFs without complex password handling
+        if (!password) {
+          const importedAnnotations = await extractAnnotationsFromPdf(pdfBytesData);
 
-        if (importedAnnotations.length > 0) {
-          useAnnotationStore.getState().mergeWithImportedAnnotations(importedAnnotations);
-          console.log(`Imported ${importedAnnotations.length} annotations from PDF`);
+          if (importedAnnotations.length > 0) {
+            useAnnotationStore.getState().mergeWithImportedAnnotations(importedAnnotations);
+            console.log(`Imported ${importedAnnotations.length} annotations from PDF`);
+          }
+        } else {
+          console.log('Skipping annotation extraction for encrypted PDF');
         }
 
         // Auto-detect form fields when PDF is loaded
@@ -252,19 +446,50 @@ function App() {
           }
         } catch (formErr) {
           console.error('[App] Failed to auto-detect form fields:', formErr);
-          // Continue even if form detection fails
+          // Don't block PDF loading if form detection fails
         }
       } catch (err) {
-        console.error('Failed to extract annotations from PDF:', err);
-        // Continue even if extraction fails
+        console.error('Failed to load annotations or forms:', err);
+        // Don't block PDF loading if annotations fail to load
       }
 
+      // Clear loading and close recent files panel after successful load
       setIsLoading(false);
       setShowRecentFiles(false);
-    } catch (err) {
-      console.error('Error opening PDF:', err);
-      setError('Failed to open PDF file');
+      
+    } catch (err: any) {
+      console.error('Failed to load PDF:', err);
+      
+      // Check if error is due to password requirement
+      // PDF.js throws PasswordException for encrypted PDFs
+      const isPasswordError = 
+        err.name === 'PasswordException' ||
+        (err.message && (err.message.includes('password') || err.message.includes('encrypted')));
+      
+      if (isPasswordError) {
+        // PDF is encrypted - show password dialog
+        setPendingFile(file);
+        
+        // If password was provided but failed, show error
+        if (password) {
+          setPasswordError(t('pdfPassword.wrongPassword'));
+        } else {
+          setPasswordError(null);
+        }
+        
+        setShowPasswordDialog(true);
+        setIsLoading(false);
+        return;
+      }
+      
+      setError(err.message || 'Failed to load PDF');
       setIsLoading(false);
+    }
+  };
+
+  const handlePasswordSubmit = (password: string) => {
+    if (pendingFile) {
+      handleFileOpen(pendingFile, password);
     }
   };
 
@@ -383,7 +608,9 @@ function App() {
   };
 
   const handleSaveTemplate = async () => {
-    if (!pdfBytes || fields.length === 0) {
+    const activeTab = getActiveTab();
+    const tabPdfBytes = activeTab?.pdfBytes;
+    if (!tabPdfBytes || fields.length === 0) {
       alert('No PDF or fields available');
       return;
     }
@@ -402,7 +629,7 @@ function App() {
 
       // Generate PDF with fields structure
       const pdfWithFields = await pdfFormsService.saveFieldsStructureToPDF(
-        pdfBytes,
+        tabPdfBytes,
         fields,
         pdfFontName,
         formFieldFontSize
@@ -475,7 +702,8 @@ function App() {
       {/* Auto-Update Notification Banner */}
       <UpdateNotification />
 
-      {/* Header / Toolbar - Minimalist */}
+      {/* Header / Toolbar - Only show on landing page, hidden when document is open */}
+      {!document && (
       <header className={`sticky top-0 z-50 flex items-center justify-between border-b border-border bg-background transition-all duration-300 ${isHeaderMinimized ? 'h-8' : 'h-14'}`}>
         <div className={`flex items-center gap-4 ${isHeaderMinimized ? 'px-3' : 'px-6'}`}>
           {!isHeaderMinimized && (
@@ -589,6 +817,7 @@ function App() {
           </button>
         </div>
       </header>
+      )}
 
       {/* Floating Support Buttons - Simple */}
       <div className="fixed bottom-12 right-6 flex flex-col gap-3 z-40">
@@ -679,88 +908,31 @@ function App() {
                   </div>
                 </div>
 
-                {/* Quick Tools Section - Clean Grid */}
+                {/* All Tools Grid */}
                 <div className="mb-12 animate-fade-in-up-delay-1">
-                  <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-6">
-                    {t('landing.quickActions')}
+                  <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-6 px-4">
+                    {t('landing.allTools', 'All PDF Tools')}
                   </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {/* Office to PDF */}
-                    <button
-                      onClick={() => setShowConvertOfficeDialog(true)}
-                      className="quick-action-card animate-stagger-1 group p-5 rounded-lg border border-border bg-card hover:border-primary/50 text-left"
-                    >
-                      <div className="flex items-center gap-4 mb-2">
-                        <div className="card-icon w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
-                          <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                        </div>
-                        <h3 className="font-medium text-foreground">{t('landing.officeToPdf')}</h3>
-                      </div>
-                      <p className="text-xs text-muted-foreground pl-[3.5rem]">{t('landing.officeToPdfDesc')}</p>
-                    </button>
-
-                    {/* Merge PDFs */}
-                    <button
-                      onClick={() => setShowMergeDialog(true)}
-                       className="quick-action-card animate-stagger-2 group p-5 rounded-lg border border-border bg-card hover:border-primary/50 text-left"
-                    >
-                      <div className="flex items-center gap-4 mb-2">
-                        <div className="card-icon w-10 h-10 rounded-lg bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center">
-                          <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 14v6m-3-3h6M6 10h2a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v2a2 2 0 002 2zm10 0h2a2 2 0 002-2V6a2 2 0 00-2-2h-2a2 2 0 00-2 2v2a2 2 0 002 2zM6 20h2a2 2 0 002-2v-2a2 2 0 00-2-2H6a2 2 0 00-2 2v2a2 2 0 002 2z" />
-                          </svg>
-                        </div>
-                        <h3 className="font-medium text-foreground">{t('landing.mergePdfs')}</h3>
-                      </div>
-                      <p className="text-xs text-muted-foreground pl-[3.5rem]">{t('landing.mergePdfsDesc')}</p>
-                    </button>
-
-                    {/* Images to PDF */}
-                    <button
-                      onClick={() => setShowImportImagesDialog(true)}
-                       className="quick-action-card animate-stagger-3 group p-5 rounded-lg border border-border bg-card hover:border-primary/50 text-left"
-                    >
-                      <div className="flex items-center gap-4 mb-2">
-                         <div className="card-icon w-10 h-10 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center">
-                          <svg className="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                        </div>
-                        <h3 className="font-medium text-foreground">{t('landing.imagesToPdf')}</h3>
-                      </div>
-                       <p className="text-xs text-muted-foreground pl-[3.5rem]">{t('landing.imagesToPdfDesc')}</p>
-                    </button>
-
-                    {/* Bulk Encrypt */}
-                    <button
-                       onClick={() => setShowBulkEncryptDialog(true)}
-                       className="quick-action-card animate-stagger-4 group p-5 rounded-lg border border-border bg-card hover:border-primary/50 text-left"
-                    >
-                      <div className="flex items-center gap-4 mb-2">
-                        <div className="card-icon w-10 h-10 rounded-lg bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center">
-                          <svg className="w-5 h-5 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                          </svg>
-                        </div>
-                         <h3 className="font-medium text-foreground">{t('landing.bulkEncrypt')}</h3>
-                      </div>
-                       <p className="text-xs text-muted-foreground pl-[3.5rem]">{t('landing.bulkEncryptDesc')}</p>
-                    </button>
-                  </div>
+                  <ToolsGrid onAction={handleToolAction} />
                 </div>
+                
                 </div>
               </div>
             </div>
           ) : (
-            <PDFViewer
+            <div className="flex flex-col flex-1 overflow-hidden">
+              {/* Tab Bar for multiple documents */}
+              <TabBar />
+              
+              {/* PDF Viewer */}
+              <PDFViewer
               onOpenMerge={() => setShowMergeDialog(true)}
               onOpenSplit={() => setShowSplitPDFDialog(true)}
               onOpenDelete={() => setShowDeletePagesDialog(true)}
               onOpenRotate={() => setShowRotatePagesDialog(true)}
               onOpenReorder={() => setShowReorderPagesDialog(true)}
               onOpenExtract={() => setShowExtractPagesDialog(true)}
+              onOpenExtractImages={() => setShowExtractImagesDialog(true)}
               onOpenDuplicate={() => setShowDuplicatePageDialog(true)}
               onOpenExportImages={() => setShowExportImagesDialog(true)}
               onOpenImportImages={() => setShowImportImagesDialog(true)}
@@ -768,13 +940,19 @@ function App() {
               onOpenEncryptPDF={() => setShowEncryptPDFDialog(true)}
               onOpenBulkEncrypt={() => setShowBulkEncryptDialog(true)}
               onOpenWatermark={() => setShowWatermarkDialog(true)}
-              onOpenSignatures={() => setShowSignatureViewerDialog(true)}
+              onOpenAddPageNumbers={() => setShowAddPageNumbersDialog(true)}
               onOpenSignPDF={() => setShowSignPDFDialog(true)}
+              onOpenSignatures={() => setShowSignatureViewerDialog(true)}
+              onOpenUnlockPDF={() => setShowUnlockPDFDialog(true)}
+              onOpenWebOptimize={() => setShowWebOptimizeDialog(true)}
+              onOpenOverlay={() => setShowOverlayDialog(true)}
+              onOpenWebpageToPDF={() => setShowWebpageToPDFDialog(true)}
+              onConvert={() => setShowConvertDialog(true)}
               onOpenOCR={() => setShowOCRDialog(true)}
               onOpenCompress={() => setShowCompressionDialog(true)}
               onOpenBatch={() => setShowBatchDialog(true)}
-              onOpenPluginManager={() => setShowPluginManagerDialog(true)}
               onOpenFile={triggerFileInput}
+
               onOpenRecent={() => setShowRecentFiles(true)}
               onCloseDocument={handleCloseDocument}
               onDetectForms={handleDetectForms}
@@ -785,7 +963,34 @@ function App() {
               onToggleFormsEditMode={handleToggleEditMode}
               isDetectingForms={isDetectingForms}
               isSavingTemplate={isSavingTemplate}
+              onSettings={() => setShowSettingsDialog(true)}
+              onAbout={() => setShowAboutDialog(true)}
+              onShare={() => setShowShareDialog(true)}
+              onSearchTools={() => setShowToolSearch(true)}
+              onCheckUpdates={async () => {
+                try {
+                  const result = await window.electronAPI.simpleUpdateCheck();
+                  if (result.error) {
+                    alert(t('updateCheck.failed', { error: result.error }));
+                  } else if (result.hasUpdate) {
+                    const message = t('updateCheck.available', { 
+                      current: result.currentVersion, 
+                      latest: result.latestVersion 
+                    });
+                    if (confirm(message)) {
+                      await window.electronAPI.openDownloadUrl(result.downloadUrl);
+                    }
+                  } else {
+                    alert(t('updateCheck.upToDate', { current: result.currentVersion }));
+                  }
+                } catch (error) {
+                  alert(t('updateCheck.error', { error }));
+                }
+              }}
+              themeToggle={<ThemeToggle />}
+              isOnline={isOnline}
             />
+            </div>
           )}
         </div>
       </main>
@@ -855,6 +1060,12 @@ function App() {
         onClose={() => setShowExtractPagesDialog(false)}
       />
 
+      {/* Extract Images Dialog */}
+      <ExtractImagesDialog
+        open={showExtractImagesDialog}
+        onClose={() => setShowExtractImagesDialog(false)}
+      />
+
       {/* Duplicate Page Dialog */}
       <DuplicatePageDialog
         open={showDuplicatePageDialog}
@@ -896,7 +1107,10 @@ function App() {
         open={showWatermarkDialog}
         onClose={() => setShowWatermarkDialog(false)}
       />
-
+      <AddPageNumbersDialog
+        open={showAddPageNumbersDialog}
+        onClose={() => setShowAddPageNumbersDialog(false)}
+      />
       {/* Signature Viewer Dialog */}
       <SignatureViewerDialog
         open={showSignatureViewerDialog}
@@ -907,6 +1121,36 @@ function App() {
       <SignPDFDialog
         open={showSignPDFDialog}
         onClose={() => setShowSignPDFDialog(false)}
+      />
+      <UnlockPDFDialog
+        open={showUnlockPDFDialog}
+        onClose={() => setShowUnlockPDFDialog(false)}
+      />
+
+      {/* Web Optimize Dialog */}
+      <WebOptimizePDFDialog
+        open={showWebOptimizeDialog}
+        onClose={() => setShowWebOptimizeDialog(false)}
+      />
+
+      {/* Overlay PDF Dialog */}
+      <OverlayPDFDialog
+        open={showOverlayDialog}
+        onClose={() => setShowOverlayDialog(false)}
+      />
+
+      {/* Webpage to PDF Dialog */}
+      <WebpageToPDFDialog
+        open={showWebpageToPDFDialog}
+        onClose={() => setShowWebpageToPDFDialog(false)}
+      />
+
+      {/* PDF Convert to Word/Excel Dialog */}
+      <PDFConvertDialog
+        isOpen={showConvertDialog}
+        onClose={() => setShowConvertDialog(false)}
+        pdfBytes={showConvertDialog && document ? pdfService.getCurrentPdfBytes() : null}
+        fileName={fileName || 'document.pdf'}
       />
 
       {/* OCR Dialog */}
@@ -961,16 +1205,39 @@ function App() {
         onClose={() => setShowKeyboardShortcutsDialog(false)}
       />
 
-      {/* Feature Highlights Dialog (Onboarding) */}
+      {/* Feature Highlights Dialog */}
       <FeatureHighlightsDialog
         open={showFeatureHighlights}
-        onClose={() => setShowFeatureHighlights(false)}
+        onClose={() => {
+          setShowFeatureHighlights(false);
+          localStorage.setItem('hasSeenFeatureHighlights', 'true');
+        }}
+      />
+
+      {/* PDF Password Dialog */}
+      <PDFPasswordDialog
+        open={showPasswordDialog}
+        onClose={() => {
+          setShowPasswordDialog(false);
+          setPasswordError(null);
+          setPendingFile(null);
+        }}
+        onSubmit={handlePasswordSubmit}
+        error={passwordError}
       />
 
       {/* Share Dialog */}
       <ShareDialog
         isOpen={showShareDialog}
         onClose={() => setShowShareDialog(false)}
+      />
+
+      {/* Tool Search Dialog (Ctrl+K) */}
+      <ToolSearchDialog
+        isOpen={showToolSearch}
+        onClose={() => setShowToolSearch(false)}
+        onAction={handleToolAction}
+        hasDocument={!!document}
       />
     </div>
   );

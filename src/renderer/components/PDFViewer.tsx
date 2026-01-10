@@ -31,6 +31,7 @@ interface PDFViewerProps {
   onOpenRotate?: () => void;
   onOpenReorder?: () => void;
   onOpenExtract?: () => void;
+  onOpenExtractImages?: () => void;
   onOpenDuplicate?: () => void;
   onOpenExportImages?: () => void;
   onOpenImportImages?: () => void;
@@ -38,12 +39,18 @@ interface PDFViewerProps {
   onOpenEncryptPDF?: () => void;
   onOpenBulkEncrypt?: () => void;
   onOpenWatermark?: () => void;
+  onOpenAddPageNumbers?: () => void;
   onOpenSignatures?: () => void;
   onOpenSignPDF?: () => void;
+  onOpenUnlockPDF?: () => void;
+  onOpenWebOptimize?: () => void;
+  onOpenOverlay?: () => void;
+  onOpenWebpageToPDF?: () => void;
   onOpenOCR?: () => void;
   onOpenCompress?: () => void;
   onOpenBatch?: () => void;
   onOpenPluginManager?: () => void;
+  onConvert?: () => void; // PDF to Word/Excel conversion
   onOpenFile?: () => void;
   onOpenRecent?: () => void;
   onCloseDocument?: () => void;
@@ -55,6 +62,14 @@ interface PDFViewerProps {
   onToggleFormsEditMode?: () => void;
   isDetectingForms?: boolean;
   isSavingTemplate?: boolean; // NEW: Loading state
+  // Header actions - integrated into ribbon
+  onSettings?: () => void;
+  onAbout?: () => void;
+  onShare?: () => void;
+  onSearchTools?: () => void; // Open tool search dialog
+  onCheckUpdates?: () => void;
+  themeToggle?: React.ReactNode;
+  isOnline?: boolean;
 }
 
 export function PDFViewer({
@@ -64,6 +79,7 @@ export function PDFViewer({
   onOpenRotate,
   onOpenReorder,
   onOpenExtract,
+  onOpenExtractImages,
   onOpenDuplicate,
   onOpenExportImages,
   onOpenImportImages,
@@ -71,8 +87,13 @@ export function PDFViewer({
   onOpenEncryptPDF,
   onOpenBulkEncrypt,
   onOpenWatermark,
+  onOpenAddPageNumbers,
   onOpenSignatures,
   onOpenSignPDF,
+  onOpenUnlockPDF,
+  onOpenWebOptimize,
+  onOpenOverlay,
+  onOpenWebpageToPDF,
   onOpenOCR,
   onOpenCompress,
   onOpenBatch,
@@ -86,8 +107,17 @@ export function PDFViewer({
   onSaveTemplate,
   onToggleFormsEditMode,
   onOpenPluginManager,
+  onConvert,
   isDetectingForms = false,
   isSavingTemplate = false,
+  // Header actions
+  onSettings,
+  onAbout,
+  onShare,
+  onSearchTools,
+  onCheckUpdates,
+  themeToggle,
+  isOnline,
 }: PDFViewerProps = {}) {
   const {
     document,
@@ -126,8 +156,45 @@ export function PDFViewer({
   const [formsMode, setFormsMode] = useState(false);
   const [aiMode, setAIMode] = useState(false);
   const [aiPanel, setAIPanel] = useState<'chat' | 'analysis'>('chat');
+  const [scanPdfNotified, setScanPdfNotified] = useState(false); // Track if we've shown scan PDF notification
   const contentRef = useRef<HTMLDivElement>(null);
   const viewportSize = useViewportSize(contentRef);
+  
+  // Reset scan notification when document changes
+  useEffect(() => {
+    setScanPdfNotified(false);
+  }, [document]);
+  
+  // Handler for PDFs without selectable text (scanned PDFs)
+  const handleNoTextContent = () => {
+    if (!scanPdfNotified) {
+      setScanPdfNotified(true);
+      // Show toast-style notification (using alert for now)
+      setTimeout(() => {
+        alert('Dokumen ini sepertinya hasil scan. Text selection tidak tersedia.\n\nGunakan fitur OCR untuk mengekstrak text dari dokumen scan.');
+      }, 100);
+    }
+  };
+  
+  // Ctrl+F keyboard shortcut to open search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Skip if typing in input
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        return;
+      }
+      
+      // Ctrl+F to toggle search
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault();
+        setShowSearch(prev => !prev);
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Handle fit to width/page when document or viewport changes
   const handleFitToWidth = async () => {
@@ -217,7 +284,7 @@ export function PDFViewer({
     return () => unsubscribe();
   }, [handlePrint]);
 
-  // Setup keyboard shortcuts (print is handled by menu accelerator, not here)
+  // Setup keyboard shortcuts
   useKeyboardShortcuts({
     onNextPage: nextPage,
     onPreviousPage: previousPage,
@@ -231,6 +298,7 @@ export function PDFViewer({
     onToggleSearch: () => setShowSearch(!showSearch),
     onFirstPage: () => goToPage(1),
     onLastPage: () => goToPage(totalPages),
+    onPrint: handlePrint, // Add print handler for Ctrl+P
   });
 
   if (isLoading) {
@@ -306,6 +374,7 @@ export function PDFViewer({
         onOpenDelete={onOpenDelete}
         onOpenReorder={onOpenReorder}
         onOpenExtract={onOpenExtract}
+        onOpenExtractImages={onOpenExtractImages}
         onOpenDuplicate={onOpenDuplicate}
         onOpenExportImages={onOpenExportImages}
         onOpenImportImages={onOpenImportImages}
@@ -313,34 +382,36 @@ export function PDFViewer({
         onOpenEncryptPDF={onOpenEncryptPDF}
         onOpenBulkEncrypt={onOpenBulkEncrypt}
         onOpenWatermark={onOpenWatermark}
+        onOpenAddPageNumbers={onOpenAddPageNumbers}
         onOpenSignatures={onOpenSignatures}
+        onOpenSignPDF={onOpenSignPDF}
+        onOpenUnlockPDF={onOpenUnlockPDF}
+        onOpenWebOptimize={onOpenWebOptimize}
+        onOpenOverlay={onOpenOverlay}
+        onOpenWebpageToPDF={onOpenWebpageToPDF}
         onOpenOCR={onOpenOCR}
         onOpenCompress={onOpenCompress}
-        onOpenSignPDF={onOpenSignPDF}
         onOpenBatch={onOpenBatch}
         onOpenPluginManager={onOpenPluginManager}
+        onConvert={onConvert}
         hasDocument={!!document}
         filePath={filePath || undefined}
         fileName={fileName || undefined}
         onPrint={handlePrint}
+        onSettings={onSettings}
+        onAbout={onAbout}
+        onShare={onShare}
+        onSearchTools={onSearchTools}
+        onCheckUpdates={onCheckUpdates}
+        themeToggle={themeToggle}
+        isOnline={isOnline}
       />
-
-      {/* Search Bar */}
-      {showSearch && (
-        <PDFSearchBar
-          document={document}
-          scale={scale}
-          rotation={rotation}
-          onResultSelect={goToPage}
-          onHighlightsChange={setSearchHighlights}
-        />
-      )}
 
       {/* Annotation Toolbar */}
       {annotationMode && <AnnotationToolbar />}
 
       {/* Main Content */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden relative">
         {/* Thumbnails Sidebar */}
         {showThumbnails && (
           <PDFThumbnailSidebar
@@ -348,6 +419,17 @@ export function PDFViewer({
             currentPage={currentPage}
             totalPages={totalPages}
             onPageSelect={goToPage}
+          />
+        )}
+
+        {/* Floating Search Bar - positioned in content area */}
+        {showSearch && (
+          <PDFSearchBar
+            document={document}
+            scale={scale}
+            rotation={rotation}
+            onResultSelect={goToPage}
+            onHighlightsChange={setSearchHighlights}
           />
         )}
 
@@ -423,6 +505,7 @@ export function PDFViewer({
                 searchHighlights={searchHighlights}
                 showAnnotations={annotationMode}
                 showForms={formsMode}
+                onNoTextContent={handleNoTextContent}
               />
             </div>
           </div>
@@ -440,6 +523,7 @@ export function PDFViewer({
               showAnnotations={annotationMode}
               showForms={formsMode}
               onPageChange={goToPage}
+              onNoTextContent={handleNoTextContent}
             />
           </div>
         )}

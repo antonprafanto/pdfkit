@@ -7,24 +7,29 @@ import { pdfjsLib, PDFDocumentProxy, PDF_CONFIG } from './pdf-config';
 
 export class PDFService {
   private currentDocument: PDFDocumentProxy | null = null;
+  private currentPdfBytes: Uint8Array | null = null;
 
   /**
    * Load PDF from file path
    */
-  async loadFromFile(file: File): Promise<PDFDocumentProxy> {
+  async loadFromFile(file: File, password?: string): Promise<PDFDocumentProxy> {
     try {
       const arrayBuffer = await file.arrayBuffer();
-      const document = await pdfjsLib.getDocument({
+      // Make a copy BEFORE passing to pdfjs (pdfjs may transfer the buffer)
+      this.currentPdfBytes = new Uint8Array(arrayBuffer.slice(0));
+      const loadingTask = pdfjsLib.getDocument({
         data: arrayBuffer,
+        password: password,
         cMapUrl: PDF_CONFIG.cMapUrl,
         cMapPacked: PDF_CONFIG.cMapPacked,
         standardFontDataUrl: PDF_CONFIG.standardFontDataUrl,
-      }).promise;
+      });
+      const document = await loadingTask.promise;
       this.currentDocument = document;
       return document;
     } catch (error) {
       console.error('Error loading PDF:', error);
-      throw new Error('Failed to load PDF file');
+      throw error; // Throw original error to preserve password error messages
     }
   }
 
@@ -52,6 +57,8 @@ export class PDFService {
    */
   async loadFromBuffer(buffer: ArrayBuffer): Promise<PDFDocumentProxy> {
     try {
+      // Make a copy BEFORE passing to pdfjs (pdfjs may transfer the buffer)
+      this.currentPdfBytes = new Uint8Array(buffer.slice(0));
       const document = await pdfjsLib.getDocument({
         data: buffer,
         cMapUrl: PDF_CONFIG.cMapUrl,
@@ -71,6 +78,20 @@ export class PDFService {
    */
   getCurrentDocument(): PDFDocumentProxy | null {
     return this.currentDocument;
+  }
+
+  /**
+   * Get current PDF bytes for conversion
+   * Returns a fresh copy to avoid ArrayBuffer detached issues
+   */
+  getCurrentPdfBytes(): Uint8Array | null {
+    if (!this.currentPdfBytes) return null;
+    try {
+      // Return a copy using slice to avoid issues
+      return new Uint8Array(this.currentPdfBytes.buffer.slice(0));
+    } catch {
+      return null;
+    }
   }
 
   /**
@@ -125,6 +146,7 @@ export class PDFService {
     if (this.currentDocument) {
       await this.currentDocument.destroy();
       this.currentDocument = null;
+      this.currentPdfBytes = null;
     }
   }
 

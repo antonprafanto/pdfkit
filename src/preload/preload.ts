@@ -57,10 +57,60 @@ contextBridge.exposeInMainWorld('electronAPI', {
   copyFile: (source: string, dest: string) => ipcRenderer.invoke('copy-file', source, dest),
   openOfficeFileDialog: () => ipcRenderer.invoke('open-office-file-dialog'),
 
+  // PDF to Word/Excel conversion (via LibreOffice)
+  convertPdfWithLibreOffice: (pdfBytes: Uint8Array, format: 'docx' | 'xlsx') => 
+    ipcRenderer.invoke('convert-pdf-with-libreoffice', pdfBytes, format),
+  checkLibreOfficeForPdf: () => ipcRenderer.invoke('check-libreoffice-for-pdf'),
+  getLibreOfficeDownloadUrl: () => ipcRenderer.invoke('get-libreoffice-download-url'),
+
   // PDF Signing
   signPdf: (pdfBytes: Uint8Array, p12Bytes: Uint8Array, password: string, reason?: string, location?: string) => 
     ipcRenderer.invoke('sign-pdf', pdfBytes, p12Bytes, password, reason, location),
   openP12FileDialog: () => ipcRenderer.invoke('open-p12-file-dialog'),
+
+  // Add Page Numbers
+  addPageNumbers: (pdfBytes: Uint8Array, options: {
+    position: 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right';
+    format: 'numbers' | 'page-of-total' | 'roman' | 'letters';
+    startNumber: number;
+    fontSize: number;
+    margin: number;
+    pageRange: string;
+  }) => ipcRenderer.invoke('add-page-numbers', pdfBytes, options),
+
+  // Extract Images
+  extractImages: (pdfBytes: Uint8Array, options: {
+    format: 'png' | 'jpeg';
+    quality: number;
+    minWidth: number;
+    minHeight: number;
+    fileName: string;
+  }) => ipcRenderer.invoke('extract-images', pdfBytes, options),
+
+  // Unlock PDF
+  unlockPDF: (pdfBytes: Uint8Array, password: string) => ipcRenderer.invoke('unlock-pdf', pdfBytes, password),
+
+  // Web Optimize PDF
+  webOptimizePDF: (pdfBytes: Uint8Array, options: { quality: string }) => ipcRenderer.invoke('web-optimize-pdf', pdfBytes, options),
+
+  // Overlay PDF (supports images too)
+  overlayPDF: (basePdfBytes: Uint8Array, overlayPdfBytes: Uint8Array, options: {
+    position: 'foreground' | 'background';
+    pageNumbers: number[];
+    opacity: number;
+    isImage?: boolean;
+    imagePosition?: 'top' | 'bottom' | 'center' | 'full';
+  }) => ipcRenderer.invoke('overlay-pdf', basePdfBytes, overlayPdfBytes, options),
+
+  // Webpage to PDF
+  webpageToPDF: (options: {
+    url: string;
+    pageSize: 'A4' | 'Letter' | 'Legal' | 'A3';
+    landscape: boolean;
+    margins: 'none' | 'minimal' | 'normal';
+    printBackground: boolean;
+    timeout: number;
+  }) => ipcRenderer.invoke('webpage-to-pdf', options),
 
   // Menu Events
   onMenuOpenFile: (callback: () => void) => {
@@ -188,10 +238,47 @@ export interface ElectronAPI {
   convertCloudAPI: (filePath: string, apiKey: string) => Promise<{ success: boolean; outputPath?: string; error?: string }>;
   copyFile: (source: string, dest: string) => Promise<{ success: boolean; error?: string }>;
   openOfficeFileDialog: () => Promise<string | null>;
+  // PDF to Word/Excel conversion (via LibreOffice)
+  convertPdfWithLibreOffice: (pdfBytes: Uint8Array, format: 'docx' | 'xlsx') => Promise<{ success: boolean; outputPath?: string; error?: string }>;
+  checkLibreOfficeForPdf: () => Promise<{ installed: boolean; path: string | null }>;
+  getLibreOfficeDownloadUrl: () => Promise<string>;
   // PDF Signing
   signPdf: (pdfBytes: Uint8Array, p12Bytes: Uint8Array, password: string, reason?: string, location?: string) => 
     Promise<{ success: boolean; outputPath?: string; signedPdfBytes?: Uint8Array; error?: string }>;
   openP12FileDialog: () => Promise<{ path: string; name: string; data: Uint8Array } | null>;
+  // Add Page Numbers
+  addPageNumbers: (pdfBytes: Uint8Array, options: {
+    position: 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right';
+    format: 'numbers' | 'page-of-total' | 'roman' | 'letters';
+    startNumber: number;
+    fontSize: number;
+    margin: number;
+    pageRange: string;
+  }) => Promise<{ success: boolean; data?: Uint8Array; error?: string }>;
+  extractImages: (pdfBytes: Uint8Array, options: {
+    format: 'png' | 'jpeg';
+    quality: number;
+    minWidth: number;
+    minHeight: number;
+    fileName: string;
+  }) => Promise<{ success: boolean; count?: number; outputDir?: string; error?: string }>;
+  unlockPDF: (pdfBytes: Uint8Array, password: string) => Promise<{ success: boolean; data?: Uint8Array; error?: string }>;
+  webOptimizePDF: (pdfBytes: Uint8Array, options: { quality: string }) => Promise<{ success: boolean; data?: Uint8Array; error?: string }>;
+  overlayPDF: (basePdfBytes: Uint8Array, overlayPdfBytes: Uint8Array, options: {
+    position: 'foreground' | 'background';
+    pageNumbers: number[];
+    opacity: number;
+    isImage?: boolean;
+    imagePosition?: 'top' | 'bottom' | 'center' | 'full';
+  }) => Promise<{ success: boolean; data?: Uint8Array; error?: string }>;
+  webpageToPDF: (options: {
+    url: string;
+    pageSize: 'A4' | 'Letter' | 'Legal' | 'A3';
+    landscape: boolean;
+    margins: 'none' | 'minimal' | 'normal';
+    printBackground: boolean;
+    timeout: number;
+  }) => Promise<{ success: boolean; filePath?: string; pageTitle?: string; error?: string }>;
   // Plugin System
   getPlugins: () => Promise<Array<{
     id: string;
