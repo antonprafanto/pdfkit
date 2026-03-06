@@ -44,6 +44,7 @@ PDF Kit is a comprehensive, offline-first PDF toolkit built with Electron and Re
 ## ✨ Features
 
 ### Core PDF Operations
+
 - 📖 **PDF Viewer** - High-quality rendering with zoom, rotation, and navigation
 - ✂️ **Split PDF** - Extract pages by range, every N pages, or individual pages
 - 🔗 **Merge PDF** - Combine multiple PDFs with drag-and-drop reordering
@@ -52,6 +53,7 @@ PDF Kit is a comprehensive, offline-first PDF toolkit built with Electron and Re
 - 📝 **Edit Metadata** - Modify title, author, subject, and keywords
 
 ### Advanced Features
+
 - 🔄 **Convert** - PDF to Images, Images to PDF, Office to PDF
 - 🔍 **Compare** - Side-by-side document comparison
 - ✏️ **Annotations** - Sticky notes on documents
@@ -59,11 +61,13 @@ PDF Kit is a comprehensive, offline-first PDF toolkit built with Electron and Re
 - 🔎 **OCR** - Text recognition for scanned documents (via Tesseract.js)
 
 ### AI-Powered (Optional)
+
 - 💬 **Chat with PDF** - Ask questions about your documents
 - 📊 **Summarization** - Generate document summaries
 - 🔍 **Semantic Search** - Find content by meaning, not just keywords
 
 ### Organization
+
 - ⭐ **Favorites** - Star important files for quick access
 - 📁 **Collections** - Virtual folders to organize documents
 - 🏷️ **Tags** - Color-coded labels for categorization
@@ -77,7 +81,7 @@ PDF Kit is a comprehensive, offline-first PDF toolkit built with Electron and Re
 
 Download the latest release for your platform:
 
-- **Windows**: [PDF-Kit-Setup.exe](https://github.com/antonprafanto/pdfkit/releases/download/v1.0.15/PDF.Kit.Setup.1.0.15.exe)
+- **Windows**: [PDF-Kit-Setup.exe](https://github.com/antonprafanto/pdfkit/releases/download/v1.0.17/PDF.Kit.Setup.1.0.17.exe)
 - **macOS**: coming soon
 - **Linux**: coming soon
 
@@ -119,30 +123,30 @@ For detailed instructions, see the [User Manual](docs/USER_MANUAL.md).
 
 ## 📚 Documentation
 
-| Document | Description |
-|----------|-------------|
-| [User Manual](docs/USER_MANUAL.md) | Complete user guide |
-| [Quick Start](docs/QUICK_START.md) | Get started in 5 minutes |
-| [Features Guide](docs/FEATURES.md) | Detailed feature documentation |
-| [FAQ](docs/FAQ.md) | Frequently asked questions |
-| [Troubleshooting](docs/TROUBLESHOOTING.md) | Common issues and solutions |
-| [Architecture](docs/ARCHITECTURE.md) | Technical architecture overview |
-| [Plugin API](docs/PLUGIN_API.md) | Create custom plugins |
-| [Build Guide](docs/BUILD.md) | Build and release process |
+| Document                                   | Description                     |
+| ------------------------------------------ | ------------------------------- |
+| [User Manual](docs/USER_MANUAL.md)         | Complete user guide             |
+| [Quick Start](docs/QUICK_START.md)         | Get started in 5 minutes        |
+| [Features Guide](docs/FEATURES.md)         | Detailed feature documentation  |
+| [FAQ](docs/FAQ.md)                         | Frequently asked questions      |
+| [Troubleshooting](docs/TROUBLESHOOTING.md) | Common issues and solutions     |
+| [Architecture](docs/ARCHITECTURE.md)       | Technical architecture overview |
+| [Plugin API](docs/PLUGIN_API.md)           | Create custom plugins           |
+| [Build Guide](docs/BUILD.md)               | Build and release process       |
 
 ---
 
 ## 🛠️ Technology Stack
 
-| Category | Technology |
-|----------|------------|
-| Framework | Electron 33.x |
-| Frontend | React 19.x, TypeScript |
-| Build Tool | Vite 6.x |
-| PDF Library | pdf-lib, pdfjs-dist |
+| Category       | Technology                       |
+| -------------- | -------------------------------- |
+| Framework      | Electron 33.x                    |
+| Frontend       | React 19.x, TypeScript           |
+| Build Tool     | Vite 6.x                         |
+| PDF Library    | pdf-lib, pdfjs-dist              |
 | AI Integration | OpenAI, Anthropic, Google Gemini |
-| Testing | Vitest |
-| Styling | CSS with modern features |
+| Testing        | Vitest                           |
+| Styling        | CSS with modern features         |
 
 ---
 
