@@ -27,47 +27,64 @@ export class SimpleUpdateChecker {
       console.log('[SimpleUpdateChecker] Checking for updates...');
       console.log('[SimpleUpdateChecker] Current version:', this.currentVersion);
 
-      https.get(this.GITHUB_API, {
-        headers: {
-          'User-Agent': 'PDF-Kit-App'
-        }
-      }, (res) => {
-        let data = '';
+      https
+        .get(
+          this.GITHUB_API,
+          {
+            headers: {
+              'User-Agent': 'PDF-Kit-App',
+            },
+          },
+          (res) => {
+            let data = '';
 
-        res.on('data', (chunk) => {
-          data += chunk;
-        });
+            res.on('data', (chunk) => {
+              data += chunk;
+            });
 
-        res.on('end', () => {
-          try {
-            const release = JSON.parse(data);
-            const latestVersion = release.tag_name.replace('v', '');
-            const hasUpdate = this.compareVersions(latestVersion, this.currentVersion) > 0;
+            res.on('end', () => {
+              try {
+                const release = JSON.parse(data);
 
-            // Find Windows installer
-            const windowsAsset = release.assets.find((asset: any) => 
-              asset.name.includes('Setup') && asset.name.endsWith('.exe')
-            );
+                // Check if GitHub API returned an error message (like Rate Lmit)
+                if (release.message) {
+                  throw new Error(`GitHub API Error: ${release.message}`);
+                }
 
-            const result: SimpleUpdateInfo = {
-              hasUpdate,
-              latestVersion,
-              currentVersion: this.currentVersion,
-              downloadUrl: windowsAsset?.browser_download_url || release.html_url,
-              releaseNotes: release.body || 'No release notes available'
-            };
+                // Ensure tag_name exists before using string methods
+                if (!release.tag_name) {
+                  throw new Error('Invalid release format received from GitHub');
+                }
 
-            console.log('[SimpleUpdateChecker] Check result:', result);
-            resolve(result);
-          } catch (error) {
-            console.error('[SimpleUpdateChecker] Parse error:', error);
-            reject(error);
+                const latestVersion = release.tag_name.replace('v', '');
+                const hasUpdate = this.compareVersions(latestVersion, this.currentVersion) > 0;
+
+                // Find Windows installer
+                const windowsAsset = release.assets?.find(
+                  (asset: any) => asset.name.includes('Setup') && asset.name.endsWith('.exe')
+                );
+
+                const result: SimpleUpdateInfo = {
+                  hasUpdate,
+                  latestVersion,
+                  currentVersion: this.currentVersion,
+                  downloadUrl: windowsAsset?.browser_download_url || release.html_url || '',
+                  releaseNotes: release.body || 'No release notes available',
+                };
+
+                console.log('[SimpleUpdateChecker] Check result:', result);
+                resolve(result);
+              } catch (error) {
+                console.error('[SimpleUpdateChecker] Parse error:', error);
+                reject(error);
+              }
+            });
           }
+        )
+        .on('error', (error) => {
+          console.error('[SimpleUpdateChecker] Request error:', error);
+          reject(error);
         });
-      }).on('error', (error) => {
-        console.error('[SimpleUpdateChecker] Request error:', error);
-        reject(error);
-      });
     });
   }
 
