@@ -44,10 +44,7 @@ export function PDFFacingView({
     const leftPage = page % 2 === 0 ? page : page - 1;
     const rightPage = leftPage + 1;
 
-    return [
-      leftPage <= totalPages ? leftPage : null,
-      rightPage <= totalPages ? rightPage : null,
-    ];
+    return [leftPage <= totalPages ? leftPage : null, rightPage <= totalPages ? rightPage : null];
   };
 
   const [leftPage, rightPage] = getVisiblePages(currentPage);
@@ -80,7 +77,12 @@ export function PDFFacingView({
       <div className="flex items-center justify-center gap-4 border-b border-gray-200 bg-white p-2 dark:border-gray-700 dark:bg-gray-800">
         <Button size="sm" variant="outline" onClick={goToPreviousSpread} disabled={!canGoPrevious}>
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
           </svg>
           Previous Spread
         </Button>
@@ -89,8 +91,8 @@ export function PDFFacingView({
           {leftPage && rightPage
             ? `Pages ${leftPage}-${rightPage}`
             : leftPage
-            ? `Page ${leftPage}`
-            : `Page ${rightPage}`}
+              ? `Page ${leftPage}`
+              : `Page ${rightPage}`}
         </span>
 
         <Button size="sm" variant="outline" onClick={goToNextSpread} disabled={!canGoNext}>
@@ -102,41 +104,41 @@ export function PDFFacingView({
       </div>
 
       {/* Pages */}
-      <div className="flex flex-1 items-center justify-center gap-4 overflow-auto bg-gray-100 p-4 dark:bg-gray-900">
-        {/* Left page */}
-        {leftPage && (
-          <div className="flex-shrink-0">
-            <PDFPage
-              document={document}
-              pageNumber={leftPage}
-              scale={scale}
-              rotation={rotation}
-              searchHighlights={searchHighlights}
-              showAnnotations={showAnnotations}
-              showForms={showForms}
-            />
-          </div>
-        )}
+      <div className="flex flex-1 overflow-auto bg-gray-100 p-4 dark:bg-gray-900">
+        <div className="m-auto flex items-center justify-center gap-4">
+          {/* Left page */}
+          {leftPage && (
+            <div className="flex-shrink-0">
+              <PDFPage
+                document={document}
+                pageNumber={leftPage}
+                scale={scale}
+                rotation={rotation}
+                searchHighlights={searchHighlights}
+                showAnnotations={showAnnotations}
+                showForms={showForms}
+              />
+            </div>
+          )}
 
-        {/* Center divider */}
-        {leftPage && rightPage && (
-          <div className="h-full w-px bg-gray-300 dark:bg-gray-700" />
-        )}
+          {/* Center divider */}
+          {leftPage && rightPage && <div className="h-full w-px bg-gray-300 dark:bg-gray-700" />}
 
-        {/* Right page */}
-        {rightPage && (
-          <div className="flex-shrink-0">
-            <PDFPage
-              document={document}
-              pageNumber={rightPage}
-              scale={scale}
-              rotation={rotation}
-              searchHighlights={searchHighlights}
-              showAnnotations={showAnnotations}
-              showForms={showForms}
-            />
-          </div>
-        )}
+          {/* Right page */}
+          {rightPage && (
+            <div className="flex-shrink-0">
+              <PDFPage
+                document={document}
+                pageNumber={rightPage}
+                scale={scale}
+                rotation={rotation}
+                searchHighlights={searchHighlights}
+                showAnnotations={showAnnotations}
+                showForms={showForms}
+              />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

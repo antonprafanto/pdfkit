@@ -1,40 +1,120 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, lazy, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ConnectivityIndicator } from './components/ConnectivityIndicator';
 import { ThemeToggle } from './components/ThemeToggle';
-import { AboutDialog } from './components/AboutDialog';
-import { SettingsDialog } from './components/SettingsDialog';
-import { PDFPasswordDialog } from './components/PDFPasswordDialog';
+// Keep essential components synchronous
 import { PDFViewer } from './components/PDFViewer';
 import { RecentFilesList } from './components/RecentFilesList';
-import { MergeDialog } from './components/editing/MergeDialog';
-import { DeletePagesDialog } from './components/editing/DeletePagesDialog';
-import { RotatePagesDialog } from './components/editing/RotatePagesDialog';
-import { SplitPDFDialog } from './components/editing/SplitPDFDialog';
-import { ReorderPagesDialog } from './components/editing/ReorderPagesDialog';
-import { ExtractPagesDialog } from './components/editing/ExtractPagesDialog';
-import { ExtractImagesDialog } from './components/editing/ExtractImagesDialog';
-import { DuplicatePageDialog } from './components/editing/DuplicatePageDialog';
-import { UnsavedChangesDialog } from './components/editing/UnsavedChangesDialog';
-import { ExportImagesDialog } from './components/conversion/ExportImagesDialog';
-import { ImportImagesDialog } from './components/conversion/ImportImagesDialog';
-import { ConvertOfficeToPDFDialog } from './components/conversion/ConvertOfficeToPDFDialog';
-import { EncryptPDFDialog } from './components/security/EncryptPDFDialog';
-import { BulkEncryptDialog } from './components/security/BulkEncryptDialog';
-import { WatermarkDialog } from './components/security/WatermarkDialog';
-import { AddPageNumbersDialog } from './components/editing/AddPageNumbersDialog';
-import { SignatureViewerDialog } from './components/security/SignatureViewerDialog';
-import { SignPDFDialog } from './components/security/SignPDFDialog';
-import { UnlockPDFDialog } from './components/security/UnlockPDFDialog';
-import { OCRDialog } from './components/ocr';
-import { CompressionDialog, WebOptimizePDFDialog } from './components/compression';
-import { OverlayPDFDialog } from './components/editing/OverlayPDFDialog';
-import { WebpageToPDFDialog } from './components/tools/WebpageToPDFDialog';
-import { PDFConvertDialog } from './components/PDFConvertDialog';
-import { BatchOperationsDialog } from './components/batch';
-import { PluginManagerDialog } from './components/plugins';
 import { KeyboardShortcutsDialog } from './components/KeyboardShortcutsDialog';
-import { FormDataDialog } from './components/forms';
+
+// Lazy loaded dialogs
+const AboutDialog = lazy(() =>
+  import('./components/AboutDialog').then((m) => ({ default: m.AboutDialog }))
+);
+const SettingsDialog = lazy(() =>
+  import('./components/SettingsDialog').then((m) => ({ default: m.SettingsDialog }))
+);
+const PDFPasswordDialog = lazy(() =>
+  import('./components/PDFPasswordDialog').then((m) => ({ default: m.PDFPasswordDialog }))
+);
+const MergeDialog = lazy(() =>
+  import('./components/editing/MergeDialog').then((m) => ({ default: m.MergeDialog }))
+);
+const DeletePagesDialog = lazy(() =>
+  import('./components/editing/DeletePagesDialog').then((m) => ({ default: m.DeletePagesDialog }))
+);
+const RotatePagesDialog = lazy(() =>
+  import('./components/editing/RotatePagesDialog').then((m) => ({ default: m.RotatePagesDialog }))
+);
+const SplitPDFDialog = lazy(() =>
+  import('./components/editing/SplitPDFDialog').then((m) => ({ default: m.SplitPDFDialog }))
+);
+const ReorderPagesDialog = lazy(() =>
+  import('./components/editing/ReorderPagesDialog').then((m) => ({ default: m.ReorderPagesDialog }))
+);
+const ExtractPagesDialog = lazy(() =>
+  import('./components/editing/ExtractPagesDialog').then((m) => ({ default: m.ExtractPagesDialog }))
+);
+const ExtractImagesDialog = lazy(() =>
+  import('./components/editing/ExtractImagesDialog').then((m) => ({
+    default: m.ExtractImagesDialog,
+  }))
+);
+const DuplicatePageDialog = lazy(() =>
+  import('./components/editing/DuplicatePageDialog').then((m) => ({
+    default: m.DuplicatePageDialog,
+  }))
+);
+const UnsavedChangesDialog = lazy(() =>
+  import('./components/editing/UnsavedChangesDialog').then((m) => ({
+    default: m.UnsavedChangesDialog,
+  }))
+);
+const ExportImagesDialog = lazy(() =>
+  import('./components/conversion/ExportImagesDialog').then((m) => ({
+    default: m.ExportImagesDialog,
+  }))
+);
+const ImportImagesDialog = lazy(() =>
+  import('./components/conversion/ImportImagesDialog').then((m) => ({
+    default: m.ImportImagesDialog,
+  }))
+);
+const ConvertOfficeToPDFDialog = lazy(() =>
+  import('./components/conversion/ConvertOfficeToPDFDialog').then((m) => ({
+    default: m.ConvertOfficeToPDFDialog,
+  }))
+);
+const EncryptPDFDialog = lazy(() =>
+  import('./components/security/EncryptPDFDialog').then((m) => ({ default: m.EncryptPDFDialog }))
+);
+const BulkEncryptDialog = lazy(() =>
+  import('./components/security/BulkEncryptDialog').then((m) => ({ default: m.BulkEncryptDialog }))
+);
+const WatermarkDialog = lazy(() =>
+  import('./components/security/WatermarkDialog').then((m) => ({ default: m.WatermarkDialog }))
+);
+const AddPageNumbersDialog = lazy(() =>
+  import('./components/editing/AddPageNumbersDialog').then((m) => ({
+    default: m.AddPageNumbersDialog,
+  }))
+);
+const SignatureViewerDialog = lazy(() =>
+  import('./components/security/SignatureViewerDialog').then((m) => ({
+    default: m.SignatureViewerDialog,
+  }))
+);
+const SignPDFDialog = lazy(() =>
+  import('./components/security/SignPDFDialog').then((m) => ({ default: m.SignPDFDialog }))
+);
+const UnlockPDFDialog = lazy(() =>
+  import('./components/security/UnlockPDFDialog').then((m) => ({ default: m.UnlockPDFDialog }))
+);
+const OCRDialog = lazy(() => import('./components/ocr').then((m) => ({ default: m.OCRDialog })));
+const CompressionDialog = lazy(() =>
+  import('./components/compression').then((m) => ({ default: m.CompressionDialog }))
+);
+const WebOptimizePDFDialog = lazy(() =>
+  import('./components/compression').then((m) => ({ default: m.WebOptimizePDFDialog }))
+);
+const OverlayPDFDialog = lazy(() =>
+  import('./components/editing/OverlayPDFDialog').then((m) => ({ default: m.OverlayPDFDialog }))
+);
+const WebpageToPDFDialog = lazy(() =>
+  import('./components/tools/WebpageToPDFDialog').then((m) => ({ default: m.WebpageToPDFDialog }))
+);
+const PDFConvertDialog = lazy(() =>
+  import('./components/PDFConvertDialog').then((m) => ({ default: m.PDFConvertDialog }))
+);
+const BatchOperationsDialog = lazy(() =>
+  import('./components/batch').then((m) => ({ default: m.BatchOperationsDialog }))
+);
+const PluginManagerDialog = lazy(() =>
+  import('./components/plugins').then((m) => ({ default: m.PluginManagerDialog }))
+);
+const FormDataDialog = lazy(() =>
+  import('./components/forms').then((m) => ({ default: m.FormDataDialog }))
+);
 import { usePDFStore } from './store/pdf-store';
 import { useEditingStore } from './store/editing-store';
 import { useAnnotationStore } from './store/annotation-store';
@@ -48,7 +128,10 @@ import { recentFilesManager, RecentFile } from './lib/recent-files';
 import { extractAnnotationsFromPdf } from './lib/pdf-annotation-extract.service';
 import { Button, Dialog } from './components/ui';
 import { UpdateNotification } from './components/UpdateNotification';
-import { FeatureHighlightsDialog, shouldShowFeatureHighlights } from './components/FeatureHighlightsDialog';
+import {
+  FeatureHighlightsDialog,
+  shouldShowFeatureHighlights,
+} from './components/FeatureHighlightsDialog';
 import { ShareDialog } from './components/ShareDialog';
 import { TabBar } from './components/TabBar';
 import { ToolsGrid, ToolAction } from './components/home/ToolsGrid';
@@ -92,6 +175,8 @@ function App() {
   const [formsDataDialogMode, setFormsDataDialogMode] = useState<'import' | 'export'>('export');
   const [isDetectingForms, setIsDetectingForms] = useState(false);
   const [isSavingTemplate, setIsSavingTemplate] = useState(false);
+  // Drag and Drop state
+  const [isDragging, setIsDragging] = useState(false);
   const [showAboutDialog, setShowAboutDialog] = useState(false);
   const [showSettingsDialog, setShowSettingsDialog] = useState(false);
   const [showPluginManagerDialog, setShowPluginManagerDialog] = useState(false);
@@ -99,7 +184,9 @@ function App() {
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [showKeyboardShortcutsDialog, setShowKeyboardShortcutsDialog] = useState(false);
-  const [showFeatureHighlights, setShowFeatureHighlights] = useState(() => shouldShowFeatureHighlights());
+  const [showFeatureHighlights, setShowFeatureHighlights] = useState(() =>
+    shouldShowFeatureHighlights()
+  );
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [showToolSearch, setShowToolSearch] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -114,6 +201,7 @@ function App() {
     setError,
     reset,
     // Tab management
+    tabs,
     addTab,
     findTabByFilePath,
     canAddTab,
@@ -291,6 +379,7 @@ function App() {
     return () => {
       unsubscribe?.();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Keyboard shortcuts listener (F1 or ? for help, Ctrl+O to open file)
@@ -298,11 +387,7 @@ function App() {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Don't trigger shortcuts when user is typing in an input field
       const target = e.target as HTMLElement;
-      if (
-        target.tagName === 'INPUT' ||
-        target.tagName === 'TEXTAREA' ||
-        target.isContentEditable
-      ) {
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
         return;
       }
 
@@ -340,8 +425,30 @@ function App() {
     return () => window.removeEventListener('open-new-tab', handleNewTab);
   }, []);
 
-  // Handle file open - now creates new tab
-  const handleFileOpen = async (file: File, password?: string) => {
+  // Processing queue for sequential file opening
+  const isOpeningFile = useRef(false);
+  const fileQueue = useRef<{ file: File; password?: string }[]>([]);
+
+  const processFileQueue = async () => {
+    if (isOpeningFile.current || fileQueue.current.length === 0) return;
+
+    isOpeningFile.current = true;
+    while (fileQueue.current.length > 0) {
+      const item = fileQueue.current.shift();
+      if (item) {
+        await executeFileOpen(item.file, item.password);
+      }
+    }
+    isOpeningFile.current = false;
+  };
+
+  const handleFileOpen = (file: File, password?: string) => {
+    fileQueue.current.push({ file, password });
+    processFileQueue();
+  };
+
+  // Handle file open logic - executes sequentially via queue
+  const executeFileOpen = async (file: File, password?: string) => {
     try {
       // Check if file is already open in a tab
       const existingTab = findTabByFilePath(file.name);
@@ -365,13 +472,12 @@ function App() {
         return;
       }
 
-
       setIsLoading(true);
       setError(null);
 
       // Load PDF with password if provided
       const pdfDocument = await pdfService.loadFromFile(file, password);
-      
+
       // Update tab with document
       updateTab(tabId, {
         document: pdfDocument,
@@ -456,33 +562,34 @@ function App() {
       // Clear loading and close recent files panel after successful load
       setIsLoading(false);
       setShowRecentFiles(false);
-      
-    } catch (err: any) {
-      console.error('Failed to load PDF:', err);
-      
+    } catch (err) {
+      const error = err as Error;
+      console.error('Failed to load PDF:', error);
+
       // Check if error is due to password requirement
       // PDF.js throws PasswordException for encrypted PDFs
-      const isPasswordError = 
-        err.name === 'PasswordException' ||
-        (err.message && (err.message.includes('password') || err.message.includes('encrypted')));
-      
+      const isPasswordError =
+        error.name === 'PasswordException' ||
+        (error.message &&
+          (error.message.includes('password') || error.message.includes('encrypted')));
+
       if (isPasswordError) {
         // PDF is encrypted - show password dialog
         setPendingFile(file);
-        
+
         // If password was provided but failed, show error
         if (password) {
           setPasswordError(t('pdfPassword.wrongPassword'));
         } else {
           setPasswordError(null);
         }
-        
+
         setShowPasswordDialog(true);
         setIsLoading(false);
         return;
       }
-      
-      setError(err.message || 'Failed to load PDF');
+
+      setError(error.message || 'Failed to load PDF');
       setIsLoading(false);
     }
   };
@@ -504,11 +611,13 @@ function App() {
 
   // Handle file input change
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleFileOpen(file);
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      Array.from(files).forEach((file) => {
+        handleFileOpen(file);
+      });
     }
-    // Reset input value to allow opening the same file again
+    // Reset input value to allow opening the same file(s) again
     e.target.value = '';
   };
 
@@ -556,10 +665,10 @@ function App() {
       if (detectedFields.length === 0) {
         alert(
           'No interactive form fields detected in this PDF.\n\n' +
-          'This PDF may be a static form (image-based).\n\n' +
-          'You can:\n' +
-          '1. Click "Create New Fields" to manually add form fields\n' +
-          '2. Use a PDF with interactive AcroForm fields'
+            'This PDF may be a static form (image-based).\n\n' +
+            'You can:\n' +
+            '1. Click "Create New Fields" to manually add form fields\n' +
+            '2. Use a PDF with interactive AcroForm fields'
         );
       } else {
         alert(`Found ${detectedFields.length} form field(s)!`);
@@ -589,7 +698,9 @@ function App() {
       // Get current PDF bytes (we need the original file)
       // For now, we'll need to ask user to select the original file again
       // In a real implementation, we'd store the original bytes
-      alert('Save filled PDF: This feature requires the original PDF bytes. Implementation in progress.');
+      alert(
+        'Save filled PDF: This feature requires the original PDF bytes. Implementation in progress.'
+      );
 
       // TODO: Implement proper save with filled form data
       // const formData = pdfFormsService.exportFormData(fields);
@@ -636,9 +747,7 @@ function App() {
       );
 
       // Suggest filename
-      const suggestedName = fileName
-        ? fileName.replace('.pdf', '_template.pdf')
-        : 'template.pdf';
+      const suggestedName = fileName ? fileName.replace('.pdf', '_template.pdf') : 'template.pdf';
 
       // Step 1: Open save dialog to get file path
       const savePath = await window.electronAPI.saveFileDialog(suggestedName);
@@ -656,15 +765,15 @@ function App() {
         console.log('[App] Template saved successfully:', savePath);
         alert(
           `✅ Template saved successfully!\n\n` +
-          `File: ${savePath}\n\n` +
-          `This PDF now contains ${fields.length} interactive form field(s).\n\n` +
-          `You can open it in:\n` +
-          `• Adobe Acrobat Reader\n` +
-          `• Google Chrome\n` +
-          `• Microsoft Edge\n` +
-          `• Foxit Reader\n` +
-          `• Any other PDF reader\n\n` +
-          `The form fields will be fully interactive and can be filled, saved, and shared!`
+            `File: ${savePath}\n\n` +
+            `This PDF now contains ${fields.length} interactive form field(s).\n\n` +
+            `You can open it in:\n` +
+            `• Adobe Acrobat Reader\n` +
+            `• Google Chrome\n` +
+            `• Microsoft Edge\n` +
+            `• Foxit Reader\n` +
+            `• Any other PDF reader\n\n` +
+            `The form fields will be fully interactive and can be filled, saved, and shared!`
         );
       } else {
         throw new Error(result.error || 'Failed to save file');
@@ -673,8 +782,8 @@ function App() {
       console.error('[App] Save template error:', error);
       alert(
         `❌ Failed to save template\n\n` +
-        `Error: ${error instanceof Error ? error.message : 'Unknown error'}\n\n` +
-        `Please try again or check the console for details.`
+          `Error: ${error instanceof Error ? error.message : 'Unknown error'}\n\n` +
+          `Please try again or check the console for details.`
       );
     } finally {
       setIsSavingTemplate(false);
@@ -685,138 +794,184 @@ function App() {
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    setIsDragging(false);
 
-    const file = e.dataTransfer.files[0];
-    if (file && file.type === 'application/pdf') {
-      handleFileOpen(file);
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      Array.from(files).forEach((file) => {
+        if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+          handleFileOpen(file);
+        }
+      });
     }
   };
 
   return (
-    <div className="flex h-screen flex-col bg-gray-50 dark:bg-gray-900">
+    <div className="flex h-screen flex-col overflow-hidden bg-gray-50 dark:bg-gray-900">
       {/* Auto-Update Notification Banner */}
       <UpdateNotification />
 
       {/* Header / Toolbar - Only show on landing page, hidden when document is open */}
-      {!document && (
-      <header className={`sticky top-0 z-50 flex items-center justify-between border-b border-border bg-background transition-all duration-300 ${isHeaderMinimized ? 'h-8' : 'h-14'}`}>
-        <div className={`flex items-center gap-4 ${isHeaderMinimized ? 'px-3' : 'px-6'}`}>
-          {!isHeaderMinimized && (
-            <>
-              <div className="flex items-center justify-center p-1.5 rounded bg-primary">
-                 <svg className="w-5 h-5 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
-                 </svg>
-              </div>
-              <div>
-                <h1 className="text-base font-semibold text-foreground tracking-tight">PDF Kit</h1>
-              </div>
-            </>
-          )}
-          {isHeaderMinimized && (
-            <h1 className="text-xs font-medium text-muted-foreground">PDF Kit</h1>
-          )}
-        </div>
+      {tabs.length === 0 && (
+        <header
+          className={`sticky top-0 z-50 flex items-center justify-between border-b border-border bg-background transition-all duration-300 ${isHeaderMinimized ? 'h-8' : 'h-14'}`}
+        >
+          <div className={`flex items-center gap-4 ${isHeaderMinimized ? 'px-3' : 'px-6'}`}>
+            {!isHeaderMinimized && (
+              <>
+                <div className="flex items-center justify-center p-1.5 rounded bg-primary">
+                  <svg
+                    className="w-5 h-5 text-primary-foreground"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h1 className="text-base font-semibold text-foreground tracking-tight">
+                    PDF Kit
+                  </h1>
+                </div>
+              </>
+            )}
+            {isHeaderMinimized && (
+              <h1 className="text-xs font-medium text-muted-foreground">PDF Kit</h1>
+            )}
+          </div>
 
-        {/* Right side controls */}
-        <div className="flex items-center gap-2 px-6">
-          {!isHeaderMinimized && (
-            <>
-              {/* Theme Toggle */}
-              <ThemeToggle />
+          {/* Right side controls */}
+          <div className="flex items-center gap-2 px-6">
+            {!isHeaderMinimized && (
+              <>
+                {/* Theme Toggle */}
+                <ThemeToggle />
 
-              {/* Settings Button */}
-              <button
-                onClick={() => setShowSettingsDialog(true)}
-                className="rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-all"
-                title={t('footer.settings')}
-              >
-                {t('footer.settings')}
-              </button>
+                {/* Settings Button */}
+                <button
+                  onClick={() => setShowSettingsDialog(true)}
+                  className="rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-all"
+                  title={t('footer.settings')}
+                >
+                  {t('footer.settings')}
+                </button>
 
-              {/* About Button */}
-              <button
-                onClick={() => setShowAboutDialog(true)}
-                className="rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-all"
-                title={t('footer.about')}
-              >
-                {t('footer.about')}
-              </button>
+                {/* About Button */}
+                <button
+                  onClick={() => setShowAboutDialog(true)}
+                  className="rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-all"
+                  title={t('footer.about')}
+                >
+                  {t('footer.about')}
+                </button>
 
-              {/* Share Button */}
-              <button
-                onClick={() => setShowShareDialog(true)}
-                className="rounded-md px-3 py-1.5 text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950 transition-all flex items-center gap-1.5"
-                title={t('toolbar.share')}
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                </svg>
-                {t('toolbar.share')}
-              </button>
+                {/* Share Button */}
+                <button
+                  onClick={() => setShowShareDialog(true)}
+                  className="rounded-md px-3 py-1.5 text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950 transition-all flex items-center gap-1.5"
+                  title={t('toolbar.share')}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+                    />
+                  </svg>
+                  {t('toolbar.share')}
+                </button>
 
-              {/* Check for Updates Button */}
-              <button
-                onClick={async () => {
-                  try {
-                    console.log('[App] Check Updates button clicked');
-                    const result = await window.electronAPI.simpleUpdateCheck();
-                    console.log('[App] Update check result:', result);
-                    
-                    if (result.error) {
-                      alert(`Failed to check for updates:\n${result.error}`);
-                    } else if (result.hasUpdate) {
-                      const message = `New version available!\n\nCurrent: ${result.currentVersion}\nLatest: ${result.latestVersion}\n\nClick OK to download the update.`;
-                      if (confirm(message)) {
-                        await window.electronAPI.openDownloadUrl(result.downloadUrl);
+                {/* Check for Updates Button */}
+                <button
+                  onClick={async () => {
+                    try {
+                      console.log('[App] Check Updates button clicked');
+                      const result = await window.electronAPI.simpleUpdateCheck();
+                      console.log('[App] Update check result:', result);
+
+                      if (result.error) {
+                        alert(`Failed to check for updates:\n${result.error}`);
+                      } else if (result.hasUpdate) {
+                        const message = `New version available!\n\nCurrent: ${result.currentVersion}\nLatest: ${result.latestVersion}\n\nClick OK to download the update.`;
+                        if (confirm(message)) {
+                          await window.electronAPI.openDownloadUrl(result.downloadUrl);
+                        }
+                      } else {
+                        alert(`You're up to date!\n\nCurrent version: ${result.currentVersion}`);
                       }
-                    } else {
-                      alert(`You're up to date!\n\nCurrent version: ${result.currentVersion}`);
+                    } catch (error) {
+                      console.error('[App] Failed to check for updates:', error);
+                      alert(`Error checking for updates:\n${error}`);
                     }
-                  } catch (error) {
-                    console.error('[App] Failed to check for updates:', error);
-                    alert(`Error checking for updates:\n${error}`);
-                  }
-                }}
-                className="rounded-md px-3 py-1.5 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950 transition-all flex items-center gap-1.5"
-                title="Check for Updates"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                Check Updates
-              </button>
+                  }}
+                  className="rounded-md px-3 py-1.5 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950 transition-all flex items-center gap-1.5"
+                  title="Check for Updates"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    />
+                  </svg>
+                  {t('ribbon.checkUpdates', 'Check Updates')}
+                </button>
 
-              {/* Connectivity Indicator */}
-              <div className="flex items-center gap-2 px-2 py-1 rounded-md bg-secondary/50">
-                 <ConnectivityIndicator isOnline={isOnline} />
-              </div>
+                {/* Connectivity Indicator */}
+                <div className="flex items-center gap-2 px-2 py-1 rounded-md bg-secondary/50">
+                  <ConnectivityIndicator isOnline={isOnline} />
+                </div>
 
-              <div className="w-px h-5 bg-border mx-2"></div>
-            </>
-          )}
+                <div className="w-px h-5 bg-border mx-2"></div>
+              </>
+            )}
 
-          {/* Minimize/Maximize Button */}
-          <button
-            onClick={() => setIsHeaderMinimized(!isHeaderMinimized)}
-            className="rounded p-1 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-            title={isHeaderMinimized ? 'Expand Header' : 'Minimize Header'}
-          >
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              {isHeaderMinimized ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-              )}
-            </svg>
-          </button>
-        </div>
-      </header>
+            {/* Minimize/Maximize Button */}
+            <button
+              onClick={() => setIsHeaderMinimized(!isHeaderMinimized)}
+              className="rounded p-1 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+              title={isHeaderMinimized ? 'Expand Header' : 'Minimize Header'}
+            >
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {isHeaderMinimized ? (
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                ) : (
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 15l7-7 7 7"
+                  />
+                )}
+              </svg>
+            </button>
+          </div>
+        </header>
       )}
 
       {/* Floating Support Buttons - Simple */}
@@ -827,7 +982,7 @@ function App() {
           title={t('footer.contactSupport')}
         >
           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-             <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
           </svg>
         </button>
 
@@ -837,85 +992,119 @@ function App() {
           title={t('footer.supportUs')}
         >
           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
           </svg>
         </button>
 
         <button
-          onClick={() => window.electronAPI.openExternal('https://github.com/antonprafanto/pdfkit/issues')}
+          onClick={() =>
+            window.electronAPI.openExternal('https://github.com/antonprafanto/pdfkit/issues')
+          }
           className="rounded-full p-3 text-foreground bg-secondary hover:bg-secondary/80 transition-all shadow-md hover:shadow-lg"
           title="Report Issue"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
           </svg>
         </button>
       </div>
 
       {/* Main Content */}
       <main className="flex flex-1 overflow-hidden relative bg-background">
-        
         {/* Content Area - Full Width */}
         <div
           className="flex flex-1 flex-col z-10"
           onDragOver={handleDragOver}
+          onDragEnter={handleDragOver}
+          onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
-          {!document ? (
+          {tabs.length === 0 ? (
             <div className="h-full overflow-y-auto">
               <div className="min-h-full flex items-center justify-center p-8">
                 <div className="max-w-5xl w-full">
-                
-                {/* Hero Section - Minimalist */}
-                <div className="flex flex-col items-center justify-center text-center mb-16 animate-fade-in-up">
-                  
-                  {/* Smart Drop Zone - Clean */}
-                  <div 
-                    onClick={triggerFileInput}
-                    className="group w-full max-w-2xl text-center cursor-pointer"
-                  >
-                    <div className="rounded-xl border border-dashed border-border bg-card hover:bg-secondary/50 p-12 transition-all duration-200 upload-area">
-                      
-                      <div className="mb-6 inline-flex items-center justify-center w-16 h-16 rounded-xl bg-secondary group-hover:bg-primary/5 transition-colors duration-200">
-                         <svg className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-                         </svg>
-                      </div>
-
-                      <h1 className="text-3xl font-semibold mb-3 tracking-tight text-foreground">
-                        {t('landing.uploadTitle')}
-                      </h1>
-                      <p className="text-base text-muted-foreground mb-8 max-w-sm mx-auto">
-                         {t('landing.uploadHint')}
-                      </p>
-
-                      <div className="flex items-center justify-center gap-4">
-                        <Button 
-                          onClick={(e) => { e.stopPropagation(); triggerFileInput(); }}
-                          className="px-6 rounded-md"
+                  {/* Hero Section - Minimalist */}
+                  <div className="flex flex-col items-center justify-center text-center mb-16 animate-fade-in-up">
+                    {/* Smart Drop Zone - Clean */}
+                    <div
+                      onClick={triggerFileInput}
+                      className="group w-full max-w-2xl text-center cursor-pointer"
+                    >
+                      <div
+                        className={`rounded-xl border border-dashed p-12 transition-all duration-200 upload-area ${
+                          isDragging
+                            ? 'border-primary bg-primary/5 shadow-md shadow-primary/20 scale-[1.02]'
+                            : 'border-border bg-card hover:bg-secondary/50'
+                        }`}
+                      >
+                        <div
+                          className={`mb-6 inline-flex items-center justify-center w-16 h-16 rounded-xl transition-colors duration-200 ${
+                            isDragging
+                              ? 'bg-primary/20 text-primary'
+                              : 'bg-secondary group-hover:bg-primary/5 text-muted-foreground group-hover:text-primary'
+                          }`}
                         >
-                          {t('landing.openFile')}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          className="px-6 rounded-md"
-                          onClick={(e) => { e.stopPropagation(); setShowRecentFiles(true); }}
-                        >
-                          {t('landing.recentFiles')}
-                        </Button>
+                          <svg
+                            className="w-8 h-8"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={1.5}
+                              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                            />
+                          </svg>
+                        </div>
+
+                        <h1 className="text-3xl font-semibold mb-3 tracking-tight text-foreground">
+                          {isDragging
+                            ? t('landing.dropFile', 'Drop PDF Here')
+                            : t('landing.uploadTitle')}
+                        </h1>
+                        <p className="text-base text-muted-foreground mb-8 max-w-sm mx-auto">
+                          {t('landing.uploadHint')}
+                        </p>
+
+                        <div className="flex items-center justify-center gap-4">
+                          <Button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              triggerFileInput();
+                            }}
+                            className="px-6 rounded-md"
+                          >
+                            {t('landing.openFile')}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className="px-6 rounded-md"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowRecentFiles(true);
+                            }}
+                          >
+                            {t('landing.recentFiles')}
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* All Tools Grid */}
-                <div className="mb-12 animate-fade-in-up-delay-1">
-                  <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-6 px-4">
-                    {t('landing.allTools', 'All PDF Tools')}
-                  </h2>
-                  <ToolsGrid onAction={handleToolAction} />
-                </div>
-                
+                  {/* All Tools Grid */}
+                  <div className="mb-12 animate-fade-in-up-delay-1">
+                    <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-6 px-4">
+                      {t('landing.allTools', 'All PDF Tools')}
+                    </h2>
+                    <ToolsGrid onAction={handleToolAction} />
+                  </div>
                 </div>
               </div>
             </div>
@@ -923,73 +1112,72 @@ function App() {
             <div className="flex flex-col flex-1 overflow-hidden">
               {/* Tab Bar for multiple documents */}
               <TabBar />
-              
+
               {/* PDF Viewer */}
               <PDFViewer
-              onOpenMerge={() => setShowMergeDialog(true)}
-              onOpenSplit={() => setShowSplitPDFDialog(true)}
-              onOpenDelete={() => setShowDeletePagesDialog(true)}
-              onOpenRotate={() => setShowRotatePagesDialog(true)}
-              onOpenReorder={() => setShowReorderPagesDialog(true)}
-              onOpenExtract={() => setShowExtractPagesDialog(true)}
-              onOpenExtractImages={() => setShowExtractImagesDialog(true)}
-              onOpenDuplicate={() => setShowDuplicatePageDialog(true)}
-              onOpenExportImages={() => setShowExportImagesDialog(true)}
-              onOpenImportImages={() => setShowImportImagesDialog(true)}
-              onOpenConvertOffice={() => setShowConvertOfficeDialog(true)}
-              onOpenEncryptPDF={() => setShowEncryptPDFDialog(true)}
-              onOpenBulkEncrypt={() => setShowBulkEncryptDialog(true)}
-              onOpenWatermark={() => setShowWatermarkDialog(true)}
-              onOpenAddPageNumbers={() => setShowAddPageNumbersDialog(true)}
-              onOpenSignPDF={() => setShowSignPDFDialog(true)}
-              onOpenSignatures={() => setShowSignatureViewerDialog(true)}
-              onOpenUnlockPDF={() => setShowUnlockPDFDialog(true)}
-              onOpenWebOptimize={() => setShowWebOptimizeDialog(true)}
-              onOpenOverlay={() => setShowOverlayDialog(true)}
-              onOpenWebpageToPDF={() => setShowWebpageToPDFDialog(true)}
-              onConvert={() => setShowConvertDialog(true)}
-              onOpenOCR={() => setShowOCRDialog(true)}
-              onOpenCompress={() => setShowCompressionDialog(true)}
-              onOpenBatch={() => setShowBatchDialog(true)}
-              onOpenFile={triggerFileInput}
-
-              onOpenRecent={() => setShowRecentFiles(true)}
-              onCloseDocument={handleCloseDocument}
-              onDetectForms={handleDetectForms}
-              onExportFormData={handleExportFormData}
-              onImportFormData={handleImportFormData}
-              onSaveFilledPDF={handleSaveFilledPDF}
-              onSaveTemplate={handleSaveTemplate}
-              onToggleFormsEditMode={handleToggleEditMode}
-              isDetectingForms={isDetectingForms}
-              isSavingTemplate={isSavingTemplate}
-              onSettings={() => setShowSettingsDialog(true)}
-              onAbout={() => setShowAboutDialog(true)}
-              onShare={() => setShowShareDialog(true)}
-              onSearchTools={() => setShowToolSearch(true)}
-              onCheckUpdates={async () => {
-                try {
-                  const result = await window.electronAPI.simpleUpdateCheck();
-                  if (result.error) {
-                    alert(t('updateCheck.failed', { error: result.error }));
-                  } else if (result.hasUpdate) {
-                    const message = t('updateCheck.available', { 
-                      current: result.currentVersion, 
-                      latest: result.latestVersion 
-                    });
-                    if (confirm(message)) {
-                      await window.electronAPI.openDownloadUrl(result.downloadUrl);
+                onOpenMerge={() => setShowMergeDialog(true)}
+                onOpenSplit={() => setShowSplitPDFDialog(true)}
+                onOpenDelete={() => setShowDeletePagesDialog(true)}
+                onOpenRotate={() => setShowRotatePagesDialog(true)}
+                onOpenReorder={() => setShowReorderPagesDialog(true)}
+                onOpenExtract={() => setShowExtractPagesDialog(true)}
+                onOpenExtractImages={() => setShowExtractImagesDialog(true)}
+                onOpenDuplicate={() => setShowDuplicatePageDialog(true)}
+                onOpenExportImages={() => setShowExportImagesDialog(true)}
+                onOpenImportImages={() => setShowImportImagesDialog(true)}
+                onOpenConvertOffice={() => setShowConvertOfficeDialog(true)}
+                onOpenEncryptPDF={() => setShowEncryptPDFDialog(true)}
+                onOpenBulkEncrypt={() => setShowBulkEncryptDialog(true)}
+                onOpenWatermark={() => setShowWatermarkDialog(true)}
+                onOpenAddPageNumbers={() => setShowAddPageNumbersDialog(true)}
+                onOpenSignPDF={() => setShowSignPDFDialog(true)}
+                onOpenSignatures={() => setShowSignatureViewerDialog(true)}
+                onOpenUnlockPDF={() => setShowUnlockPDFDialog(true)}
+                onOpenWebOptimize={() => setShowWebOptimizeDialog(true)}
+                onOpenOverlay={() => setShowOverlayDialog(true)}
+                onOpenWebpageToPDF={() => setShowWebpageToPDFDialog(true)}
+                onConvert={() => setShowConvertDialog(true)}
+                onOpenOCR={() => setShowOCRDialog(true)}
+                onOpenCompress={() => setShowCompressionDialog(true)}
+                onOpenBatch={() => setShowBatchDialog(true)}
+                onOpenFile={triggerFileInput}
+                onOpenRecent={() => setShowRecentFiles(true)}
+                onCloseDocument={handleCloseDocument}
+                onDetectForms={handleDetectForms}
+                onExportFormData={handleExportFormData}
+                onImportFormData={handleImportFormData}
+                onSaveFilledPDF={handleSaveFilledPDF}
+                onSaveTemplate={handleSaveTemplate}
+                onToggleFormsEditMode={handleToggleEditMode}
+                isDetectingForms={isDetectingForms}
+                isSavingTemplate={isSavingTemplate}
+                onSettings={() => setShowSettingsDialog(true)}
+                onAbout={() => setShowAboutDialog(true)}
+                onShare={() => setShowShareDialog(true)}
+                onSearchTools={() => setShowToolSearch(true)}
+                onCheckUpdates={async () => {
+                  try {
+                    const result = await window.electronAPI.simpleUpdateCheck();
+                    if (result.error) {
+                      alert(t('updateCheck.failed', { error: result.error }));
+                    } else if (result.hasUpdate) {
+                      const message = t('updateCheck.available', {
+                        current: result.currentVersion,
+                        latest: result.latestVersion,
+                      });
+                      if (confirm(message)) {
+                        await window.electronAPI.openDownloadUrl(result.downloadUrl);
+                      }
+                    } else {
+                      alert(t('updateCheck.upToDate', { current: result.currentVersion }));
                     }
-                  } else {
-                    alert(t('updateCheck.upToDate', { current: result.currentVersion }));
+                  } catch (error) {
+                    alert(t('updateCheck.error', { error }));
                   }
-                } catch (error) {
-                  alert(t('updateCheck.error', { error }));
-                }
-              }}
-              themeToggle={<ThemeToggle />}
-              isOnline={isOnline}
-            />
+                }}
+                themeToggle={<ThemeToggle />}
+                isOnline={isOnline}
+              />
             </div>
           )}
         </div>
@@ -998,9 +1186,9 @@ function App() {
       {/* Status Bar - Minimalist */}
       <footer className="z-50 flex h-8 items-center justify-between border-t border-border bg-background px-4 text-xs text-muted-foreground">
         <div>
-           {document
-             ? `Page ${usePDFStore.getState().currentPage} of ${usePDFStore.getState().totalPages}`
-             : 'Ready'}
+          {document
+            ? `Page ${usePDFStore.getState().currentPage} of ${usePDFStore.getState().totalPages}`
+            : 'Ready'}
         </div>
         <div>PDF Kit</div>
       </footer>
@@ -1010,6 +1198,7 @@ function App() {
         ref={fileInputRef}
         type="file"
         accept="application/pdf"
+        multiple
         onChange={handleFileInputChange}
         className="hidden"
       />
@@ -1024,213 +1213,188 @@ function App() {
         <RecentFilesList onFileSelect={handleRecentFileSelect} />
       </Dialog>
 
-      {/* Merge PDFs Dialog */}
-      <MergeDialog
-        open={showMergeDialog}
-        onClose={() => setShowMergeDialog(false)}
-      />
+      <Suspense fallback={null}>
+        {/* Merge PDFs Dialog */}
+        <MergeDialog open={showMergeDialog} onClose={() => setShowMergeDialog(false)} />
 
-      {/* Delete Pages Dialog */}
-      <DeletePagesDialog
-        open={showDeletePagesDialog}
-        onClose={() => setShowDeletePagesDialog(false)}
-      />
+        {/* Delete Pages Dialog */}
+        <DeletePagesDialog
+          open={showDeletePagesDialog}
+          onClose={() => setShowDeletePagesDialog(false)}
+        />
 
-      {/* Rotate Pages Dialog */}
-      <RotatePagesDialog
-        open={showRotatePagesDialog}
-        onClose={() => setShowRotatePagesDialog(false)}
-      />
+        {/* Rotate Pages Dialog */}
+        <RotatePagesDialog
+          open={showRotatePagesDialog}
+          onClose={() => setShowRotatePagesDialog(false)}
+        />
 
-      {/* Split PDF Dialog */}
-      <SplitPDFDialog
-        open={showSplitPDFDialog}
-        onClose={() => setShowSplitPDFDialog(false)}
-      />
+        {/* Split PDF Dialog */}
+        <SplitPDFDialog open={showSplitPDFDialog} onClose={() => setShowSplitPDFDialog(false)} />
 
-      {/* Reorder Pages Dialog */}
-      <ReorderPagesDialog
-        open={showReorderPagesDialog}
-        onClose={() => setShowReorderPagesDialog(false)}
-      />
+        {/* Reorder Pages Dialog */}
+        <ReorderPagesDialog
+          open={showReorderPagesDialog}
+          onClose={() => setShowReorderPagesDialog(false)}
+        />
 
-      {/* Extract Pages Dialog */}
-      <ExtractPagesDialog
-        open={showExtractPagesDialog}
-        onClose={() => setShowExtractPagesDialog(false)}
-      />
+        {/* Extract Pages Dialog */}
+        <ExtractPagesDialog
+          open={showExtractPagesDialog}
+          onClose={() => setShowExtractPagesDialog(false)}
+        />
 
-      {/* Extract Images Dialog */}
-      <ExtractImagesDialog
-        open={showExtractImagesDialog}
-        onClose={() => setShowExtractImagesDialog(false)}
-      />
+        {/* Extract Images Dialog */}
+        <ExtractImagesDialog
+          open={showExtractImagesDialog}
+          onClose={() => setShowExtractImagesDialog(false)}
+        />
 
-      {/* Duplicate Page Dialog */}
-      <DuplicatePageDialog
-        open={showDuplicatePageDialog}
-        onClose={() => setShowDuplicatePageDialog(false)}
-      />
+        {/* Duplicate Page Dialog */}
+        <DuplicatePageDialog
+          open={showDuplicatePageDialog}
+          onClose={() => setShowDuplicatePageDialog(false)}
+        />
 
-      {/* Export Images Dialog */}
-      <ExportImagesDialog
-        open={showExportImagesDialog}
-        onClose={() => setShowExportImagesDialog(false)}
-      />
+        {/* Export Images Dialog */}
+        <ExportImagesDialog
+          open={showExportImagesDialog}
+          onClose={() => setShowExportImagesDialog(false)}
+        />
 
-      {/* Import Images Dialog */}
-      <ImportImagesDialog
-        open={showImportImagesDialog}
-        onClose={() => setShowImportImagesDialog(false)}
-      />
+        {/* Import Images Dialog */}
+        <ImportImagesDialog
+          open={showImportImagesDialog}
+          onClose={() => setShowImportImagesDialog(false)}
+        />
 
-      {/* Convert Office to PDF */}
-      <ConvertOfficeToPDFDialog
-        open={showConvertOfficeDialog}
-        onClose={() => setShowConvertOfficeDialog(false)}
-      />
+        {/* Convert Office to PDF */}
+        <ConvertOfficeToPDFDialog
+          open={showConvertOfficeDialog}
+          onClose={() => setShowConvertOfficeDialog(false)}
+        />
 
-      {/* Encrypt PDF Dialog */}
-            <EncryptPDFDialog
-        open={showEncryptPDFDialog}
-        onClose={() => setShowEncryptPDFDialog(false)}
-      />
+        {/* Encrypt PDF Dialog */}
+        <EncryptPDFDialog
+          open={showEncryptPDFDialog}
+          onClose={() => setShowEncryptPDFDialog(false)}
+        />
 
-      {/* Bulk Encrypt Dialog */}
-      <BulkEncryptDialog
-        open={showBulkEncryptDialog}
-        onClose={() => setShowBulkEncryptDialog(false)}
-      />
+        {/* Bulk Encrypt Dialog */}
+        <BulkEncryptDialog
+          open={showBulkEncryptDialog}
+          onClose={() => setShowBulkEncryptDialog(false)}
+        />
 
-      {/* Watermark Dialog */}
-      <WatermarkDialog
-        open={showWatermarkDialog}
-        onClose={() => setShowWatermarkDialog(false)}
-      />
-      <AddPageNumbersDialog
-        open={showAddPageNumbersDialog}
-        onClose={() => setShowAddPageNumbersDialog(false)}
-      />
-      {/* Signature Viewer Dialog */}
-      <SignatureViewerDialog
-        open={showSignatureViewerDialog}
-        onClose={() => setShowSignatureViewerDialog(false)}
-      />
+        {/* Watermark Dialog */}
+        <WatermarkDialog open={showWatermarkDialog} onClose={() => setShowWatermarkDialog(false)} />
+        <AddPageNumbersDialog
+          open={showAddPageNumbersDialog}
+          onClose={() => setShowAddPageNumbersDialog(false)}
+        />
+        {/* Signature Viewer Dialog */}
+        <SignatureViewerDialog
+          open={showSignatureViewerDialog}
+          onClose={() => setShowSignatureViewerDialog(false)}
+        />
 
-      {/* Sign PDF Dialog */}
-      <SignPDFDialog
-        open={showSignPDFDialog}
-        onClose={() => setShowSignPDFDialog(false)}
-      />
-      <UnlockPDFDialog
-        open={showUnlockPDFDialog}
-        onClose={() => setShowUnlockPDFDialog(false)}
-      />
+        {/* Sign PDF Dialog */}
+        <SignPDFDialog open={showSignPDFDialog} onClose={() => setShowSignPDFDialog(false)} />
+        <UnlockPDFDialog open={showUnlockPDFDialog} onClose={() => setShowUnlockPDFDialog(false)} />
 
-      {/* Web Optimize Dialog */}
-      <WebOptimizePDFDialog
-        open={showWebOptimizeDialog}
-        onClose={() => setShowWebOptimizeDialog(false)}
-      />
+        {/* Web Optimize Dialog */}
+        <WebOptimizePDFDialog
+          open={showWebOptimizeDialog}
+          onClose={() => setShowWebOptimizeDialog(false)}
+        />
 
-      {/* Overlay PDF Dialog */}
-      <OverlayPDFDialog
-        open={showOverlayDialog}
-        onClose={() => setShowOverlayDialog(false)}
-      />
+        {/* Overlay PDF Dialog */}
+        <OverlayPDFDialog open={showOverlayDialog} onClose={() => setShowOverlayDialog(false)} />
 
-      {/* Webpage to PDF Dialog */}
-      <WebpageToPDFDialog
-        open={showWebpageToPDFDialog}
-        onClose={() => setShowWebpageToPDFDialog(false)}
-      />
+        {/* Webpage to PDF Dialog */}
+        <WebpageToPDFDialog
+          open={showWebpageToPDFDialog}
+          onClose={() => setShowWebpageToPDFDialog(false)}
+        />
 
-      {/* PDF Convert to Word/Excel Dialog */}
-      <PDFConvertDialog
-        isOpen={showConvertDialog}
-        onClose={() => setShowConvertDialog(false)}
-        pdfBytes={showConvertDialog && document ? pdfService.getCurrentPdfBytes() : null}
-        fileName={fileName || 'document.pdf'}
-      />
+        {/* PDF Convert to Word/Excel Dialog */}
+        <PDFConvertDialog
+          isOpen={showConvertDialog}
+          onClose={() => setShowConvertDialog(false)}
+          pdfBytes={showConvertDialog && document ? pdfService.getCurrentPdfBytes() : null}
+          fileName={fileName || 'document.pdf'}
+        />
 
-      {/* OCR Dialog */}
-      <OCRDialog
-        open={showOCRDialog}
-        onClose={() => setShowOCRDialog(false)}
-      />
+        {/* OCR Dialog */}
+        <OCRDialog open={showOCRDialog} onClose={() => setShowOCRDialog(false)} />
 
-      {/* Compression Dialog */}
-      <CompressionDialog
-        open={showCompressionDialog}
-        onClose={() => setShowCompressionDialog(false)}
-      />
+        {/* Compression Dialog */}
+        <CompressionDialog
+          open={showCompressionDialog}
+          onClose={() => setShowCompressionDialog(false)}
+        />
 
-      {/* Batch Operations Dialog */}
-      <BatchOperationsDialog
-        open={showBatchDialog}
-        onClose={() => setShowBatchDialog(false)}
-      />
+        {/* Batch Operations Dialog */}
+        <BatchOperationsDialog open={showBatchDialog} onClose={() => setShowBatchDialog(false)} />
 
-      {/* Unsaved Changes Warning */}
-      <UnsavedChangesDialog
-        open={showUnsavedChangesDialog}
-        onClose={handleCancelClose}
-        onDiscard={handleDiscardChanges}
-        onCancel={handleCancelClose}
-      />
+        {/* Unsaved Changes Warning */}
+        <UnsavedChangesDialog
+          open={showUnsavedChangesDialog}
+          onClose={handleCancelClose}
+          onDiscard={handleDiscardChanges}
+          onCancel={handleCancelClose}
+        />
 
-      {/* Form Data Import/Export Dialog */}
-      <FormDataDialog
-        isOpen={showFormsDataDialog}
-        mode={formsDataDialogMode}
-        onClose={() => setShowFormsDataDialog(false)}
-        pdfTitle={fileName || undefined}
-      />
+        {/* Form Data Import/Export Dialog */}
+        <FormDataDialog
+          isOpen={showFormsDataDialog}
+          mode={formsDataDialogMode}
+          onClose={() => setShowFormsDataDialog(false)}
+          pdfTitle={fileName || undefined}
+        />
 
-      {/* Settings Dialog */}
-      <SettingsDialog isOpen={showSettingsDialog} onClose={() => setShowSettingsDialog(false)} />
+        {/* Settings Dialog */}
+        <SettingsDialog isOpen={showSettingsDialog} onClose={() => setShowSettingsDialog(false)} />
 
-      {/* About Dialog */}
-      <AboutDialog isOpen={showAboutDialog} onClose={() => setShowAboutDialog(false)} />
+        {/* About Dialog */}
+        <AboutDialog isOpen={showAboutDialog} onClose={() => setShowAboutDialog(false)} />
 
-      {/* Plugin Manager Dialog */}
-      <PluginManagerDialog
-        open={showPluginManagerDialog}
-        onClose={() => setShowPluginManagerDialog(false)}
-      />
+        {/* Plugin Manager Dialog */}
+        <PluginManagerDialog
+          open={showPluginManagerDialog}
+          onClose={() => setShowPluginManagerDialog(false)}
+        />
 
-      {/* Keyboard Shortcuts Dialog */}
-      <KeyboardShortcutsDialog
-        open={showKeyboardShortcutsDialog}
-        onClose={() => setShowKeyboardShortcutsDialog(false)}
-      />
+        {/* Keyboard Shortcuts Dialog */}
+        <KeyboardShortcutsDialog
+          open={showKeyboardShortcutsDialog}
+          onClose={() => setShowKeyboardShortcutsDialog(false)}
+        />
 
-      {/* Feature Highlights Dialog */}
-      <FeatureHighlightsDialog
-        open={showFeatureHighlights}
-        onClose={() => {
-          setShowFeatureHighlights(false);
-          localStorage.setItem('hasSeenFeatureHighlights', 'true');
-        }}
-      />
+        {/* Feature Highlights Dialog */}
+        <FeatureHighlightsDialog
+          open={showFeatureHighlights}
+          onClose={() => {
+            setShowFeatureHighlights(false);
+            localStorage.setItem('hasSeenFeatureHighlights', 'true');
+          }}
+        />
 
-      {/* PDF Password Dialog */}
-      <PDFPasswordDialog
-        open={showPasswordDialog}
-        onClose={() => {
-          setShowPasswordDialog(false);
-          setPasswordError(null);
-          setPendingFile(null);
-        }}
-        onSubmit={handlePasswordSubmit}
-        error={passwordError}
-      />
+        {/* PDF Password Dialog */}
+        <PDFPasswordDialog
+          open={showPasswordDialog}
+          onClose={() => {
+            setShowPasswordDialog(false);
+            setPasswordError(null);
+            setPendingFile(null);
+          }}
+          onSubmit={handlePasswordSubmit}
+          error={passwordError}
+        />
 
-      {/* Share Dialog */}
-      <ShareDialog
-        isOpen={showShareDialog}
-        onClose={() => setShowShareDialog(false)}
-      />
+        {/* Share Dialog */}
+        <ShareDialog isOpen={showShareDialog} onClose={() => setShowShareDialog(false)} />
+      </Suspense>
 
       {/* Tool Search Dialog (Ctrl+K) */}
       <ToolSearchDialog

@@ -28,7 +28,18 @@ interface PDFPageProps {
   onNoTextContent?: () => void; // Called when page has no selectable text (scan PDF)
 }
 
-export function PDFPage({ document, pageNumber, scale, rotation, searchHighlights, onPageLoad, showAnnotations = false, showForms = false, onNoTextContent }: PDFPageProps) {
+export function PDFPage({
+  document,
+  pageNumber,
+  scale,
+  rotation,
+  searchHighlights,
+  onPageLoad,
+  showAnnotations = false,
+  showForms = false,
+  onNoTextContent,
+}: PDFPageProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const textLayerRef = useRef<HTMLDivElement>(null);
   const [isRendering, setIsRendering] = useState(false);
@@ -37,15 +48,57 @@ export function PDFPage({ document, pageNumber, scale, rotation, searchHighlight
   const renderTaskRef = useRef<any>(null);
   const textLayerInstanceRef = useRef<any>(null);
 
+  // Smart lazy loading based on document size
+  const [isVisible, setIsVisible] = useState(document.numPages <= 20);
+  const [hasRendered, setHasRendered] = useState(document.numPages <= 20);
+  const [dimensions, setDimensions] = useState({
+    width: Math.floor(595 * scale),
+    height: Math.floor(842 * scale),
+  }); // Default A4 until loaded
+
   // Forms store
   const { fields, editMode } = useFormsStore();
 
   // Get highlights for current page
-  const currentPageHighlights = searchHighlights?.filter(h => h.pageNumber === pageNumber) || [];
+  const currentPageHighlights = searchHighlights?.filter((h) => h.pageNumber === pageNumber) || [];
+
+  // Observer for smart load/unload
+  useEffect(() => {
+    // If small document, we render everything immediately, no observer needed
+    if (document.numPages <= 20) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsVisible(true);
+            setHasRendered(true);
+          } else {
+            // Unload if going out of view and it's a large document
+            setIsVisible(false);
+          }
+        });
+      },
+      {
+        rootMargin: '150% 0px 150% 0px', // 1.5 viewports above and below
+      }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [document.numPages]);
 
   useEffect(() => {
     let isCancelled = false;
-    
+
+    // Skip rendering if not visible (unloaded placeholder)
+    if (!isVisible) return;
+
     const renderPage = async () => {
       if (!canvasRef.current || !document || isCancelled) return;
 
@@ -58,7 +111,7 @@ export function PDFPage({ document, pageNumber, scale, rotation, searchHighlight
           try {
             renderTaskRef.current.cancel();
             // Wait for cancellation to complete
-            await new Promise(resolve => setTimeout(resolve, 50));
+            await new Promise((resolve) => setTimeout(resolve, 50));
           } catch (e) {
             // Ignore cancellation errors
           }
@@ -77,8 +130,19 @@ export function PDFPage({ document, pageNumber, scale, rotation, searchHighlight
         const pageViewport = page.getViewport({ scale, rotation });
         setViewport(pageViewport);
 
+        // Update dimensions to actual page size for placeholders
+        setDimensions({
+          width: Math.floor(pageViewport.width),
+          height: Math.floor(pageViewport.height),
+        });
+
         // Setup canvas
         const canvas = canvasRef.current;
+        if (!canvas || isCancelled) {
+          // Canvas unmounted or render cancelled - gracefully abort
+          return;
+        }
+
         const context = canvas.getContext('2d');
 
         if (!context) {
@@ -92,10 +156,6 @@ export function PDFPage({ document, pageNumber, scale, rotation, searchHighlight
         canvas.width = Math.floor(pageViewport.width * pixelRatio);
         canvas.height = Math.floor(pageViewport.height * pixelRatio);
 
-        // Scale down canvas display size
-        canvas.style.width = `${pageViewport.width}px`;
-        canvas.style.height = `${pageViewport.height}px`;
-
         // Scale context to match pixel ratio
         context.scale(pixelRatio, pixelRatio);
 
@@ -107,43 +167,40 @@ export function PDFPage({ document, pageNumber, scale, rotation, searchHighlight
 
         renderTaskRef.current = page.render(renderContext);
         await renderTaskRef.current.promise;
-        
-        // Store page for text layer rendering
-        // (page reference stored in closure, not needed in state)
 
         // Render text layer for selection
         if (!isCancelled && textLayerRef.current) {
           // Clear previous text layer
           textLayerRef.current.innerHTML = '';
-          
+
           // Cancel previous text layer if exists
           if (textLayerInstanceRef.current) {
             textLayerInstanceRef.current.cancel();
           }
-          
+
           try {
             // Get text content
             const textContent = await page.getTextContent();
-            
+
             // Check if PDF has selectable text - only on first page
             const hasText = textContent.items && textContent.items.length > 0;
-            
+
             if (!hasText && pageNumber === 1) {
               // PDF appears to be scan/image-based - notify parent
               onNoTextContent?.();
             }
-            
+
             // Create text layer using pdfjsLib if available
             if (hasText) {
               const TextLayerClass = (pdfjsLib as any).TextLayer;
-              
+
               if (TextLayerClass && textLayerRef.current) {
                 textLayerInstanceRef.current = new TextLayerClass({
                   textContentSource: textContent,
                   container: textLayerRef.current,
                   viewport: pageViewport,
                 });
-                
+
                 if (textLayerInstanceRef.current) {
                   await textLayerInstanceRef.current.render();
                 }
@@ -192,113 +249,139 @@ export function PDFPage({ document, pageNumber, scale, rotation, searchHighlight
         }
       }
     };
-  }, [document, pageNumber, scale, rotation, onPageLoad]);
+  }, [document, pageNumber, scale, rotation, onPageLoad, isVisible]);
 
   return (
-    <div className="relative bg-white">
-      {isRendering && (
-        <div className="absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-gray-900/80">
-          <Spinner size="lg" />
-        </div>
-      )}
-
-      {error && (
-        <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-gray-900">
-          <div className="text-center">
-            <svg
-              className="mx-auto h-12 w-12 text-red-500"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-              />
-            </svg>
-            <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>
-          </div>
-        </div>
-      )}
-
-      <canvas
-        ref={canvasRef}
-        className="shadow-lg"
-        style={{
-          maxWidth: '100%',
-          height: 'auto',
-          display: 'inline-block',
-        }}
-      />
-
-      {/* Text layer for selection - positioned over canvas */}
-      {viewport && (
-        <div
-          ref={textLayerRef}
-          className="textLayer"
-          style={{
-            width: viewport.width,
-            height: viewport.height,
-          }}
-        />
-      )}
-
-      {/* Search highlights overlay */}
-      {viewport && currentPageHighlights.length > 0 && (
-        <svg
-          className="absolute left-0 top-0 pointer-events-none"
-          width={viewport.width}
-          height={viewport.height}
-          style={{
-            maxWidth: '100%',
-            height: 'auto',
-          }}
-        >
-          {currentPageHighlights.map((highlight, index) =>
-            highlight.rects.map((rect, rectIndex) => (
-              <rect
-                key={`${index}-${rectIndex}`}
-                x={rect.x}
-                y={rect.y}
-                width={rect.width}
-                height={rect.height}
-                fill="rgba(255, 235, 59, 0.4)"
-                stroke="rgba(255, 193, 7, 0.8)"
-                strokeWidth="1"
-              />
-            ))
+    <div
+      ref={containerRef}
+      className="relative bg-white shadow-[0_2px_10px_rgba(0,0,0,0.1)] transition-all"
+      style={{
+        width: dimensions.width,
+        height: dimensions.height,
+        minWidth: dimensions.width,
+        minHeight: dimensions.height,
+        display: 'inline-block',
+      }}
+    >
+      {!isVisible && document.numPages > 20 ? (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50/50 dark:bg-gray-800/50 text-gray-400">
+          {hasRendered ? (
+            <span className="text-sm font-medium">Page {pageNumber}</span>
+          ) : (
+            <Spinner size="sm" />
           )}
-        </svg>
-      )}
+        </div>
+      ) : (
+        <>
+          {isRendering && (
+            <div className="absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-gray-900/80 z-10 transition-opacity">
+              <Spinner size="lg" />
+            </div>
+          )}
 
-      {/* Annotation overlay */}
-      {showAnnotations && viewport && (
-        <AnnotationOverlay
-          pageNumber={pageNumber}
-          width={viewport.width}
-          height={viewport.height}
-          scale={scale}
-        />
-      )}
+          {error && (
+            <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-gray-900 z-10">
+              <div className="text-center">
+                <svg
+                  className="mx-auto h-12 w-12 text-red-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+                <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>
+              </div>
+            </div>
+          )}
 
-      {/* Form fields overlay */}
-      {showForms && viewport && (
-        <FormFieldOverlay
-          fields={fields}
-          pageNumber={pageNumber}
-          scale={scale}
-          rotation={rotation}
-        />
-      )}
+          <canvas
+            ref={canvasRef}
+            style={{
+              width: `${dimensions.width}px`,
+              height: `${dimensions.height}px`,
+              display: 'block',
+            }}
+          />
 
-      {/* Form field editor (click-to-place) */}
-      {editMode && viewport && (
-        <FormFieldEditor
-          pageNumber={pageNumber}
-          scale={scale}
-        />
+          {/* Text layer for selection - positioned over canvas */}
+          {viewport && (
+            <div
+              ref={textLayerRef}
+              className="textLayer"
+              style={{
+                width: viewport.width,
+                height: viewport.height,
+              }}
+            />
+          )}
+
+          {/* Search highlights overlay */}
+          {viewport && currentPageHighlights.length > 0 && (
+            <svg
+              className="absolute left-0 top-0 pointer-events-none z-20"
+              width={viewport.width}
+              height={viewport.height}
+              style={{
+                maxWidth: '100%',
+                height: 'auto',
+              }}
+            >
+              {currentPageHighlights.map((highlight, index) =>
+                highlight.rects.map((rect, rectIndex) => (
+                  <rect
+                    key={`${index}-${rectIndex}`}
+                    x={rect.x}
+                    y={rect.y}
+                    width={rect.width}
+                    height={rect.height}
+                    fill="rgba(255, 235, 59, 0.4)"
+                    stroke="rgba(255, 193, 7, 0.8)"
+                    strokeWidth="1"
+                  />
+                ))
+              )}
+            </svg>
+          )}
+
+          {/* Annotation overlay */}
+          {showAnnotations && viewport && (
+            <div className="absolute inset-0 z-30 pointer-events-none">
+              <div className="pointer-events-auto w-full h-full">
+                <AnnotationOverlay
+                  pageNumber={pageNumber}
+                  width={viewport.width}
+                  height={viewport.height}
+                  scale={scale}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Form fields overlay */}
+          {showForms && viewport && (
+            <div className="absolute inset-0 z-30">
+              <FormFieldOverlay
+                fields={fields}
+                pageNumber={pageNumber}
+                scale={scale}
+                rotation={rotation}
+              />
+            </div>
+          )}
+
+          {/* Form field editor (click-to-place) */}
+          {editMode && viewport && (
+            <div className="absolute inset-0 z-40">
+              <FormFieldEditor pageNumber={pageNumber} scale={scale} />
+            </div>
+          )}
+        </>
       )}
     </div>
   );

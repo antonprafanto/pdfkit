@@ -15,13 +15,49 @@ interface PDFThumbnailProps {
 }
 
 export function PDFThumbnail({ document, pageNumber, isActive, onClick }: PDFThumbnailProps) {
+  const containerRef = useRef<HTMLButtonElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
   const renderTaskRef = useRef<any>(null);
 
+  // Smart lazy loading based on document size
+  const [isVisible, setIsVisible] = useState(document.numPages <= 20);
+
+  // Observer for smart load/unload
+  useEffect(() => {
+    if (document.numPages <= 20) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsVisible(true);
+          } else {
+            // Unload thumbnail if going out of view
+            setIsVisible(false);
+          }
+        });
+      },
+      {
+        rootMargin: '100% 0px 100% 0px', // 1 viewport above and below
+      }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [document.numPages]);
+
   useEffect(() => {
     let isCancelled = false;
+
+    // Skip rendering if not visible
+    if (!isVisible) return;
 
     const renderThumbnail = async () => {
       if (!canvasRef.current || !document || isCancelled) return;
@@ -34,7 +70,7 @@ export function PDFThumbnail({ document, pageNumber, isActive, onClick }: PDFThu
         if (renderTaskRef.current) {
           try {
             renderTaskRef.current.cancel();
-            await new Promise(resolve => setTimeout(resolve, 50));
+            await new Promise((resolve) => setTimeout(resolve, 50));
           } catch (e) {
             // Ignore cancellation errors
           }
@@ -48,14 +84,27 @@ export function PDFThumbnail({ document, pageNumber, isActive, onClick }: PDFThu
         const viewport = page.getViewport({ scale: 0.3 });
 
         const canvas = canvasRef.current;
+        if (!canvas || isCancelled) {
+          // Canvas unmounted or render cancelled - gracefully abort
+          return;
+        }
+
         const context = canvas.getContext('2d');
 
         if (!context) {
           throw new Error('Could not get canvas context');
         }
 
-        canvas.height = viewport.height;
-        canvas.width = viewport.width;
+        // Apply pixel ratio for sharper thumbnail
+        const pixelRatio = window.devicePixelRatio || 1;
+        canvas.width = viewport.width * pixelRatio;
+        canvas.height = viewport.height * pixelRatio;
+
+        // CSS size
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
+
+        context.scale(pixelRatio, pixelRatio);
 
         const renderContext = {
           canvasContext: context,
@@ -64,7 +113,7 @@ export function PDFThumbnail({ document, pageNumber, isActive, onClick }: PDFThu
 
         renderTaskRef.current = page.render(renderContext);
         await renderTaskRef.current.promise;
-        
+
         if (!isCancelled) {
           setIsLoading(false);
         }
@@ -93,10 +142,11 @@ export function PDFThumbnail({ document, pageNumber, isActive, onClick }: PDFThu
         }
       }
     };
-  }, [document, pageNumber]);
+  }, [document, pageNumber, isVisible]);
 
   return (
     <button
+      ref={containerRef}
       onClick={onClick}
       className={`group relative flex w-full flex-col items-center gap-2 rounded-lg border-2 p-2 transition-all hover:bg-gray-50 dark:hover:bg-gray-700 ${
         isActive
@@ -106,30 +156,41 @@ export function PDFThumbnail({ document, pageNumber, isActive, onClick }: PDFThu
     >
       {/* Thumbnail preview */}
       <div className="relative flex h-32 w-full items-center justify-center overflow-hidden rounded bg-white dark:bg-gray-800">
-        {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <Spinner size="sm" />
-          </div>
-        )}
+        {!isVisible && document.numPages > 20 ? (
+          <Spinner size="sm" />
+        ) : (
+          <>
+            {isLoading && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Spinner size="sm" />
+              </div>
+            )}
 
-        {error && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <svg className="h-8 w-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-              />
-            </svg>
-          </div>
-        )}
+            {error && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <svg
+                  className="h-8 w-8 text-red-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+              </div>
+            )}
 
-        <canvas
-          ref={canvasRef}
-          className="max-h-full max-w-full object-contain"
-          style={{ display: isLoading || error ? 'none' : 'block' }}
-        />
+            <canvas
+              ref={canvasRef}
+              className="max-h-full max-w-full object-contain"
+              style={{ display: isLoading || error ? 'none' : 'block' }}
+            />
+          </>
+        )}
       </div>
 
       {/* Page number */}

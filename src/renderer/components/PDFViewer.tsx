@@ -131,6 +131,7 @@ export function PDFViewer({
     filePath,
     metadata,
     viewMode,
+    activeTabId,
     nextPage,
     previousPage,
     goToPage,
@@ -159,23 +160,25 @@ export function PDFViewer({
   const [scanPdfNotified, setScanPdfNotified] = useState(false); // Track if we've shown scan PDF notification
   const contentRef = useRef<HTMLDivElement>(null);
   const viewportSize = useViewportSize(contentRef);
-  
+
   // Reset scan notification when document changes
   useEffect(() => {
     setScanPdfNotified(false);
   }, [document]);
-  
+
   // Handler for PDFs without selectable text (scanned PDFs)
   const handleNoTextContent = () => {
     if (!scanPdfNotified) {
       setScanPdfNotified(true);
       // Show toast-style notification (using alert for now)
       setTimeout(() => {
-        alert('Dokumen ini sepertinya hasil scan. Text selection tidak tersedia.\n\nGunakan fitur OCR untuk mengekstrak text dari dokumen scan.');
+        alert(
+          'Dokumen ini sepertinya hasil scan. Text selection tidak tersedia.\n\nGunakan fitur OCR untuk mengekstrak text dari dokumen scan.'
+        );
       }, 100);
     }
   };
-  
+
   // Ctrl+F keyboard shortcut to open search
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -184,17 +187,38 @@ export function PDFViewer({
       if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
         return;
       }
-      
+
       // Ctrl+F to toggle search
       if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
         e.preventDefault();
-        setShowSearch(prev => !prev);
+        setShowSearch((prev) => !prev);
       }
     };
-    
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  // Ctrl+Scroll to zoom
+  useEffect(() => {
+    const handleWheel = (e: WheelEvent) => {
+      // Intercept wheel events when Ctrl/Cmd is held
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault(); // Prevent native browser UI zoom
+
+        // Process the scroll direction for zooming
+        if (e.deltaY < 0) {
+          zoomIn();
+        } else if (e.deltaY > 0) {
+          zoomOut();
+        }
+      }
+    };
+
+    // Must be non-passive to allow e.preventDefault()
+    window.addEventListener('wheel', handleWheel, { passive: false });
+    return () => window.removeEventListener('wheel', handleWheel);
+  }, [zoomIn, zoomOut]);
 
   // Handle fit to width/page when document or viewport changes
   const handleFitToWidth = async () => {
@@ -226,7 +250,7 @@ export function PDFViewer({
       toast.addToast(t('print.preparing'), {
         description: t('print.preparingDescription'),
         variant: 'info',
-        duration: 0  // 0 = no auto-close
+        duration: 0, // 0 = no auto-close
       });
 
       // Get PDF bytes from document
@@ -234,13 +258,13 @@ export function PDFViewer({
       console.log('[PDFViewer] Got PDF data, size:', data.length);
 
       // Add delay (2 seconds) so user can read the notification
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Convert to regular array for IPC serialization
       const result = await window.electronAPI.printPDF({
         pdfBytes: Array.from(data) as unknown as Uint8Array,
         fileName: fileName || 'document.pdf',
-        pdfPath: filePath || undefined
+        pdfPath: filePath || undefined,
       });
 
       console.log('[PDFViewer] printPDF result:', result);
@@ -250,13 +274,13 @@ export function PDFViewer({
         toast.addToast(t('print.opened'), {
           description: t('print.openedDescription'),
           variant: 'success',
-          duration: 0  // 0 = no auto-close, user must click X
+          duration: 0, // 0 = no auto-close, user must click X
         });
       } else {
         toast.addToast(t('print.failed'), {
           description: result.error || t('errors.unknownError'),
           variant: 'error',
-          duration: 0  // 0 = no auto-close
+          duration: 0, // 0 = no auto-close
         });
       }
     } catch (err) {
@@ -264,7 +288,7 @@ export function PDFViewer({
       toast.addToast(t('print.failed'), {
         description: t('print.failedDescription'),
         variant: 'error',
-        duration: 0  // 0 = no auto-close
+        duration: 0, // 0 = no auto-close
       });
     }
   }, [document, fileName, filePath, toast, t]);
@@ -301,45 +325,11 @@ export function PDFViewer({
     onPrint: handlePrint, // Add print handler for Ctrl+P
   });
 
-  if (isLoading) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <div className="text-center">
-          <Spinner size="lg" />
-          <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">Loading PDF...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <div className="text-center">
-          <svg className="mx-auto h-16 w-16 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
-          <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-white">Error Loading PDF</h3>
-          <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!document) {
-    return (
-      <div className="flex h-full flex-col items-center justify-center">
-        <svg className="h-24 w-24 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-        </svg>
-        <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-white">No PDF Opened</h3>
-        <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Open a PDF file to get started</p>
-      </div>
-    );
-  }
+  // Render the main viewer structure regardless of document state
+  // to prevent the UI from flashing/disappearing during tab switches
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex flex-1 overflow-hidden flex-col bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 w-full relative">
       {/* Ribbon Toolbar */}
       <RibbonToolbar
         onOpenFile={onOpenFile}
@@ -413,8 +403,9 @@ export function PDFViewer({
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden relative">
         {/* Thumbnails Sidebar */}
-        {showThumbnails && (
+        {showThumbnails && document && (
           <PDFThumbnailSidebar
+            key={`thumbs-${activeTabId}`}
             document={document}
             currentPage={currentPage}
             totalPages={totalPages}
@@ -423,8 +414,9 @@ export function PDFViewer({
         )}
 
         {/* Floating Search Bar - positioned in content area */}
-        {showSearch && (
+        {showSearch && document && (
           <PDFSearchBar
+            key={`search-${activeTabId}`}
             document={document}
             scale={scale}
             rotation={rotation}
@@ -475,9 +467,10 @@ export function PDFViewer({
               </button>
             </div>
             {/* AI Panel Content */}
-            <div className="flex-1 overflow-hidden">
+            <div className="flex-1 overflow-hidden flex flex-col">
               {aiPanel === 'chat' && (
                 <ChatWithPDFPanel
+                  key={`chat-${activeTabId}`}
                   pdfDocument={document}
                   documentId={fileName || 'document'}
                   onPageClick={goToPage}
@@ -485,6 +478,7 @@ export function PDFViewer({
               )}
               {aiPanel === 'analysis' && (
                 <DocumentAnalysisPanel
+                  key={`analysis-${activeTabId}`}
                   pdfDocument={document}
                   documentId={fileName || 'document'}
                 />
@@ -494,71 +488,130 @@ export function PDFViewer({
         )}
 
         {/* PDF Content - Different view modes */}
-        {viewMode === 'single' && (
-          <div ref={contentRef} className="flex-1 overflow-auto bg-gray-100 dark:bg-gray-900">
-            <div className="min-h-full flex items-center justify-center p-4">
-              <PDFPage
-                document={document}
-                pageNumber={currentPage}
-                scale={scale}
-                rotation={rotation}
-                searchHighlights={searchHighlights}
-                showAnnotations={annotationMode}
-                showForms={formsMode}
-                onNoTextContent={handleNoTextContent}
-              />
+        {isLoading ? (
+          <div className="flex-1 flex items-center justify-center bg-gray-100 dark:bg-gray-900">
+            <div className="text-center">
+              <Spinner size="lg" />
+              <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">Loading PDF...</p>
             </div>
           </div>
-        )}
-
-        {viewMode === 'continuous' && (
-          <div ref={contentRef} className="flex-1">
-            <PDFContinuousView
-              document={document}
-              totalPages={totalPages}
-              scale={scale}
-              rotation={rotation}
-              currentPage={currentPage}
-              searchHighlights={searchHighlights}
-              showAnnotations={annotationMode}
-              showForms={formsMode}
-              onPageChange={goToPage}
-              onNoTextContent={handleNoTextContent}
-            />
+        ) : error ? (
+          <div className="flex-1 flex items-center justify-center bg-gray-100 dark:bg-gray-900">
+            <div className="text-center">
+              <svg
+                className="mx-auto h-16 w-16 text-red-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
+              </svg>
+              <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-white">
+                Error Loading PDF
+              </h3>
+              <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>
+            </div>
           </div>
-        )}
-
-        {viewMode === 'facing' && (
-          <div ref={contentRef} className="flex-1">
-            <PDFFacingView
-              document={document}
-              totalPages={totalPages}
-              scale={scale}
-              rotation={rotation}
-              currentPage={currentPage}
-              searchHighlights={searchHighlights}
-              showAnnotations={annotationMode}
-              showForms={formsMode}
-              onPageChange={goToPage}
-            />
+        ) : !document ? (
+          <div className="flex-1 flex items-center justify-center bg-gray-100 dark:bg-gray-900">
+            <div className="text-center">
+              <svg
+                className="mx-auto h-24 w-24 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                />
+              </svg>
+              <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-white">
+                No PDF Opened
+              </h3>
+              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                Open a PDF file to get started
+              </p>
+            </div>
           </div>
+        ) : (
+          <>
+            {viewMode === 'single' && (
+              <div ref={contentRef} className="flex-1 overflow-auto bg-gray-100 dark:bg-gray-900">
+                <div className="min-h-full flex items-center justify-center p-4">
+                  <PDFPage
+                    key={`single-${activeTabId}`}
+                    document={document}
+                    pageNumber={currentPage}
+                    scale={scale}
+                    rotation={rotation}
+                    searchHighlights={searchHighlights}
+                    showAnnotations={annotationMode}
+                    showForms={formsMode}
+                    onNoTextContent={handleNoTextContent}
+                  />
+                </div>
+              </div>
+            )}
+
+            {viewMode === 'continuous' && (
+              <div ref={contentRef} className="flex-1">
+                <PDFContinuousView
+                  key={`cont-${activeTabId}`}
+                  document={document}
+                  totalPages={totalPages}
+                  scale={scale}
+                  rotation={rotation}
+                  currentPage={currentPage}
+                  searchHighlights={searchHighlights}
+                  showAnnotations={annotationMode}
+                  showForms={formsMode}
+                  onPageChange={goToPage}
+                  onNoTextContent={handleNoTextContent}
+                />
+              </div>
+            )}
+
+            {viewMode === 'facing' && (
+              <div ref={contentRef} className="flex-1">
+                <PDFFacingView
+                  key={`face-${activeTabId}`}
+                  document={document}
+                  totalPages={totalPages}
+                  scale={scale}
+                  rotation={rotation}
+                  currentPage={currentPage}
+                  searchHighlights={searchHighlights}
+                  showAnnotations={annotationMode}
+                  showForms={formsMode}
+                  onPageChange={goToPage}
+                />
+              </div>
+            )}
+          </>
         )}
       </div>
 
       {/* Properties Dialog */}
-      <PDFPropertiesDialog
-        open={showProperties}
-        onClose={() => setShowProperties(false)}
-        document={document}
-        metadata={metadata}
-        fileName={fileName}
-      />
+      {document && (
+        <PDFPropertiesDialog
+          open={showProperties}
+          onClose={() => setShowProperties(false)}
+          document={document}
+          metadata={metadata}
+          fileName={fileName}
+        />
+      )}
 
       {/* Keyboard Shortcuts Help */}
-      <KeyboardShortcutsHelp
-        open={showShortcutsHelp}
-        onClose={() => setShowShortcutsHelp(false)}
-      />
+      <KeyboardShortcutsHelp open={showShortcutsHelp} onClose={() => setShowShortcutsHelp(false)} />
     </div>
   );
 }

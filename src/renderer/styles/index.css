@@ -71,15 +71,27 @@
   * {
     @apply border-border;
   }
-  body {
+  html,
+  body,
+  #root {
     @apply bg-background text-foreground antialiased;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings:
+      'rlig' 1,
+      'calt' 1;
+    overflow: hidden !important;
+    height: 100vh !important;
+    width: 100vw !important;
+    margin: 0;
+    padding: 0;
+    position: fixed; /* Ultimate prevention of document scroll */
+    top: 0;
+    left: 0;
   }
 }
 
 @layer utilities {
   /* Removed glass classes for minimalism */
-  
+
   .text-gradient {
     /* Reverted to standard text for minimalism */
     @apply text-foreground;
@@ -88,12 +100,12 @@
   .animate-fade-in-up {
     animation: fadeInUp 0.5s ease-out forwards;
   }
-  
+
   .animate-fade-in-up-delay-1 {
     animation: fadeInUp 0.5s ease-out 0.1s forwards;
     opacity: 0;
   }
-  
+
   .animate-fade-in-up-delay-2 {
     animation: fadeInUp 0.5s ease-out 0.2s forwards;
     opacity: 0;
@@ -119,7 +131,7 @@
 .dark .annotationLayer input,
 .dark .annotationLayer textarea,
 .dark .annotationLayer select,
-.dark input[type="text"],
+.dark input[type='text'],
 .dark textarea,
 .dark select {
   background-color: white !important;
@@ -131,7 +143,7 @@
 .dark .annotationLayer input:focus,
 .dark .annotationLayer textarea:focus,
 .dark .annotationLayer select:focus,
-.dark input[type="text"]:focus,
+.dark input[type='text']:focus,
 .dark textarea:focus,
 .dark select:focus {
   background-color: #fffbeb !important;
@@ -141,16 +153,16 @@
 }
 
 /* Checkbox and radio buttons in dark mode */
-.dark .annotationLayer input[type="checkbox"],
-.dark .annotationLayer input[type="radio"],
-.dark input[type="checkbox"],
-.dark input[type="radio"] {
+.dark .annotationLayer input[type='checkbox'],
+.dark .annotationLayer input[type='radio'],
+.dark input[type='checkbox'],
+.dark input[type='radio'] {
   background-color: white !important;
   border: 2px solid #f59e0b !important;
 }
 
 /* More aggressive approach - target all form elements in dark mode */
-html.dark input:not([type="file"]):not([type="button"]):not([type="submit"]),
+html.dark input:not([type='file']):not([type='button']):not([type='submit']),
 html.dark textarea,
 html.dark select {
   background-color: white !important;
@@ -176,14 +188,14 @@ html.high-contrast * {
 
 html.high-contrast button,
 html.high-contrast a,
-html.high-contrast [role="button"] {
+html.high-contrast [role='button'] {
   border: 2px solid white !important;
   outline: none;
 }
 
 html.high-contrast button:focus,
 html.high-contrast a:focus,
-html.high-contrast [role="button"]:focus,
+html.high-contrast [role='button']:focus,
 html.high-contrast input:focus,
 html.high-contrast select:focus,
 html.high-contrast textarea:focus {
@@ -337,7 +349,7 @@ html.reduced-motion *::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -353,7 +365,7 @@ html.reduced-motion *::after {
 
 /* Dark mode glow effect on hover */
 .dark .quick-action-card:hover {
-  box-shadow: 
+  box-shadow:
     0 12px 40px -8px rgba(0, 0, 0, 0.5),
     0 0 20px -5px rgba(99, 102, 241, 0.2);
 }
@@ -379,7 +391,7 @@ html.reduced-motion *::after {
 }
 
 .dark .upload-area:hover {
-  box-shadow: 
+  box-shadow:
     0 8px 30px -10px rgba(0, 0, 0, 0.5),
     0 0 30px -10px rgba(99, 102, 241, 0.15);
 }
@@ -482,8 +494,16 @@ html.reduced-motion *::after {
   body,
   .text-foreground,
   .text-muted-foreground,
-  h1, h2, h3, h4, h5, h6,
-  p, span, label, a {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  p,
+  span,
+  label,
+  a {
     color: CanvasText !important;
     forced-color-adjust: none;
   }
@@ -500,7 +520,7 @@ html.reduced-motion *::after {
 
   /* Button visibility */
   button,
-  [role="button"],
+  [role='button'],
   .btn {
     border: 2px solid CanvasText !important;
     background-color: Canvas !important;
@@ -509,14 +529,14 @@ html.reduced-motion *::after {
   }
 
   button:hover,
-  [role="button"]:hover {
+  [role='button']:hover {
     background-color: Highlight !important;
     color: HighlightText !important;
   }
 
   /* Primary buttons */
   .bg-primary,
-  button[class*="primary"] {
+  button[class*='primary'] {
     background-color: Highlight !important;
     color: HighlightText !important;
     border-color: HighlightText !important;
@@ -540,7 +560,7 @@ html.reduced-motion *::after {
   }
 
   /* Dialog/Modal visibility */
-  [role="dialog"],
+  [role='dialog'],
   .dialog,
   .modal {
     border: 3px solid CanvasText !important;
@@ -550,7 +570,7 @@ html.reduced-motion *::after {
   /* Border visibility */
   .border,
   .border-border,
-  [class*="border-"] {
+  [class*='border-'] {
     border-color: CanvasText !important;
   }
 

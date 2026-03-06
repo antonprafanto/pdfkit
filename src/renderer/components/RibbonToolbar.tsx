@@ -84,7 +84,7 @@ type TabId = 'beranda' | 'edit' | 'halaman' | 'alat' | 'tampilan';
 const RibbonToolbar: React.FC<RibbonToolbarProps> = (props) => {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<TabId>('beranda');
-  
+
   // Ribbon minimize state - persisted to localStorage
   const [isMinimized, setIsMinimized] = useState(() => {
     const saved = localStorage.getItem('ribbonMinimized');
@@ -92,7 +92,7 @@ const RibbonToolbar: React.FC<RibbonToolbarProps> = (props) => {
   });
 
   const toggleMinimize = () => {
-    setIsMinimized(prev => {
+    setIsMinimized((prev) => {
       const newValue = !prev;
       localStorage.setItem('ribbonMinimized', String(newValue));
       return newValue;
@@ -107,30 +107,34 @@ const RibbonToolbar: React.FC<RibbonToolbarProps> = (props) => {
     { id: 'tampilan', label: t('ribbon.view') },
   ];
 
-  // Reusable button component for ribbon - COMPACT ICON-ONLY version
+  // Reusable button component for ribbon - COMPACT ICON-ONLY version (now with optional compact text)
   const RibbonButton: React.FC<{
     icon: React.ReactNode;
     label: string;
     onClick?: () => void;
     disabled?: boolean;
     active?: boolean;
-  }> = ({ icon, label, onClick, disabled, active }) => (
+    showLabel?: boolean;
+  }> = ({ icon, label, onClick, disabled, active, showLabel = true }) => (
     <button
       onClick={onClick}
       disabled={disabled}
       title={label}
-      className={`flex items-center justify-center p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+      className={`group flex flex-col items-center justify-center p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex-shrink-0 ${
         disabled ? 'opacity-50 cursor-not-allowed' : ''
-      } ${active ? 'bg-blue-100 dark:bg-blue-900' : ''}`}
+      } ${active ? 'bg-blue-100 dark:bg-blue-900' : ''} ${showLabel ? 'min-w-[44px] max-w-[56px] h-[52px]' : 'h-8 min-w-[32px]'}`}
     >
-      <div className="h-5 w-5 flex items-center justify-center">{icon}</div>
+      <div className="h-5 w-5 flex items-center justify-center mb-0.5">{icon}</div>
+      {showLabel && (
+        <span className="text-[9px] leading-[10px] whitespace-nowrap overflow-hidden text-ellipsis w-[110%] text-center opacity-75 group-hover:opacity-100 transition-opacity">
+          {label}
+        </span>
+      )}
     </button>
   );
 
   // Separator between groups - compact
-  const Separator = () => (
-    <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-0.5" />
-  );
+  const Separator = () => <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-0.5" />;
 
   // Tab content renderers
   const renderBerandaTab = () => (
@@ -138,29 +142,74 @@ const RibbonToolbar: React.FC<RibbonToolbarProps> = (props) => {
       {/* File Operations */}
       <div className="flex items-center gap-1">
         <RibbonButton
-          icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg>}
+          icon={
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
+              />
+            </svg>
+          }
           label={t('menu.openPDF')}
           onClick={props.onOpenFile}
         />
         <RibbonButton
-          icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+          icon={
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          }
           label={t('menu.recentFiles')}
           onClick={props.onOpenRecent}
         />
         <RibbonButton
-          icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>}
+          icon={
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          }
           label={t('menu.closeDocument')}
           onClick={props.onCloseDocument}
           disabled={!props.hasDocument}
         />
         <RibbonButton
-          icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>}
+          icon={
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+              />
+            </svg>
+          }
           label={t('toolbar.print')}
           onClick={props.onPrint}
           disabled={!props.hasDocument}
         />
         <RibbonButton
-          icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+          icon={
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          }
           label={t('toolbar.properties')}
           onClick={props.onShowProperties}
           disabled={!props.hasDocument}
@@ -171,11 +220,39 @@ const RibbonToolbar: React.FC<RibbonToolbarProps> = (props) => {
 
       {/* Page Navigation */}
       <div className="flex items-center gap-1">
-        <Button size="sm" variant="outline" onClick={() => props.onGoToPage(1)} disabled={props.currentPage <= 1} className="px-2" title="First Page">
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" /></svg>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => props.onGoToPage(1)}
+          disabled={props.currentPage <= 1}
+          className="px-2"
+          title="First Page"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
+            />
+          </svg>
         </Button>
-        <Button size="sm" variant="outline" onClick={props.onPreviousPage} disabled={props.currentPage <= 1} className="px-2" title="Previous Page">
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={props.onPreviousPage}
+          disabled={props.currentPage <= 1}
+          className="px-2"
+          title="Previous Page"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
         </Button>
         <input
           type="number"
@@ -183,14 +260,37 @@ const RibbonToolbar: React.FC<RibbonToolbarProps> = (props) => {
           max={props.totalPages}
           value={props.currentPage}
           onChange={(e) => props.onGoToPage(parseInt(e.target.value))}
-          className="w-12 rounded border border-gray-300 px-1.5 py-0.5 text-center text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+          className="min-w-[4rem] max-w-[5rem] rounded border border-gray-300 px-1.5 py-0.5 text-center text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
         />
         <span className="text-sm text-gray-600 dark:text-gray-400">/ {props.totalPages}</span>
-        <Button size="sm" variant="outline" onClick={props.onNextPage} disabled={props.currentPage >= props.totalPages} className="px-2" title="Next Page">
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={props.onNextPage}
+          disabled={props.currentPage >= props.totalPages}
+          className="px-2"
+          title="Next Page"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
         </Button>
-        <Button size="sm" variant="outline" onClick={() => props.onGoToPage(props.totalPages)} disabled={props.currentPage >= props.totalPages} className="px-2" title="Last Page">
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" /></svg>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => props.onGoToPage(props.totalPages)}
+          disabled={props.currentPage >= props.totalPages}
+          className="px-2"
+          title="Last Page"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M13 5l7 7-7 7M5 5l7 7-7 7"
+            />
+          </svg>
         </Button>
       </div>
 
@@ -198,12 +298,30 @@ const RibbonToolbar: React.FC<RibbonToolbarProps> = (props) => {
 
       {/* Zoom */}
       <div className="flex items-center gap-1">
-        <Button size="sm" variant="outline" onClick={props.onZoomOut} disabled={props.scale <= 0.25} className="px-2">
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" /></svg>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={props.onZoomOut}
+          disabled={props.scale <= 0.25}
+          className="px-2"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+          </svg>
         </Button>
-        <span className="text-sm text-gray-600 dark:text-gray-400 w-12 text-center">{Math.round(props.scale * 100)}%</span>
-        <Button size="sm" variant="outline" onClick={props.onZoomIn} disabled={props.scale >= 5.0} className="px-2">
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+        <span className="text-sm text-gray-600 dark:text-gray-400 w-12 text-center">
+          {Math.round(props.scale * 100)}%
+        </span>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={props.onZoomIn}
+          disabled={props.scale >= 5.0}
+          className="px-2"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
         </Button>
       </div>
 
@@ -211,7 +329,16 @@ const RibbonToolbar: React.FC<RibbonToolbarProps> = (props) => {
 
       {/* Search */}
       <RibbonButton
-        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>}
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+        }
         label={t('toolbar.search')}
         onClick={props.onToggleSearch}
         active={props.showSearch}
@@ -223,21 +350,48 @@ const RibbonToolbar: React.FC<RibbonToolbarProps> = (props) => {
   const renderEditTab = () => (
     <div className="flex items-center">
       <RibbonButton
-        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" /></svg>}
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
+            />
+          </svg>
+        }
         label={t('toolbar.enterAnnotation')}
         onClick={props.onToggleAnnotationMode}
         active={props.annotationMode}
         disabled={!props.hasDocument}
       />
       <RibbonButton
-        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>}
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
+          </svg>
+        }
         label={t('toolbar.enterForms')}
         onClick={props.onToggleFormsMode}
         active={props.formsMode}
         disabled={!props.hasDocument}
       />
       <RibbonButton
-        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>}
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+            />
+          </svg>
+        }
         label={t('toolbar.enterAI')}
         onClick={props.onToggleAIMode}
         active={props.aiMode}
@@ -247,7 +401,16 @@ const RibbonToolbar: React.FC<RibbonToolbarProps> = (props) => {
       <Separator />
 
       <RibbonButton
-        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>}
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+        }
         label={t('toolbar.search')}
         onClick={props.onToggleSearch}
         active={props.showSearch}
@@ -259,45 +422,106 @@ const RibbonToolbar: React.FC<RibbonToolbarProps> = (props) => {
   const renderHalamanTab = () => (
     <div className="flex items-center">
       <RibbonButton
-        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>}
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            />
+          </svg>
+        }
         label={t('tools.rotate')}
         onClick={props.onOpenRotate}
         disabled={!props.hasDocument}
       />
       <RibbonButton
-        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" /></svg>}
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"
+            />
+          </svg>
+        }
         label={t('tools.split')}
         onClick={props.onOpenSplit}
         disabled={!props.hasDocument}
+        showLabel
       />
       <RibbonButton
-        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>}
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+        }
         label={t('tools.merge')}
         onClick={props.onOpenMerge}
       />
       <RibbonButton
-        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" /></svg>}
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+            />
+          </svg>
+        }
         label={t('tools.reorder')}
         onClick={props.onOpenReorder}
         disabled={!props.hasDocument}
       />
       <RibbonButton
-        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>}
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+            />
+          </svg>
+        }
         label={t('tools.delete')}
         onClick={props.onOpenDelete}
         disabled={!props.hasDocument}
       />
       <RibbonButton
-        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>}
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+            />
+          </svg>
+        }
         label={t('tools.extract')}
         onClick={props.onOpenExtract}
         disabled={!props.hasDocument}
+        showLabel
       />
       <RibbonButton
-        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>}
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+            />
+          </svg>
+        }
         label={t('tools.duplicate')}
         onClick={props.onOpenDuplicate}
         disabled={!props.hasDocument}
+        showLabel
       />
     </div>
   );
@@ -305,121 +529,311 @@ const RibbonToolbar: React.FC<RibbonToolbarProps> = (props) => {
   const renderAlatTab = () => (
     <div className="flex items-center">
       <RibbonButton
-        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" /></svg>}
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
+            />
+          </svg>
+        }
         label={t('tools.ocr')}
         onClick={props.onOpenOCR}
         disabled={!props.hasDocument}
+        showLabel
       />
       <RibbonButton
-        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>}
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+            />
+          </svg>
+        }
         label={t('tools.compress')}
         onClick={props.onOpenCompress}
         disabled={!props.hasDocument}
+        showLabel
       />
       <RibbonButton
-        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" /></svg>}
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
+            />
+          </svg>
+        }
         label={t('tools.watermark')}
         onClick={props.onOpenWatermark}
         disabled={!props.hasDocument}
+        showLabel
       />
 
       <Separator />
 
       <RibbonButton
-        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>}
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+            />
+          </svg>
+        }
         label={t('tools.encrypt')}
         onClick={props.onOpenEncryptPDF}
         disabled={!props.hasDocument}
+        showLabel
       />
       <RibbonButton
-        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" /></svg>}
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"
+            />
+          </svg>
+        }
         label={t('tools.bulkEncrypt')}
         onClick={props.onOpenBulkEncrypt}
+        showLabel
       />
       <RibbonButton
-        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>}
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+            />
+          </svg>
+        }
         label={t('tools.viewSignatures')}
         onClick={props.onOpenSignatures}
         disabled={!props.hasDocument}
+        showLabel
       />
       <RibbonButton
-        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>}
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+            />
+          </svg>
+        }
         label={t('tools.sign')}
         onClick={props.onOpenSignPDF}
         disabled={!props.hasDocument}
+        showLabel
       />
       <RibbonButton
-        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg>}
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"
+            />
+          </svg>
+        }
         label={t('tools.unlockPDF')}
         onClick={props.onOpenUnlockPDF}
         disabled={!props.hasDocument}
+        showLabel
       />
       <RibbonButton
-        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>}
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M13 10V3L4 14h7v7l9-11h-7z"
+            />
+          </svg>
+        }
         label={t('tools.webOptimize')}
         onClick={props.onOpenWebOptimize}
         disabled={!props.hasDocument}
+        showLabel
       />
       <RibbonButton
-        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2" /></svg>}
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2"
+            />
+          </svg>
+        }
         label={t('tools.overlay')}
         onClick={props.onOpenOverlay}
         disabled={!props.hasDocument}
+        showLabel
       />
       <RibbonButton
-        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>}
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
+            />
+          </svg>
+        }
         label={t('tools.webpageToPdf')}
         onClick={props.onOpenWebpageToPDF}
+        showLabel
       />
 
       <Separator />
 
       <RibbonButton
-        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>}
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
+          </svg>
+        }
         label={t('tools.exportImages')}
         onClick={props.onOpenExportImages}
         disabled={!props.hasDocument}
+        showLabel
       />
       <RibbonButton
-        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 002 2v12a2 2 0 002 2z" /></svg>}
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 002 2v12a2 2 0 002 2z"
+            />
+          </svg>
+        }
         label={t('tools.extractImages')}
         onClick={props.onOpenExtractImages}
         disabled={!props.hasDocument}
+        showLabel
       />
       <RibbonButton
-        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" /></svg>}
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"
+            />
+          </svg>
+        }
         label={t('tools.addPageNumbers')}
         onClick={props.onOpenAddPageNumbers}
         disabled={!props.hasDocument}
+        showLabel
       />
       <RibbonButton
-        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>}
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+            />
+          </svg>
+        }
         label={t('tools.importImages')}
         onClick={props.onOpenImportImages}
+        showLabel
       />
       <RibbonButton
-        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>}
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
+          </svg>
+        }
         label={t('tools.officeToPdf')}
         onClick={props.onOpenConvertOffice}
+        showLabel
       />
       <RibbonButton
-        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>}
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+            />
+          </svg>
+        }
         label={t('tools.pdfToWord')}
         onClick={props.onConvert}
         disabled={!props.hasDocument}
+        showLabel
       />
 
       <Separator />
 
       <RibbonButton
-        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>}
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+            />
+          </svg>
+        }
         label={t('tools.batch')}
         onClick={props.onOpenBatch}
+        showLabel
       />
       <RibbonButton
-        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z" /></svg>}
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"
+            />
+          </svg>
+        }
         label={t('tools.plugins')}
         onClick={props.onOpenPluginManager}
+        showLabel
       />
     </div>
   );
@@ -428,19 +842,37 @@ const RibbonToolbar: React.FC<RibbonToolbarProps> = (props) => {
     <div className="flex items-center">
       {/* View Modes */}
       <RibbonButton
-        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="9" y="4" width="6" height="16" strokeWidth={2} /></svg>}
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <rect x="9" y="4" width="6" height="16" strokeWidth={2} />
+          </svg>
+        }
         label={t('toolbar.singlePage')}
         onClick={() => props.onSetViewMode('single')}
         active={props.viewMode === 'single'}
       />
       <RibbonButton
-        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>}
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 6h16M4 12h16M4 18h16"
+            />
+          </svg>
+        }
         label={t('toolbar.continuousScroll')}
         onClick={() => props.onSetViewMode('continuous')}
         active={props.viewMode === 'continuous'}
       />
       <RibbonButton
-        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="16" strokeWidth={2} /><rect x="13" y="4" width="7" height="16" strokeWidth={2} /></svg>}
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <rect x="4" y="4" width="7" height="16" strokeWidth={2} />
+            <rect x="13" y="4" width="7" height="16" strokeWidth={2} />
+          </svg>
+        }
         label={t('toolbar.facingPages')}
         onClick={() => props.onSetViewMode('facing')}
         active={props.viewMode === 'facing'}
@@ -450,7 +882,16 @@ const RibbonToolbar: React.FC<RibbonToolbarProps> = (props) => {
 
       {/* Thumbnails */}
       <RibbonButton
-        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>}
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+            />
+          </svg>
+        }
         label={props.showThumbnails ? t('toolbar.hideThumbnails') : t('toolbar.showThumbnails')}
         onClick={props.onToggleThumbnails}
         active={props.showThumbnails}
@@ -460,13 +901,31 @@ const RibbonToolbar: React.FC<RibbonToolbarProps> = (props) => {
 
       {/* Rotation */}
       <RibbonButton
-        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>}
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
+            />
+          </svg>
+        }
         label={t('toolbar.rotateCounterClockwise')}
         onClick={props.onRotateCounterClockwise}
         disabled={!props.hasDocument}
       />
       <RibbonButton
-        icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 10h-10a8 8 0 00-8 8v2M21 10l-6 6m6-6l-6-6" /></svg>}
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M21 10h-10a8 8 0 00-8 8v2M21 10l-6 6m6-6l-6-6"
+            />
+          </svg>
+        }
         label={t('toolbar.rotateClockwise')}
         onClick={props.onRotateClockwise}
         disabled={!props.hasDocument}
@@ -476,12 +935,18 @@ const RibbonToolbar: React.FC<RibbonToolbarProps> = (props) => {
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'beranda': return renderBerandaTab();
-      case 'edit': return renderEditTab();
-      case 'halaman': return renderHalamanTab();
-      case 'alat': return renderAlatTab();
-      case 'tampilan': return renderTampilanTab();
-      default: return null;
+      case 'beranda':
+        return renderBerandaTab();
+      case 'edit':
+        return renderEditTab();
+      case 'halaman':
+        return renderHalamanTab();
+      case 'alat':
+        return renderAlatTab();
+      case 'tampilan':
+        return renderTampilanTab();
+      default:
+        return null;
     }
   };
 
@@ -502,10 +967,10 @@ const RibbonToolbar: React.FC<RibbonToolbarProps> = (props) => {
             {tab.label}
           </button>
         ))}
-        
+
         {/* Spacer */}
         <div className="flex-1" />
-        
+
         {/* Header actions - integrated into ribbon */}
         <div className="flex items-center gap-1">
           {/* Search Tools Button */}
@@ -516,7 +981,12 @@ const RibbonToolbar: React.FC<RibbonToolbarProps> = (props) => {
               title={t('tools.searchPlaceholder', 'Search tools... (Ctrl+K)')}
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
               </svg>
               <span className="hidden md:inline">{t('tools.search', 'Search')}</span>
             </button>
@@ -524,7 +994,7 @@ const RibbonToolbar: React.FC<RibbonToolbarProps> = (props) => {
 
           {/* Theme Toggle */}
           {props.themeToggle}
-          
+
           {/* Settings */}
           {props.onSettings && (
             <button
@@ -533,12 +1003,22 @@ const RibbonToolbar: React.FC<RibbonToolbarProps> = (props) => {
               title={t('footer.settings', 'Settings')}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                />
               </svg>
             </button>
           )}
-          
+
           {/* About */}
           {props.onAbout && (
             <button
@@ -547,11 +1027,16 @@ const RibbonToolbar: React.FC<RibbonToolbarProps> = (props) => {
               title={t('footer.about', 'About')}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
             </button>
           )}
-          
+
           {/* Share */}
           {props.onShare && (
             <button
@@ -560,11 +1045,16 @@ const RibbonToolbar: React.FC<RibbonToolbarProps> = (props) => {
               title={t('toolbar.share', 'Share')}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+                />
               </svg>
             </button>
           )}
-          
+
           {/* Check Updates */}
           {props.onCheckUpdates && (
             <button
@@ -573,49 +1063,62 @@ const RibbonToolbar: React.FC<RibbonToolbarProps> = (props) => {
               title={t('ribbon.checkUpdates', 'Check Updates')}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
               </svg>
             </button>
           )}
-          
+
           {/* Online indicator */}
           {props.isOnline !== undefined && (
             <div className="flex items-center gap-1 px-1.5 py-0.5 rounded text-xs">
-              <div className={`w-2 h-2 rounded-full ${props.isOnline ? 'bg-green-500' : 'bg-red-500'}`} />
+              <div
+                className={`w-2 h-2 rounded-full ${props.isOnline ? 'bg-green-500' : 'bg-red-500'}`}
+              />
               <span className="text-gray-500 dark:text-gray-400 hidden sm:inline">
-                {props.isOnline ? t('connectivity.online', 'Online') : t('connectivity.offline', 'Offline')}
+                {props.isOnline
+                  ? t('connectivity.online', 'Online')
+                  : t('connectivity.offline', 'Offline')}
               </span>
             </div>
           )}
-          
+
           {/* Separator before minimize */}
           <div className="w-px h-4 bg-gray-300 dark:bg-gray-600 mx-1" />
         </div>
-        
+
         {/* Minimize toggle button */}
         <button
           onClick={toggleMinimize}
           className="px-2 py-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white transition-colors"
-          title={isMinimized ? t('ribbon.expand', 'Expand Ribbon') : t('ribbon.minimize', 'Minimize Ribbon')}
+          title={
+            isMinimized
+              ? t('ribbon.expand', 'Expand Ribbon')
+              : t('ribbon.minimize', 'Minimize Ribbon')
+          }
         >
-          <svg 
-            className={`w-4 h-4 transition-transform ${isMinimized ? 'rotate-180' : ''}`} 
-            fill="none" 
-            stroke="currentColor" 
+          <svg
+            className={`w-4 h-4 transition-transform ${isMinimized ? 'rotate-180' : ''}`}
+            fill="none"
+            stroke="currentColor"
             viewBox="0 0 24 24"
           >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-
           </svg>
         </button>
       </div>
 
       {/* Compact Tab Content - Scrollable (hidden when minimized) */}
       {!isMinimized && (
-        <div className="px-2 py-1 min-h-[36px] overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600" style={{ scrollbarWidth: 'thin' }}>
-          <div className="flex items-center min-w-max gap-0.5">
-            {renderTabContent()}
-          </div>
+        <div
+          className="px-2 py-1 min-h-[48px] overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600"
+          style={{ scrollbarWidth: 'thin' }}
+        >
+          <div className="flex items-center gap-1 w-max pr-4 pb-1">{renderTabContent()}</div>
         </div>
       )}
     </div>

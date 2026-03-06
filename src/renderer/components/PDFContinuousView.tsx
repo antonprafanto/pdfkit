@@ -1,8 +1,3 @@
-/**
- * PDF Continuous View Component
- * Renders all pages in a scrollable container
- */
-
 import { useEffect, useRef } from 'react';
 import { PDFDocumentProxy } from '../lib/pdf-config';
 import { PDFPage, SearchHighlight } from './PDFPage';
@@ -34,21 +29,62 @@ export function PDFContinuousView({
 }: PDFContinuousViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const pageRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+  // Track if we're doing a programmatic scroll (from thumbnail click or navigation)
+  const isProgrammaticScrollRef = useRef(false);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // Track the last page we scrolled to programmatically
+  const lastProgrammaticPageRef = useRef<number>(currentPage);
 
-  // Scroll to current page when it changes
+  // Scroll to current page when it changes (from thumbnail click or navigation)
   useEffect(() => {
     const pageElement = pageRefs.current.get(currentPage);
-    if (pageElement) {
-      pageElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const container = containerRef.current;
+
+    if (pageElement && container) {
+      // Only scroll if the page actually changed from outside (not from scroll detection)
+      if (lastProgrammaticPageRef.current !== currentPage) {
+        // Mark that we're doing a programmatic scroll
+        isProgrammaticScrollRef.current = true;
+        lastProgrammaticPageRef.current = currentPage;
+
+        // Use exact calculation to prevent scrollIntoView from scrolling the outer document body
+        const containerRect = container.getBoundingClientRect();
+        const elementRect = pageElement.getBoundingClientRect();
+        const scrollTop = container.scrollTop + elementRect.top - containerRect.top;
+
+        container.scrollTo({ top: scrollTop, behavior: 'smooth' });
+
+        // Clear the flag after scroll animation completes
+        if (scrollTimeoutRef.current) {
+          clearTimeout(scrollTimeoutRef.current);
+        }
+        scrollTimeoutRef.current = setTimeout(() => {
+          isProgrammaticScrollRef.current = false;
+        }, 500); // Give enough time for smooth scroll to complete
+      }
     }
   }, [currentPage]);
 
-  // Detect which page is currently visible
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Detect which page is currently visible (only when user scrolls manually)
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
     const handleScroll = () => {
+      // Skip if this is a programmatic scroll (from thumbnail click or navigation)
+      if (isProgrammaticScrollRef.current) {
+        return;
+      }
+
       const scrollTop = container.scrollTop;
       const containerHeight = container.clientHeight;
       const scrollCenter = scrollTop + containerHeight / 2;
@@ -62,6 +98,8 @@ export function PDFContinuousView({
 
         if (scrollCenter >= elementTop && scrollCenter <= elementBottom) {
           if (pageNum !== currentPage) {
+            // Update the last programmatic page to prevent re-scroll
+            lastProgrammaticPageRef.current = pageNum;
             onPageChange(pageNum);
           }
           break;
