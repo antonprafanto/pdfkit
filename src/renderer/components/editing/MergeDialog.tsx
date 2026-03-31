@@ -195,6 +195,7 @@ export function MergeDialog({ open, onClose }: MergeDialogProps) {
   };
 
   const handleRowDragOver = (e: React.DragEvent<HTMLDivElement>, fileId: string) => {
+    if (isExternalFileDrag(e)) return;
     if (!draggedFileId) return;
 
     e.preventDefault();
@@ -207,6 +208,8 @@ export function MergeDialog({ open, onClose }: MergeDialogProps) {
   };
 
   const handleRowDrop = (e: React.DragEvent<HTMLDivElement>, targetFileId: string) => {
+    if (isExternalFileDrag(e)) return;
+
     e.preventDefault();
     e.stopPropagation();
 

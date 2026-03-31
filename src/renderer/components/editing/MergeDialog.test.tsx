@@ -129,6 +129,31 @@ describe('MergeDialog', () => {
     expect(getPageCountMock).toHaveBeenCalledTimes(2);
   });
 
+  it('appends a dropped PDF when it lands on an existing file row', async () => {
+    render(<MergeDialog open onClose={vi.fn()} />);
+
+    const dropZone = screen.getByLabelText('Drag and drop files here');
+    const alpha = createFile('alpha.pdf');
+    const beta = createFile('beta.pdf');
+
+    fireEvent.drop(dropZone, { dataTransfer: createDataTransfer([alpha]) });
+    await screen.findByText('alpha.pdf');
+
+    const alphaRow = screen.getByText('alpha.pdf').closest('[draggable="true"]');
+    expect(alphaRow).not.toBeNull();
+
+    fireEvent.dragOver(alphaRow as HTMLElement, {
+      dataTransfer: createDataTransfer([beta]),
+    });
+    fireEvent.drop(alphaRow as HTMLElement, {
+      dataTransfer: createDataTransfer([beta]),
+    });
+
+    expect(await screen.findByText('beta.pdf')).not.toBeNull();
+    expect(getRenderedFileNames()).toEqual(['alpha.pdf', 'beta.pdf']);
+    expect(getPageCountMock).toHaveBeenCalledTimes(2);
+  });
+
   it('keeps arrow-button reordering working after drag support is added', async () => {
     render(<MergeDialog open onClose={vi.fn()} />);
 
