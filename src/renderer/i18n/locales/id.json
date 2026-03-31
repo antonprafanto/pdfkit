@@ -210,6 +210,9 @@
     "description": "Gabungkan beberapa file PDF menjadi satu",
     "addFiles": "Tambah File",
     "dragDrop": "Seret dan lepas file di sini",
+    "dropHint": "atau klik Tambah File untuk memilih PDF lain",
+    "reorderHint": "Seret file untuk mengubah urutan penggabungan",
+    "invalidDrop": "Hanya file PDF yang bisa ditambahkan di sini",
     "mergeButton": "Gabung PDF",
     "success": "PDF berhasil digabung"
   },

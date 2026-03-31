@@ -172,6 +172,9 @@
     "description": "Combine multiple PDF files into one",
     "addFiles": "Add Files",
     "dragDrop": "Drag and drop files here",
+    "dropHint": "or click Add Files to choose more PDFs",
+    "reorderHint": "Drag files to reorder merge order",
+    "invalidDrop": "Only PDF files can be added here",
     "mergeButton": "Merge PDFs",
     "success": "PDFs merged successfully"
   },
