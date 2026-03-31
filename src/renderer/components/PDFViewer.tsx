@@ -26,6 +26,8 @@ import { useTranslation } from 'react-i18next';
 import RibbonToolbar from './RibbonToolbar';
 import type { ViewMode, ViewerShellMode } from '../lib/view-mode';
 
+const FLOATING_TOOLBAR_AUTO_HIDE_MS = 2000;
+
 interface PDFViewerProps {
   onOpenMerge?: () => void;
   onOpenSplit?: () => void;
@@ -72,6 +74,14 @@ interface PDFViewerProps {
   onCheckUpdates?: () => void;
   themeToggle?: React.ReactNode;
   isOnline?: boolean;
+  canUsePresenterMode?: boolean;
+  isPresenterActive?: boolean;
+  onOpenPresenterMode?: () => void;
+  onStopPresenterMode?: () => void;
+  presenterStopwatchSeconds?: number;
+  isPresenterStopwatchRunning?: boolean;
+  onTogglePresenterStopwatch?: () => void;
+  onResetPresenterStopwatch?: () => void;
 }
 
 export function PDFViewer({
@@ -120,6 +130,14 @@ export function PDFViewer({
   onCheckUpdates,
   themeToggle,
   isOnline,
+  canUsePresenterMode = false,
+  isPresenterActive = false,
+  onOpenPresenterMode,
+  onStopPresenterMode,
+  presenterStopwatchSeconds = 0,
+  isPresenterStopwatchRunning = false,
+  onTogglePresenterStopwatch,
+  onResetPresenterStopwatch,
 }: PDFViewerProps = {}) {
   const {
     document,
@@ -161,10 +179,12 @@ export function PDFViewer({
   const [aiMode, setAIMode] = useState(false);
   const [aiPanel, setAIPanel] = useState<'chat' | 'analysis'>('chat');
   const [shellMode, setShellMode] = useState<ViewerShellMode>('normal');
+  const [isFloatingToolbarVisible, setIsFloatingToolbarVisible] = useState(false);
   const [scanPdfNotified, setScanPdfNotified] = useState(false); // Track if we've shown scan PDF notification
   const viewerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const slideshowSnapshotRef = useRef<{ currentPage: number; scale: number; viewMode: ViewMode } | null>(null);
+  const floatingToolbarTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const viewportSize = useViewportSize(contentRef);
   const isChromeHidden = shellMode !== 'normal';
   const showPageAnnotations = annotationMode && !isChromeHidden;
@@ -231,6 +251,10 @@ export function PDFViewer({
     fitToPage(viewportSize.width, viewportSize.height, pageWidth, pageHeight);
   };
 
+  const handleFitToScreen = useCallback(async () => {
+    await handleFitToPage();
+  }, [document, currentPage, rotation, viewportSize.width, viewportSize.height]);
+
   const restoreSlideshowSnapshot = () => {
     const snapshot = slideshowSnapshotRef.current;
     if (!snapshot) return;
@@ -240,6 +264,24 @@ export function PDFViewer({
     setScale(snapshot.scale);
     goToPage(snapshot.currentPage);
   };
+
+  const clearFloatingToolbarTimer = useCallback(() => {
+    if (floatingToolbarTimeoutRef.current) {
+      clearTimeout(floatingToolbarTimeoutRef.current);
+      floatingToolbarTimeoutRef.current = null;
+    }
+  }, []);
+
+  const showFloatingToolbar = useCallback(() => {
+    if (shellMode === 'normal') return;
+
+    setIsFloatingToolbarVisible(true);
+    clearFloatingToolbarTimer();
+    floatingToolbarTimeoutRef.current = setTimeout(() => {
+      setIsFloatingToolbarVisible(false);
+      floatingToolbarTimeoutRef.current = null;
+    }, FLOATING_TOOLBAR_AUTO_HIDE_MS);
+  }, [clearFloatingToolbarTimer, shellMode]);
 
   const exitSpecialMode = useCallback(async () => {
     if (shellMode === 'read') {
@@ -320,6 +362,36 @@ export function PDFViewer({
     window.document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => window.document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, [shellMode]);
+
+  useEffect(() => {
+    if (shellMode === 'normal') {
+      clearFloatingToolbarTimer();
+      setIsFloatingToolbarVisible(false);
+      return;
+    }
+
+    showFloatingToolbar();
+
+    return () => {
+      clearFloatingToolbarTimer();
+    };
+  }, [clearFloatingToolbarTimer, shellMode, showFloatingToolbar]);
+
+  useEffect(() => {
+    const viewerElement = viewerRef.current;
+    if (!viewerElement || shellMode === 'normal') {
+      return;
+    }
+
+    const handleMouseMove = () => {
+      showFloatingToolbar();
+    };
+
+    viewerElement.addEventListener('mousemove', handleMouseMove);
+    return () => {
+      viewerElement.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, [shellMode, showFloatingToolbar]);
 
   // Handle print - opens PDF with system default app for proper preview
   const handlePrint = useCallback(async () => {
@@ -446,7 +518,11 @@ export function PDFViewer({
   // to prevent the UI from flashing/disappearing during tab switches
 
   return (
-    <div ref={viewerRef} className="flex flex-1 overflow-hidden flex-col bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 w-full relative">
+    <div
+      ref={viewerRef}
+      data-testid="pdf-viewer-root"
+      className="flex flex-1 overflow-hidden flex-col bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 w-full relative"
+    >
       {/* Ribbon Toolbar */}
       {!isChromeHidden && (
         <RibbonToolbar
@@ -521,6 +597,14 @@ export function PDFViewer({
           onCheckUpdates={onCheckUpdates}
           themeToggle={themeToggle}
           isOnline={isOnline}
+          canUsePresenterMode={canUsePresenterMode}
+          isPresenterActive={isPresenterActive}
+          onOpenPresenterMode={onOpenPresenterMode}
+          onStopPresenterMode={onStopPresenterMode}
+          presenterStopwatchSeconds={presenterStopwatchSeconds}
+          isPresenterStopwatchRunning={isPresenterStopwatchRunning}
+          onTogglePresenterStopwatch={onTogglePresenterStopwatch}
+          onResetPresenterStopwatch={onResetPresenterStopwatch}
         />
       )}
 
@@ -730,13 +814,18 @@ export function PDFViewer({
       {document && shellMode !== 'normal' && (
         <ViewerFloatingControls
           shellMode={shellMode}
+          scale={scale}
+          isVisible={isFloatingToolbarVisible}
           currentPage={currentPage}
           totalPages={totalPages}
           onPreviousPage={previousPage}
           onNextPage={nextPage}
           onZoomIn={zoomIn}
           onZoomOut={zoomOut}
-          onResetZoom={resetZoom}
+          onFitToScreen={() => {
+            void handleFitToScreen();
+          }}
+          onInteract={showFloatingToolbar}
           onExit={() => {
             void exitSpecialMode();
           }}

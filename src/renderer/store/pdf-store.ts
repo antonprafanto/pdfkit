@@ -137,6 +137,32 @@ const normalizeTabState = (tab: TabState): TabState => ({
   viewMode: normalizeViewMode(tab.viewMode),
 });
 
+const MIN_SCALE = 0.25;
+const MAX_SCALE = 5.0;
+const ZOOM_STEP = 0.05;
+
+const clampScale = (scale: number) => Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale));
+const roundScale = (scale: number) => Math.round(scale * 100) / 100;
+
+const getNextZoomScale = (scale: number, direction: 'in' | 'out') => {
+  const currentPercent = scale * 100;
+  const remainder = currentPercent % 5;
+
+  if (direction === 'in') {
+    if (remainder === 0) {
+      return clampScale(roundScale(scale + ZOOM_STEP));
+    }
+
+    return clampScale(roundScale((currentPercent + (5 - remainder)) / 100));
+  }
+
+  if (remainder === 0) {
+    return clampScale(roundScale(scale - ZOOM_STEP));
+  }
+
+  return clampScale(roundScale((currentPercent - remainder) / 100));
+};
+
 // Helper to update active tab's property
 const updateActiveTabProp = <K extends keyof TabState>(
   set: (fn: (state: PDFTabsState) => Partial<PDFTabsState>) => void,
@@ -331,7 +357,7 @@ export const usePDFStore = create<PDFTabsState>((set, get) => ({
   setFileName: (fileName) => updateActiveTabProp(set, get, 'fileName', fileName),
   setFilePath: (filePath) => updateActiveTabProp(set, get, 'filePath', filePath),
   setCurrentPage: (currentPage) => updateActiveTabProp(set, get, 'currentPage', currentPage),
-  setScale: (scale) => updateActiveTabProp(set, get, 'scale', Math.max(0.25, Math.min(5.0, scale))),
+  setScale: (scale) => updateActiveTabProp(set, get, 'scale', clampScale(scale)),
   setRotation: (rotation) => updateActiveTabProp(set, get, 'rotation', rotation % 360),
   setIsLoading: (isLoading) => updateActiveTabProp(set, get, 'isLoading', isLoading),
   setError: (error) => updateActiveTabProp(set, get, 'error', error),
@@ -425,13 +451,13 @@ export const usePDFStore = create<PDFTabsState>((set, get) => ({
   zoomIn: () => {
     const tab = getActiveTabFromState(get());
     if (!tab) return;
-    get().updateTab(tab.id, { scale: Math.min(5.0, tab.scale + 0.25) });
+    get().updateTab(tab.id, { scale: getNextZoomScale(tab.scale, 'in') });
   },
 
   zoomOut: () => {
     const tab = getActiveTabFromState(get());
     if (!tab) return;
-    get().updateTab(tab.id, { scale: Math.max(0.25, tab.scale - 0.25) });
+    get().updateTab(tab.id, { scale: getNextZoomScale(tab.scale, 'out') });
   },
 
   resetZoom: () => {
@@ -445,7 +471,7 @@ export const usePDFStore = create<PDFTabsState>((set, get) => ({
     
     const padding = 40;
     const availableWidth = containerWidth - padding;
-    const scale = Math.min(5.0, Math.max(0.25, availableWidth / pageWidth));
+    const scale = clampScale(availableWidth / pageWidth);
     get().updateTab(tab.id, { scale });
   },
 
@@ -459,7 +485,7 @@ export const usePDFStore = create<PDFTabsState>((set, get) => ({
 
     const scaleWidth = availableWidth / pageWidth;
     const scaleHeight = availableHeight / pageHeight;
-    const scale = Math.min(5.0, Math.max(0.25, Math.min(scaleWidth, scaleHeight)));
+    const scale = clampScale(Math.min(scaleWidth, scaleHeight));
     get().updateTab(tab.id, { scale });
   },
 

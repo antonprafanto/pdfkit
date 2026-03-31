@@ -137,6 +137,7 @@ import { TabBar } from './components/TabBar';
 import { ToolsGrid, ToolAction } from './components/home/ToolsGrid';
 import { ToolSearchDialog } from './components/ToolSearchDialog';
 import { normalizeViewMode } from './lib/view-mode';
+import type { ExternalDisplayInfo, PresenterStatus } from '../shared/types/presenter';
 
 // Define pending action type based on tool action but limited to file-dependent actions
 type PendingAction = ToolAction | null;
@@ -190,7 +191,18 @@ function App() {
   );
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [showToolSearch, setShowToolSearch] = useState(false);
+  const [externalDisplays, setExternalDisplays] = useState<ExternalDisplayInfo[]>([]);
+  const [presenterStatus, setPresenterStatus] = useState<PresenterStatus>({
+    active: false,
+    displayId: null,
+    sourceTabId: null,
+  });
+  const [showPresenterPicker, setShowPresenterPicker] = useState(false);
+  const [isStartingPresenter, setIsStartingPresenter] = useState(false);
+  const [presenterStopwatchSeconds, setPresenterStopwatchSeconds] = useState(0);
+  const [isPresenterStopwatchRunning, setIsPresenterStopwatchRunning] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const presenterWasActiveRef = useRef(false);
   const { t } = useTranslation();
 
   const {
@@ -203,12 +215,14 @@ function App() {
     reset,
     // Tab management
     tabs,
+    activeTabId,
     addTab,
     findTabByFilePath,
     canAddTab,
     setActiveTab,
     updateTab,
     getActiveTab,
+    currentPage,
   } = usePDFStore();
 
   const { hasUnsavedChanges, reset: resetEditingStore, setOriginalFile } = useEditingStore();
@@ -347,6 +361,31 @@ function App() {
 
     return () => {
       unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    const loadPresenterState = async () => {
+      const [displays, status] = await Promise.all([
+        window.electronAPI.getExternalDisplays(),
+        window.electronAPI.getPresenterStatus(),
+      ]);
+      setExternalDisplays(displays);
+      setPresenterStatus(status);
+    };
+
+    void loadPresenterState();
+
+    const unsubscribeDisplays = window.electronAPI.onPresenterDisplaysChanged((displays) => {
+      setExternalDisplays(displays);
+    });
+    const unsubscribeStatus = window.electronAPI.onPresenterStatusChanged((status) => {
+      setPresenterStatus(status);
+    });
+
+    return () => {
+      unsubscribeDisplays();
+      unsubscribeStatus();
     };
   }, []);
 
@@ -632,6 +671,106 @@ function App() {
   const triggerFileInput = () => {
     fileInputRef.current?.click();
   };
+
+  const handleOpenPresenterPicker = () => {
+    if (!document || externalDisplays.length === 0) {
+      return;
+    }
+
+    setShowPresenterPicker(true);
+  };
+
+  const handleStopPresenter = async () => {
+    await window.electronAPI.stopPresenterMode();
+    setShowPresenterPicker(false);
+  };
+
+  const handleStartPresenter = async (displayId: number) => {
+    const activeTab = getActiveTab();
+
+    if (!activeTabId || !activeTab?.pdfBytes) {
+      alert('Open a PDF document before starting Presenter Mode.');
+      return;
+    }
+
+    try {
+      setIsStartingPresenter(true);
+      const result = await window.electronAPI.startPresenterMode({
+        displayId,
+        sourceTabId: activeTabId,
+        fileName: activeTab.fileName,
+        pageNumber: activeTab.currentPage,
+        pdfBytes: Array.from(activeTab.pdfBytes),
+      });
+
+      if (!result.success) {
+        alert(result.error || 'Failed to start Presenter Mode.');
+        return;
+      }
+
+      setShowPresenterPicker(false);
+    } finally {
+      setIsStartingPresenter(false);
+    }
+  };
+
+  const handleTogglePresenterStopwatch = () => {
+    setIsPresenterStopwatchRunning((running) => !running);
+  };
+
+  const handleResetPresenterStopwatch = () => {
+    setPresenterStopwatchSeconds(0);
+    setIsPresenterStopwatchRunning(false);
+  };
+
+  useEffect(() => {
+    if (presenterStatus.active && !presenterWasActiveRef.current) {
+      setPresenterStopwatchSeconds(0);
+      setIsPresenterStopwatchRunning(false);
+    }
+
+    if (!presenterStatus.active && presenterWasActiveRef.current) {
+      setPresenterStopwatchSeconds(0);
+      setIsPresenterStopwatchRunning(false);
+      setShowPresenterPicker(false);
+    }
+
+    presenterWasActiveRef.current = presenterStatus.active;
+  }, [presenterStatus.active]);
+
+  useEffect(() => {
+    if (!presenterStatus.active || !isPresenterStopwatchRunning) {
+      return;
+    }
+
+    const timer = window.setInterval(() => {
+      setPresenterStopwatchSeconds((seconds) => seconds + 1);
+    }, 1000);
+
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, [isPresenterStopwatchRunning, presenterStatus.active]);
+
+  useEffect(() => {
+    if (!presenterStatus.active || !presenterStatus.sourceTabId) {
+      return;
+    }
+
+    const sourceTabStillOpen = tabs.some((tab) => tab.id === presenterStatus.sourceTabId);
+
+    if (!sourceTabStillOpen || activeTabId !== presenterStatus.sourceTabId) {
+      void window.electronAPI.stopPresenterMode();
+    }
+  }, [activeTabId, presenterStatus.active, presenterStatus.sourceTabId, tabs]);
+
+  useEffect(() => {
+    if (!presenterStatus.active || presenterStatus.sourceTabId !== activeTabId) {
+      return;
+    }
+
+    void window.electronAPI.setPresenterPage(currentPage);
+  }, [activeTabId, currentPage, presenterStatus.active, presenterStatus.sourceTabId]);
 
   // Handle close document with unsaved changes check
   const handleCloseDocument = () => {
@@ -1184,6 +1323,16 @@ function App() {
                 }}
                 themeToggle={<ThemeToggle />}
                 isOnline={isOnline}
+                canUsePresenterMode={externalDisplays.length > 0 || presenterStatus.active}
+                isPresenterActive={presenterStatus.active}
+                onOpenPresenterMode={handleOpenPresenterPicker}
+                onStopPresenterMode={() => {
+                  void handleStopPresenter();
+                }}
+                presenterStopwatchSeconds={presenterStopwatchSeconds}
+                isPresenterStopwatchRunning={isPresenterStopwatchRunning}
+                onTogglePresenterStopwatch={handleTogglePresenterStopwatch}
+                onResetPresenterStopwatch={handleResetPresenterStopwatch}
               />
             </div>
           )}
@@ -1218,6 +1367,46 @@ function App() {
         description="Recently opened PDF documents"
       >
         <RecentFilesList onFileSelect={handleRecentFileSelect} />
+      </Dialog>
+
+      <Dialog
+        open={showPresenterPicker}
+        onClose={() => {
+          if (!isStartingPresenter) {
+            setShowPresenterPicker(false);
+          }
+        }}
+        title="Presenter Mode"
+        description="Choose which non-primary display should show the fullscreen presentation."
+      >
+        <div className="space-y-3">
+          {externalDisplays.length === 0 && (
+            <p className="text-sm text-muted-foreground">
+              No external display is currently available.
+            </p>
+          )}
+
+          {externalDisplays.map((display) => (
+            <button
+              key={display.id}
+              onClick={() => {
+                void handleStartPresenter(display.id);
+              }}
+              disabled={isStartingPresenter}
+              className="flex w-full items-center justify-between rounded-lg border border-border px-4 py-3 text-left transition-colors hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <div>
+                <div className="font-medium text-foreground">{display.label}</div>
+                <div className="text-sm text-muted-foreground">
+                  {display.width} x {display.height}
+                </div>
+              </div>
+              <span className="text-sm text-primary">
+                {isStartingPresenter ? 'Starting...' : 'Use This Display'}
+              </span>
+            </button>
+          ))}
+        </div>
       </Dialog>
 
       <Suspense fallback={null}>

@@ -82,9 +82,25 @@ interface RibbonToolbarProps {
   onCheckUpdates?: () => void;
   themeToggle?: React.ReactNode;
   isOnline?: boolean;
+  canUsePresenterMode?: boolean;
+  isPresenterActive?: boolean;
+  onOpenPresenterMode?: () => void;
+  onStopPresenterMode?: () => void;
+  presenterStopwatchSeconds?: number;
+  isPresenterStopwatchRunning?: boolean;
+  onTogglePresenterStopwatch?: () => void;
+  onResetPresenterStopwatch?: () => void;
 }
 
 type TabId = 'beranda' | 'edit' | 'halaman' | 'alat' | 'tampilan';
+
+const formatStopwatch = (totalSeconds: number) => {
+  const minutes = Math.floor(totalSeconds / 60)
+    .toString()
+    .padStart(2, '0');
+  const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+  return `${minutes}:${seconds}`;
+};
 
 const RibbonToolbar: React.FC<RibbonToolbarProps> = (props) => {
   const { t } = useTranslation();
@@ -945,6 +961,30 @@ const RibbonToolbar: React.FC<RibbonToolbarProps> = (props) => {
         disabled={!props.hasDocument}
       />
 
+      {(props.canUsePresenterMode || props.isPresenterActive) && (
+        <RibbonButton
+          icon={
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <rect x="3" y="5" width="13" height="9" rx="1" strokeWidth={2} />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 19h3m-7 0h14m3-10h-2m2 4h-2"
+              />
+            </svg>
+          }
+          label={
+            props.isPresenterActive
+              ? t('toolbar.stopPresenterMode', 'Stop Presenter')
+              : t('toolbar.presenterMode', 'Presenter Mode')
+          }
+          onClick={props.isPresenterActive ? props.onStopPresenterMode : props.onOpenPresenterMode}
+          active={props.isPresenterActive}
+          disabled={!props.hasDocument && !props.isPresenterActive}
+        />
+      )}
+
       <Separator />
 
       {/* Thumbnails */}
@@ -1040,6 +1080,34 @@ const RibbonToolbar: React.FC<RibbonToolbarProps> = (props) => {
 
         {/* Header actions - integrated into ribbon */}
         <div className="flex items-center gap-1">
+          {props.isPresenterActive && (
+            <div className="mr-2 flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-xs dark:border-amber-800 dark:bg-amber-950/40">
+              <span className="font-medium text-amber-700 dark:text-amber-300">
+                {formatStopwatch(props.presenterStopwatchSeconds || 0)}
+              </span>
+              <button
+                onClick={props.onTogglePresenterStopwatch}
+                className="rounded px-1.5 py-0.5 text-amber-700 transition-colors hover:bg-amber-100 dark:text-amber-300 dark:hover:bg-amber-900/60"
+                title={
+                  props.isPresenterStopwatchRunning
+                    ? t('toolbar.pauseStopwatch', 'Pause stopwatch')
+                    : t('toolbar.startStopwatch', 'Start stopwatch')
+                }
+              >
+                {props.isPresenterStopwatchRunning
+                  ? t('toolbar.pause', 'Pause')
+                  : t('toolbar.start', 'Start')}
+              </button>
+              <button
+                onClick={props.onResetPresenterStopwatch}
+                className="rounded px-1.5 py-0.5 text-amber-700 transition-colors hover:bg-amber-100 dark:text-amber-300 dark:hover:bg-amber-900/60"
+                title={t('toolbar.resetStopwatch', 'Reset stopwatch')}
+              >
+                {t('toolbar.reset', 'Reset')}
+              </button>
+            </div>
+          )}
+
           {/* Search Tools Button */}
           {props.onSearchTools && (
             <button

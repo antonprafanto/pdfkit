@@ -54,4 +54,38 @@ describe('PDF Store view modes', () => {
     usePDFStore.getState().previousPage();
     expect(usePDFStore.getState().currentPage).toBe(1);
   });
+
+  it('should zoom in and out in 5 percent steps', () => {
+    usePDFStore.getState().addTab({
+      currentPage: 1,
+      totalPages: 1,
+      scale: 0.3,
+      viewMode: 'single',
+    });
+
+    usePDFStore.getState().zoomIn();
+    expect(usePDFStore.getState().scale).toBe(0.35);
+
+    usePDFStore.getState().zoomIn();
+    expect(usePDFStore.getState().scale).toBe(0.4);
+
+    usePDFStore.getState().zoomOut();
+    expect(usePDFStore.getState().scale).toBe(0.35);
+  });
+
+  it('should snap non-5-percent zoom values before stepping', () => {
+    usePDFStore.getState().addTab({
+      currentPage: 1,
+      totalPages: 1,
+      scale: 0.63,
+      viewMode: 'single',
+    });
+
+    usePDFStore.getState().zoomIn();
+    expect(usePDFStore.getState().scale).toBe(0.65);
+
+    usePDFStore.getState().setScale(0.63);
+    usePDFStore.getState().zoomOut();
+    expect(usePDFStore.getState().scale).toBe(0.6);
+  });
 });
