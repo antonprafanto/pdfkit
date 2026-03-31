@@ -109,7 +109,12 @@
     "goToPage": "Go to Page",
     "singlePage": "Single Page",
     "continuousScroll": "Continuous Scroll",
-    "facingPages": "Facing Pages",
+    "twoPage": "Two Page",
+    "book": "Book",
+    "readMode": "Read Mode",
+    "fullScreen": "Full Screen",
+    "slideShow": "Slide Show",
+    "resetZoom": "Reset Zoom",
     "showThumbnails": "Show Thumbnails",
     "hideThumbnails": "Hide Thumbnails",
     "enterAnnotation": "Enter Annotation Mode",
@@ -462,7 +467,8 @@
     "defaultViewMode": "Default View Mode",
     "viewSingle": "Single Page",
     "viewContinuous": "Continuous Scroll",
-    "viewFacing": "Facing Pages",
+    "viewTwoPage": "Two Page",
+    "viewBook": "Book",
     "singlePage": "Single Page",
     "continuous": "Continuous",
     "twoPage": "Two Page",
@@ -603,7 +609,12 @@
     "find": "Find",
     "print": "Print",
     "fullscreen": "Fullscreen",
+    "readMode": "Read Mode",
+    "slideShow": "Slide Show",
     "escape": "Close/Cancel"
+  },
+  "viewer": {
+    "exitMode": "Exit Mode"
   },
   "print": {
     "preparing": "Opening PDF for printing...",
@@ -739,7 +750,7 @@
     "features": {
       "viewing": {
         "title": "View PDFs",
-        "description": "Open and view PDF documents with multiple viewing modes - single page, continuous scroll, or facing pages."
+        "description": "Open and view PDF documents with multiple reading modes including single page, continuous scroll, two page, and book layouts."
       },
       "editing": {
         "title": "Edit & Manipulate",

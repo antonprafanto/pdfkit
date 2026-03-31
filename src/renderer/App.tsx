@@ -136,6 +136,7 @@ import { ShareDialog } from './components/ShareDialog';
 import { TabBar } from './components/TabBar';
 import { ToolsGrid, ToolAction } from './components/home/ToolsGrid';
 import { ToolSearchDialog } from './components/ToolSearchDialog';
+import { normalizeViewMode } from './lib/view-mode';
 
 // Define pending action type based on tool action but limited to file-dependent actions
 type PendingAction = ToolAction | null;
@@ -466,7 +467,13 @@ function App() {
       }
 
       // Create new tab
-      const tabId = addTab({ isLoading: true, fileName: file.name });
+      const { defaultViewMode, defaultZoom } = useSettingsStore.getState();
+      const tabId = addTab({
+        isLoading: true,
+        fileName: file.name,
+        scale: defaultZoom / 100,
+        viewMode: normalizeViewMode(defaultViewMode),
+      });
       if (!tabId) {
         setError('Failed to create tab');
         return;

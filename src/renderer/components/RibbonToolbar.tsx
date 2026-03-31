@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from './ui/Button';
+import type { ViewMode, ViewerShellMode } from '../lib/view-mode';
 
 interface RibbonToolbarProps {
   // File operations
@@ -18,8 +19,12 @@ interface RibbonToolbarProps {
   onZoomIn: () => void;
   onZoomOut: () => void;
   // View modes
-  viewMode: 'single' | 'continuous' | 'facing';
-  onSetViewMode: (mode: 'single' | 'continuous' | 'facing') => void;
+  viewMode: ViewMode;
+  onSetViewMode: (mode: ViewMode) => void;
+  shellMode: ViewerShellMode;
+  onToggleReadMode: () => void;
+  onToggleFullscreen: () => void;
+  onStartSlideshow: () => void;
   showThumbnails: boolean;
   onToggleThumbnails: () => void;
   // Rotation
@@ -873,9 +878,71 @@ const RibbonToolbar: React.FC<RibbonToolbarProps> = (props) => {
             <rect x="13" y="4" width="7" height="16" strokeWidth={2} />
           </svg>
         }
-        label={t('toolbar.facingPages')}
-        onClick={() => props.onSetViewMode('facing')}
-        active={props.viewMode === 'facing'}
+        label={t('toolbar.twoPage', 'Two Page')}
+        onClick={() => props.onSetViewMode('two-page')}
+        active={props.viewMode === 'two-page'}
+      />
+      <RibbonButton
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <rect x="4" y="4" width="7" height="16" strokeWidth={2} />
+            <rect x="13" y="4" width="7" height="16" strokeWidth={2} />
+          </svg>
+        }
+        label={t('toolbar.book', 'Book')}
+        onClick={() => props.onSetViewMode('book')}
+        active={props.viewMode === 'book'}
+      />
+
+      <Separator />
+
+      <RibbonButton
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 19h16M6 5h12a1 1 0 011 1v9H5V6a1 1 0 011-1z"
+            />
+          </svg>
+        }
+        label={t('toolbar.readMode', 'Read Mode')}
+        onClick={props.onToggleReadMode}
+        active={props.shellMode === 'read'}
+        disabled={!props.hasDocument}
+      />
+      <RibbonButton
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 3H5a2 2 0 00-2 2v3m16 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3m-16 0v3a2 2 0 002 2h3"
+            />
+          </svg>
+        }
+        label={t('toolbar.fullScreen', 'Full Screen')}
+        onClick={props.onToggleFullscreen}
+        active={props.shellMode === 'fullscreen'}
+        disabled={!props.hasDocument}
+      />
+      <RibbonButton
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 5v14l11-7-11-7zM5 5v14"
+            />
+          </svg>
+        }
+        label={t('toolbar.slideShow', 'Slide Show')}
+        onClick={props.onStartSlideshow}
+        active={props.shellMode === 'slideshow'}
+        disabled={!props.hasDocument}
       />
 
       <Separator />

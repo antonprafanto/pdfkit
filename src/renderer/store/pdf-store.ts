@@ -6,6 +6,7 @@
 
 import { create } from 'zustand';
 import { PDFDocumentProxy } from '../lib/pdf-config';
+import { normalizeViewMode, type ViewMode } from '../lib/view-mode';
 
 export interface PDFMetadata {
   title: string;
@@ -30,7 +31,7 @@ export interface TabState {
   currentPage: number;
   scale: number;
   rotation: number;
-  viewMode: 'single' | 'continuous' | 'facing';
+  viewMode: ViewMode;
   isLoading: boolean;
   error: string | null;
   hasUnsavedChanges: boolean;
@@ -87,7 +88,7 @@ interface PDFTabsState {
   rotation: number;
   isLoading: boolean;
   error: string | null;
-  viewMode: 'single' | 'continuous' | 'facing';
+  viewMode: ViewMode;
 
   // Setters (operate on active tab)
   setDocument: (document: PDFDocumentProxy | null) => void;
@@ -99,7 +100,7 @@ interface PDFTabsState {
   setRotation: (rotation: number) => void;
   setIsLoading: (isLoading: boolean) => void;
   setError: (error: string | null) => void;
-  setViewMode: (mode: 'single' | 'continuous' | 'facing') => void;
+  setViewMode: (mode: ViewMode) => void;
   setPdfBytes: (bytes: Uint8Array | null) => void;
   setHasUnsavedChanges: (value: boolean) => void;
 
@@ -130,6 +131,11 @@ const getActiveTabFromState = (state: { tabs: TabState[]; activeTabId: string | 
   if (!state.activeTabId) return null;
   return state.tabs.find(t => t.id === state.activeTabId) || null;
 };
+
+const normalizeTabState = (tab: TabState): TabState => ({
+  ...tab,
+  viewMode: normalizeViewMode(tab.viewMode),
+});
 
 // Helper to update active tab's property
 const updateActiveTabProp = <K extends keyof TabState>(
@@ -179,25 +185,26 @@ export const usePDFStore = create<PDFTabsState>((set, get) => ({
     if (initialState) {
       Object.assign(newTab, initialState);
     }
+    const normalizedTab = normalizeTabState(newTab);
 
     set({
-      tabs: [...tabs, newTab],
-      activeTabId: newTab.id,
+      tabs: [...tabs, normalizedTab],
+      activeTabId: normalizedTab.id,
       // Update legacy properties
-      document: newTab.document,
-      metadata: newTab.metadata,
-      fileName: newTab.fileName,
-      filePath: newTab.filePath,
-      totalPages: newTab.totalPages,
-      currentPage: newTab.currentPage,
-      scale: newTab.scale,
-      rotation: newTab.rotation,
-      isLoading: newTab.isLoading,
-      error: newTab.error,
-      viewMode: newTab.viewMode,
+      document: normalizedTab.document,
+      metadata: normalizedTab.metadata,
+      fileName: normalizedTab.fileName,
+      filePath: normalizedTab.filePath,
+      totalPages: normalizedTab.totalPages,
+      currentPage: normalizedTab.currentPage,
+      scale: normalizedTab.scale,
+      rotation: normalizedTab.rotation,
+      isLoading: normalizedTab.isLoading,
+      error: normalizedTab.error,
+      viewMode: normalizedTab.viewMode,
     });
 
-    return newTab.id;
+    return normalizedTab.id;
   },
 
   removeTab: (tabId: string) => {
@@ -271,7 +278,7 @@ export const usePDFStore = create<PDFTabsState>((set, get) => ({
   updateTab: (tabId: string, updates: Partial<TabState>) => {
     const { tabs, activeTabId } = get();
     
-    const newTabs = tabs.map(t => t.id === tabId ? { ...t, ...updates } : t);
+    const newTabs = tabs.map(t => t.id === tabId ? normalizeTabState({ ...t, ...updates }) : t);
     const updateState: Partial<PDFTabsState> = { tabs: newTabs };
 
     // If updating active tab, also update legacy properties
@@ -328,7 +335,7 @@ export const usePDFStore = create<PDFTabsState>((set, get) => ({
   setRotation: (rotation) => updateActiveTabProp(set, get, 'rotation', rotation % 360),
   setIsLoading: (isLoading) => updateActiveTabProp(set, get, 'isLoading', isLoading),
   setError: (error) => updateActiveTabProp(set, get, 'error', error),
-  setViewMode: (viewMode) => updateActiveTabProp(set, get, 'viewMode', viewMode),
+  setViewMode: (viewMode) => updateActiveTabProp(set, get, 'viewMode', normalizeViewMode(viewMode)),
   setPdfBytes: (pdfBytes) => updateActiveTabProp(set, get, 'pdfBytes', pdfBytes),
   setHasUnsavedChanges: (hasUnsavedChanges) => updateActiveTabProp(set, get, 'hasUnsavedChanges', hasUnsavedChanges),
 
@@ -336,7 +343,30 @@ export const usePDFStore = create<PDFTabsState>((set, get) => ({
   nextPage: () => {
     const tab = getActiveTabFromState(get());
     if (!tab) return;
-    
+
+    if (tab.viewMode === 'two-page') {
+      const spreadStart = tab.currentPage % 2 === 0 ? tab.currentPage - 1 : tab.currentPage;
+      if (spreadStart + 2 <= tab.totalPages) {
+        get().updateTab(tab.id, { currentPage: spreadStart + 2 });
+      }
+      return;
+    }
+
+    if (tab.viewMode === 'book') {
+      if (tab.currentPage === 1) {
+        if (tab.totalPages > 1) {
+          get().updateTab(tab.id, { currentPage: 2 });
+        }
+        return;
+      }
+
+      const spreadStart = tab.currentPage % 2 === 0 ? tab.currentPage : tab.currentPage - 1;
+      if (spreadStart + 2 <= tab.totalPages) {
+        get().updateTab(tab.id, { currentPage: spreadStart + 2 });
+      }
+      return;
+    }
+
     if (tab.currentPage < tab.totalPages) {
       get().updateTab(tab.id, { currentPage: tab.currentPage + 1 });
     }
@@ -345,7 +375,38 @@ export const usePDFStore = create<PDFTabsState>((set, get) => ({
   previousPage: () => {
     const tab = getActiveTabFromState(get());
     if (!tab) return;
-    
+
+    if (tab.viewMode === 'two-page') {
+      const spreadStart = tab.currentPage % 2 === 0 ? tab.currentPage - 1 : tab.currentPage;
+      if (spreadStart > 1) {
+        get().updateTab(tab.id, { currentPage: spreadStart - 2 });
+      }
+      return;
+    }
+
+    if (tab.viewMode === 'book') {
+      if (tab.currentPage <= 1) {
+        return;
+      }
+
+      const spreadStart =
+        tab.currentPage === 1
+          ? 1
+          : tab.currentPage % 2 === 0
+            ? tab.currentPage
+            : tab.currentPage - 1;
+
+      if (spreadStart === 2) {
+        get().updateTab(tab.id, { currentPage: 1 });
+        return;
+      }
+
+      if (spreadStart > 2) {
+        get().updateTab(tab.id, { currentPage: spreadStart - 2 });
+      }
+      return;
+    }
+
     if (tab.currentPage > 1) {
       get().updateTab(tab.id, { currentPage: tab.currentPage - 1 });
     }

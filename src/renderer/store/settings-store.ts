@@ -5,6 +5,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { normalizeViewMode, type PersistedViewMode, type ViewMode } from '../lib/view-mode';
 
 export type FontFamily = 'courier' | 'arial' | 'times';
 
@@ -41,7 +42,6 @@ export const FONT_OPTIONS: FontOption[] = [
 ];
 
 export type Language = 'en' | 'id';
-export type ViewMode = 'single' | 'continuous' | 'facing';
 
 interface SettingsState {
   // Form field settings
@@ -146,7 +146,7 @@ export const useSettingsStore = create<SettingsState>()(
       // New setters
       setDefaultSaveLocation: (path) => set({ defaultSaveLocation: path }),
       setDefaultZoom: (zoom) => set({ defaultZoom: Math.max(50, Math.min(200, zoom)) }),
-      setDefaultViewMode: (mode) => set({ defaultViewMode: mode }),
+      setDefaultViewMode: (mode) => set({ defaultViewMode: normalizeViewMode(mode) }),
       setReopenLastFile: (enabled) => set({ reopenLastFile: enabled }),
       setLastOpenedFile: (path) => set({ lastOpenedFile: path }),
       setCacheSize: (size) => set({ cacheSize: Math.max(50, Math.min(500, size)) }),
@@ -155,8 +155,20 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: 'settings-storage',
+      merge: (persistedState, currentState) => {
+        const mergedState = {
+          ...currentState,
+          ...(persistedState as Partial<SettingsState> | undefined),
+        };
+
+        return {
+          ...mergedState,
+          defaultViewMode: normalizeViewMode(mergedState.defaultViewMode as PersistedViewMode),
+        };
+      },
       onRehydrateStorage: () => (state) => {
         if (state) {
+          state.defaultViewMode = normalizeViewMode(state.defaultViewMode as PersistedViewMode);
           applyFontToDocument(state.formFieldFont, state.formFieldFontSize);
           applyAccessibilitySettings(state.highContrast, state.reducedMotion);
           

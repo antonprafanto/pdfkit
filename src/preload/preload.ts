@@ -153,6 +153,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('menu-about', subscription);
     return () => ipcRenderer.removeListener('menu-about', subscription);
   },
+  onMenuToggleViewerFullscreen: (callback: () => void) => {
+    const subscription = () => callback();
+    ipcRenderer.on('menu-toggle-viewer-fullscreen', subscription);
+    return () => ipcRenderer.removeListener('menu-toggle-viewer-fullscreen', subscription);
+  },
+  onMenuStartSlideshow: (callback: () => void) => {
+    const subscription = () => callback();
+    ipcRenderer.on('menu-start-slideshow', subscription);
+    return () => ipcRenderer.removeListener('menu-start-slideshow', subscription);
+  },
 
   // Plugin System
   getPlugins: () => ipcRenderer.invoke('get-plugins'),
@@ -231,6 +241,8 @@ export interface ElectronAPI {
   onMenuZoomReset: (callback: () => void) => () => void;
   onMenuCheckUpdates: (callback: () => void) => () => void;
   onMenuAbout: (callback: () => void) => () => void;
+  onMenuToggleViewerFullscreen: (callback: () => void) => () => void;
+  onMenuStartSlideshow: (callback: () => void) => () => void;
   // Office Conversion
   checkLibreOffice: () => Promise<{ installed: boolean; path?: string; version?: string; downloadUrl: string }>;
   convertOfficeToPdf: (filePath: string) => Promise<{ success: boolean; outputPath?: string; error?: string }>;

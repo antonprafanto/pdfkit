@@ -5,8 +5,9 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSettingsStore, Language, ViewMode } from '../../store/settings-store';
+import { useSettingsStore, Language } from '../../store/settings-store';
 import { Button } from '../ui/Button';
+import type { ViewMode } from '../../lib/view-mode';
 
 interface GeneralSettingsTabProps {
   selectedLanguage: Language;
@@ -115,7 +116,8 @@ export const GeneralSettingsTab: React.FC<GeneralSettingsTabProps> = ({
             >
               <option value="single">{t('settings.viewSingle', 'Single Page')}</option>
               <option value="continuous">{t('settings.viewContinuous', 'Continuous Scroll')}</option>
-              <option value="facing">{t('settings.viewFacing', 'Facing Pages')}</option>
+              <option value="two-page">{t('settings.viewTwoPage', 'Two Page')}</option>
+              <option value="book">{t('settings.viewBook', 'Book')}</option>
             </select>
           </div>
         </div>
