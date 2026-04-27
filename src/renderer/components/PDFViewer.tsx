@@ -11,6 +11,7 @@ import { PDFFacingView } from './PDFFacingView';
 import { PDFSearchBar } from './PDFSearchBar';
 import { PDFPropertiesDialog } from './PDFPropertiesDialog';
 import { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
+import { ViewerFloatingControls } from './ViewerFloatingControls';
 import { SearchHighlight } from './PDFPage';
 import { AnnotationToolbar, AnnotationListSidebar } from './annotations';
 import { FormToolbar } from './forms';
@@ -23,6 +24,9 @@ import { Spinner } from './ui';
 import { useToast } from './ui/Toast';
 import { useTranslation } from 'react-i18next';
 import RibbonToolbar from './RibbonToolbar';
+import type { ViewMode, ViewerShellMode } from '../lib/view-mode';
+
+const FLOATING_TOOLBAR_AUTO_HIDE_MS = 2000;
 
 interface PDFViewerProps {
   onOpenMerge?: () => void;
@@ -70,6 +74,14 @@ interface PDFViewerProps {
   onCheckUpdates?: () => void;
   themeToggle?: React.ReactNode;
   isOnline?: boolean;
+  canUsePresenterMode?: boolean;
+  isPresenterActive?: boolean;
+  onOpenPresenterMode?: () => void;
+  onStopPresenterMode?: () => void;
+  presenterStopwatchSeconds?: number;
+  isPresenterStopwatchRunning?: boolean;
+  onTogglePresenterStopwatch?: () => void;
+  onResetPresenterStopwatch?: () => void;
 }
 
 export function PDFViewer({
@@ -118,6 +130,14 @@ export function PDFViewer({
   onCheckUpdates,
   themeToggle,
   isOnline,
+  canUsePresenterMode = false,
+  isPresenterActive = false,
+  onOpenPresenterMode,
+  onStopPresenterMode,
+  presenterStopwatchSeconds = 0,
+  isPresenterStopwatchRunning = false,
+  onTogglePresenterStopwatch,
+  onResetPresenterStopwatch,
 }: PDFViewerProps = {}) {
   const {
     document,
@@ -138,6 +158,7 @@ export function PDFViewer({
     zoomIn,
     zoomOut,
     resetZoom,
+    setScale,
     fitToWidth,
     fitToPage,
     rotateClockwise,
@@ -157,25 +178,17 @@ export function PDFViewer({
   const [formsMode, setFormsMode] = useState(false);
   const [aiMode, setAIMode] = useState(false);
   const [aiPanel, setAIPanel] = useState<'chat' | 'analysis'>('chat');
+  const [shellMode, setShellMode] = useState<ViewerShellMode>('normal');
+  const [isFloatingToolbarVisible, setIsFloatingToolbarVisible] = useState(false);
   const [scanPdfNotified, setScanPdfNotified] = useState(false); // Track if we've shown scan PDF notification
+  const viewerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  const mainViewRef = useRef<HTMLDivElement>(null);
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const slideshowSnapshotRef = useRef<{ currentPage: number; scale: number; viewMode: ViewMode } | null>(null);
+  const floatingToolbarTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const viewportSize = useViewportSize(contentRef);
-
-  const previousViewModeRef = useRef<string | null>(null);
-
-  const togglePresentationMode = async () => {
-    try {
-      if (!window.document.fullscreenElement && mainViewRef.current) {
-        await mainViewRef.current.requestFullscreen();
-      } else if (window.document.exitFullscreen && window.document.fullscreenElement) {
-        await window.document.exitFullscreen();
-      }
-    } catch (err) {
-      console.error('Error toggling fullscreen:', err);
-    }
-  };
+  const isChromeHidden = shellMode !== 'normal';
+  const showPageAnnotations = annotationMode && !isChromeHidden;
+  const showPageForms = formsMode && !isChromeHidden;
 
   // Reset scan notification when document changes
   useEffect(() => {
@@ -194,26 +207,6 @@ export function PDFViewer({
       }, 100);
     }
   };
-
-  // Ctrl+F keyboard shortcut to open search
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Skip if typing in input
-      const target = e.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
-        return;
-      }
-
-      // Ctrl+F to toggle search
-      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
-        e.preventDefault();
-        setShowSearch((prev) => !prev);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
 
   // Ctrl+Scroll to zoom
   useEffect(() => {
@@ -237,7 +230,7 @@ export function PDFViewer({
   }, [zoomIn, zoomOut]);
 
   // Handle fit to width/page when document or viewport changes
-  const handleFitToWidth = useCallback(async () => {
+  const handleFitToWidth = async () => {
     if (!document || !contentRef.current) return;
 
     const page = await document.getPage(currentPage);
@@ -245,9 +238,9 @@ export function PDFViewer({
     const pageWidth = viewport.width;
 
     fitToWidth(viewportSize.width, pageWidth);
-  }, [document, currentPage, rotation, viewportSize.width, fitToWidth]);
+  };
 
-  const handleFitToPage = useCallback(async () => {
+  const handleFitToPage = async () => {
     if (!document || !contentRef.current) return;
 
     const page = await document.getPage(currentPage);
@@ -256,34 +249,149 @@ export function PDFViewer({
     const pageHeight = viewport.height;
 
     fitToPage(viewportSize.width, viewportSize.height, pageWidth, pageHeight);
-  }, [document, currentPage, rotation, viewportSize.width, viewportSize.height, fitToPage]);
+  };
+
+  const handleFitToScreen = useCallback(async () => {
+    await handleFitToPage();
+  }, [document, currentPage, rotation, viewportSize.width, viewportSize.height]);
+
+  const restoreSlideshowSnapshot = () => {
+    const snapshot = slideshowSnapshotRef.current;
+    if (!snapshot) return;
+
+    slideshowSnapshotRef.current = null;
+    setViewMode(snapshot.viewMode);
+    setScale(snapshot.scale);
+    goToPage(snapshot.currentPage);
+  };
+
+  const clearFloatingToolbarTimer = useCallback(() => {
+    if (floatingToolbarTimeoutRef.current) {
+      clearTimeout(floatingToolbarTimeoutRef.current);
+      floatingToolbarTimeoutRef.current = null;
+    }
+  }, []);
+
+  const showFloatingToolbar = useCallback(() => {
+    if (shellMode === 'normal') return;
+
+    setIsFloatingToolbarVisible(true);
+    clearFloatingToolbarTimer();
+    floatingToolbarTimeoutRef.current = setTimeout(() => {
+      setIsFloatingToolbarVisible(false);
+      floatingToolbarTimeoutRef.current = null;
+    }, FLOATING_TOOLBAR_AUTO_HIDE_MS);
+  }, [clearFloatingToolbarTimer, shellMode]);
+
+  const exitSpecialMode = useCallback(async () => {
+    if (shellMode === 'read') {
+      setShellMode('normal');
+      return;
+    }
+
+    if (window.document.fullscreenElement) {
+      await window.document.exitFullscreen();
+    }
+  }, [shellMode]);
+
+  const toggleReadMode = useCallback(() => {
+    if (!document) return;
+    setShellMode((currentMode) => (currentMode === 'read' ? 'normal' : currentMode === 'normal' ? 'read' : currentMode));
+  }, [document]);
+
+  const toggleViewerFullscreen = useCallback(async () => {
+    if (!document || !viewerRef.current) return;
+
+    if (window.document.fullscreenElement) {
+      await window.document.exitFullscreen();
+      return;
+    }
+
+    try {
+      await viewerRef.current.requestFullscreen();
+      setShellMode('fullscreen');
+    } catch (error) {
+      console.error('[PDFViewer] Failed to enter fullscreen mode:', error);
+    }
+  }, [document]);
+
+  const startSlideshow = useCallback(async () => {
+    if (!document || !viewerRef.current) return;
+
+    slideshowSnapshotRef.current = {
+      currentPage,
+      scale,
+      viewMode,
+    };
+
+    if (!window.document.fullscreenElement) {
+      try {
+        await viewerRef.current.requestFullscreen();
+      } catch (error) {
+        slideshowSnapshotRef.current = null;
+        console.error('[PDFViewer] Failed to start slideshow:', error);
+        return;
+      }
+    }
+
+    setViewMode('single');
+    setShellMode('slideshow');
+
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        void handleFitToPage();
+      });
+    });
+  }, [currentPage, document, scale, viewMode]);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
-      const isFs = !!window.document.fullscreenElement;
-      setIsFullscreen(isFs);
+      if (window.document.fullscreenElement === viewerRef.current) {
+        return;
+      }
 
-      if (isFs) {
-        // Entering fullscreen
-        previousViewModeRef.current = viewMode;
-        setViewMode('single');
-      } else {
-        // Exiting fullscreen
-        if (previousViewModeRef.current) {
-          setViewMode(previousViewModeRef.current as any);
-        }
+      if (shellMode === 'slideshow') {
+        restoreSlideshowSnapshot();
+      }
+
+      if (shellMode === 'fullscreen' || shellMode === 'slideshow') {
+        setShellMode('normal');
       }
     };
+
     window.document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => window.document.removeEventListener('fullscreenchange', handleFullscreenChange);
-  }, [viewMode, setViewMode]);
+  }, [shellMode]);
 
-  // Keep fitToPage enforced while in fullscreen and when resizing
   useEffect(() => {
-    if (isFullscreen && viewMode === 'single') {
-      handleFitToPage();
+    if (shellMode === 'normal') {
+      clearFloatingToolbarTimer();
+      setIsFloatingToolbarVisible(false);
+      return;
     }
-  }, [isFullscreen, viewportSize.width, viewportSize.height, handleFitToPage, viewMode]);
+
+    showFloatingToolbar();
+
+    return () => {
+      clearFloatingToolbarTimer();
+    };
+  }, [clearFloatingToolbarTimer, shellMode, showFloatingToolbar]);
+
+  useEffect(() => {
+    const viewerElement = viewerRef.current;
+    if (!viewerElement || shellMode === 'normal') {
+      return;
+    }
+
+    const handleMouseMove = () => {
+      showFloatingToolbar();
+    };
+
+    viewerElement.addEventListener('mousemove', handleMouseMove);
+    return () => {
+      viewerElement.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, [shellMode, showFloatingToolbar]);
 
   // Handle print - opens PDF with system default app for proper preview
   const handlePrint = useCallback(async () => {
@@ -351,6 +459,33 @@ export function PDFViewer({
     return () => unsubscribe();
   }, [handlePrint]);
 
+  useEffect(() => {
+    const fullscreenHandler = window.electronAPI?.onMenuToggleViewerFullscreen;
+    const slideshowHandler = window.electronAPI?.onMenuStartSlideshow;
+
+    const unsubscribers: Array<() => void> = [];
+
+    if (typeof fullscreenHandler === 'function') {
+      unsubscribers.push(
+        fullscreenHandler(() => {
+          void toggleViewerFullscreen();
+        })
+      );
+    }
+
+    if (typeof slideshowHandler === 'function') {
+      unsubscribers.push(
+        slideshowHandler(() => {
+          void startSlideshow();
+        })
+      );
+    }
+
+    return () => {
+      unsubscribers.forEach((unsubscribe) => unsubscribe());
+    };
+  }, [startSlideshow, toggleViewerFullscreen]);
+
   // Setup keyboard shortcuts
   useKeyboardShortcuts({
     onNextPage: nextPage,
@@ -362,12 +497,20 @@ export function PDFViewer({
     onFitToPage: handleFitToPage,
     onRotateClockwise: rotateClockwise,
     onRotateCounterClockwise: rotateCounterClockwise,
-    onToggleSearch: () => setShowSearch(!showSearch),
+    onToggleSearch: () => {
+      if (shellMode !== 'normal') return;
+      setShowSearch(!showSearch);
+    },
     onFirstPage: () => goToPage(1),
     onLastPage: () => goToPage(totalPages),
     onPrint: handlePrint, // Add print handler for Ctrl+P
-    onTogglePresentationMode: () => {
-      if (document) togglePresentationMode();
+    onToggleReadMode: toggleReadMode,
+    onToggleFullscreen: toggleViewerFullscreen,
+    onStartSlideshow: startSlideshow,
+    onExitSpecialModes: () => {
+      if (shellMode !== 'normal') {
+        void exitSpecialMode();
+      }
     },
   });
 
@@ -375,121 +518,103 @@ export function PDFViewer({
   // to prevent the UI from flashing/disappearing during tab switches
 
   return (
-    <div className="flex flex-1 overflow-hidden flex-col bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 w-full relative">
+    <div
+      ref={viewerRef}
+      data-testid="pdf-viewer-root"
+      className="flex flex-1 overflow-hidden flex-col bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 w-full relative"
+    >
       {/* Ribbon Toolbar */}
-      <RibbonToolbar
-        onOpenFile={onOpenFile}
-        onOpenRecent={onOpenRecent}
-        onCloseDocument={onCloseDocument}
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onGoToPage={goToPage}
-        onPreviousPage={previousPage}
-        onNextPage={nextPage}
-        scale={scale}
-        onZoomIn={zoomIn}
-        onZoomOut={zoomOut}
-        viewMode={viewMode}
-        onSetViewMode={setViewMode}
-        showThumbnails={showThumbnails}
-        onToggleThumbnails={() => setShowThumbnails(!showThumbnails)}
-        onRotateClockwise={rotateClockwise}
-        onRotateCounterClockwise={rotateCounterClockwise}
-        annotationMode={annotationMode}
-        onToggleAnnotationMode={() => setAnnotationMode(!annotationMode)}
-        formsMode={formsMode}
-        onToggleFormsMode={() => setFormsMode(!formsMode)}
-        aiMode={aiMode}
-        onToggleAIMode={() => setAIMode(!aiMode)}
-        showSearch={showSearch}
-        onToggleSearch={() => setShowSearch(!showSearch)}
-        onShowProperties={() => setShowProperties(true)}
-        onOpenMerge={onOpenMerge}
-        onOpenSplit={onOpenSplit}
-        onOpenRotate={onOpenRotate}
-        onOpenDelete={onOpenDelete}
-        onOpenReorder={onOpenReorder}
-        onOpenExtract={onOpenExtract}
-        onOpenExtractImages={onOpenExtractImages}
-        onOpenDuplicate={onOpenDuplicate}
-        onOpenExportImages={onOpenExportImages}
-        onOpenImportImages={onOpenImportImages}
-        onOpenConvertOffice={onOpenConvertOffice}
-        onOpenEncryptPDF={onOpenEncryptPDF}
-        onOpenBulkEncrypt={onOpenBulkEncrypt}
-        onOpenWatermark={onOpenWatermark}
-        onOpenAddPageNumbers={onOpenAddPageNumbers}
-        onOpenSignatures={onOpenSignatures}
-        onOpenSignPDF={onOpenSignPDF}
-        onOpenUnlockPDF={onOpenUnlockPDF}
-        onOpenWebOptimize={onOpenWebOptimize}
-        onOpenOverlay={onOpenOverlay}
-        onOpenWebpageToPDF={onOpenWebpageToPDF}
-        onOpenOCR={onOpenOCR}
-        onOpenCompress={onOpenCompress}
-        onOpenBatch={onOpenBatch}
-        onOpenPluginManager={onOpenPluginManager}
-        onConvert={onConvert}
-        hasDocument={!!document}
-        filePath={filePath || undefined}
-        fileName={fileName || undefined}
-        onPrint={handlePrint}
-        onSettings={onSettings}
-        onAbout={onAbout}
-        onShare={onShare}
-        onSearchTools={onSearchTools}
-        onCheckUpdates={onCheckUpdates}
-        themeToggle={themeToggle}
-        isOnline={isOnline}
-        isFullscreen={isFullscreen}
-        onTogglePresentationMode={togglePresentationMode}
-      />
+      {!isChromeHidden && (
+        <RibbonToolbar
+          onOpenFile={onOpenFile}
+          onOpenRecent={onOpenRecent}
+          onCloseDocument={onCloseDocument}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onGoToPage={goToPage}
+          onPreviousPage={previousPage}
+          onNextPage={nextPage}
+          scale={scale}
+          onZoomIn={zoomIn}
+          onZoomOut={zoomOut}
+          viewMode={viewMode}
+          shellMode={shellMode}
+          onSetViewMode={setViewMode}
+          onToggleReadMode={toggleReadMode}
+          onToggleFullscreen={() => {
+            void toggleViewerFullscreen();
+          }}
+          onStartSlideshow={() => {
+            void startSlideshow();
+          }}
+          showThumbnails={showThumbnails}
+          onToggleThumbnails={() => setShowThumbnails(!showThumbnails)}
+          onRotateClockwise={rotateClockwise}
+          onRotateCounterClockwise={rotateCounterClockwise}
+          annotationMode={annotationMode}
+          onToggleAnnotationMode={() => setAnnotationMode(!annotationMode)}
+          formsMode={formsMode}
+          onToggleFormsMode={() => setFormsMode(!formsMode)}
+          aiMode={aiMode}
+          onToggleAIMode={() => setAIMode(!aiMode)}
+          showSearch={showSearch}
+          onToggleSearch={() => setShowSearch(!showSearch)}
+          onShowProperties={() => setShowProperties(true)}
+          onOpenMerge={onOpenMerge}
+          onOpenSplit={onOpenSplit}
+          onOpenRotate={onOpenRotate}
+          onOpenDelete={onOpenDelete}
+          onOpenReorder={onOpenReorder}
+          onOpenExtract={onOpenExtract}
+          onOpenExtractImages={onOpenExtractImages}
+          onOpenDuplicate={onOpenDuplicate}
+          onOpenExportImages={onOpenExportImages}
+          onOpenImportImages={onOpenImportImages}
+          onOpenConvertOffice={onOpenConvertOffice}
+          onOpenEncryptPDF={onOpenEncryptPDF}
+          onOpenBulkEncrypt={onOpenBulkEncrypt}
+          onOpenWatermark={onOpenWatermark}
+          onOpenAddPageNumbers={onOpenAddPageNumbers}
+          onOpenSignatures={onOpenSignatures}
+          onOpenSignPDF={onOpenSignPDF}
+          onOpenUnlockPDF={onOpenUnlockPDF}
+          onOpenWebOptimize={onOpenWebOptimize}
+          onOpenOverlay={onOpenOverlay}
+          onOpenWebpageToPDF={onOpenWebpageToPDF}
+          onOpenOCR={onOpenOCR}
+          onOpenCompress={onOpenCompress}
+          onOpenBatch={onOpenBatch}
+          onOpenPluginManager={onOpenPluginManager}
+          onConvert={onConvert}
+          hasDocument={!!document}
+          filePath={filePath || undefined}
+          fileName={fileName || undefined}
+          onPrint={handlePrint}
+          onSettings={onSettings}
+          onAbout={onAbout}
+          onShare={onShare}
+          onSearchTools={onSearchTools}
+          onCheckUpdates={onCheckUpdates}
+          themeToggle={themeToggle}
+          isOnline={isOnline}
+          canUsePresenterMode={canUsePresenterMode}
+          isPresenterActive={isPresenterActive}
+          onOpenPresenterMode={onOpenPresenterMode}
+          onStopPresenterMode={onStopPresenterMode}
+          presenterStopwatchSeconds={presenterStopwatchSeconds}
+          isPresenterStopwatchRunning={isPresenterStopwatchRunning}
+          onTogglePresenterStopwatch={onTogglePresenterStopwatch}
+          onResetPresenterStopwatch={onResetPresenterStopwatch}
+        />
+      )}
 
       {/* Annotation Toolbar */}
-      {annotationMode && <AnnotationToolbar />}
+      {showPageAnnotations && <AnnotationToolbar />}
 
       {/* Main Content */}
-      <div id="pdf-viewer-main-content" ref={mainViewRef} className="flex flex-1 overflow-hidden relative bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-        
-        {/* Presentation Navigation Overlay */}
-        {isFullscreen && (
-          <div className="absolute inset-0 z-50 flex justify-between pointer-events-none">
-            {/* Left Zone - Prev Page */}
-            <button 
-              className="w-24 h-full pointer-events-auto opacity-0 hover:opacity-100 flex items-center justify-start px-4 bg-gradient-to-r from-black/20 to-transparent text-white transition-opacity"
-              onClick={(e) => { e.stopPropagation(); previousPage(); }}
-              aria-label={t('toolbar.previousPage', 'Previous Page')}
-            >
-              <svg className="w-12 h-12 drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-            </button>
-
-            {/* Right Zone - Next Page */}
-            <button 
-              className="w-24 h-full pointer-events-auto opacity-0 hover:opacity-100 flex items-center justify-end px-4 bg-gradient-to-l from-black/20 to-transparent text-white transition-opacity"
-              onClick={(e) => { e.stopPropagation(); nextPage(); }}
-              aria-label={t('toolbar.nextPage', 'Next Page')}
-            >
-              <svg className="w-12 h-12 drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-            </button>
-
-            {/* Exit Presentation Button */}
-            <button 
-              className="absolute top-6 right-6 p-3 bg-black/60 text-white rounded-full hover:bg-black/90 pointer-events-auto opacity-0 hover:opacity-100 transition-opacity drop-shadow-lg"
-              onClick={(e) => { e.stopPropagation(); togglePresentationMode(); }}
-              title={t('toolbar.exitPresentation', 'Exit Presentation (Esc)')}
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-            </button>
-            
-            {/* Page Indicator */}
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 bg-black/60 text-white rounded-full text-sm font-medium pointer-events-none opacity-30 transition-opacity hover:opacity-100 drop-shadow-lg">
-              {currentPage} / {totalPages}
-            </div>
-          </div>
-        )}
-
+      <div className="flex flex-1 overflow-hidden relative">
         {/* Thumbnails Sidebar */}
-        {showThumbnails && document && !isFullscreen && (
+        {!isChromeHidden && showThumbnails && document && (
           <PDFThumbnailSidebar
             key={`thumbs-${activeTabId}`}
             document={document}
@@ -500,7 +625,7 @@ export function PDFViewer({
         )}
 
         {/* Floating Search Bar - positioned in content area */}
-        {showSearch && document && (
+        {!isChromeHidden && showSearch && document && (
           <PDFSearchBar
             key={`search-${activeTabId}`}
             document={document}
@@ -512,14 +637,14 @@ export function PDFViewer({
         )}
 
         {/* Annotation List Sidebar */}
-        {annotationMode && !isFullscreen && (
+        {!isChromeHidden && annotationMode && (
           <div className="w-64 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden">
             <AnnotationListSidebar onNavigateToPage={goToPage} />
           </div>
         )}
 
         {/* Forms Toolbar Sidebar */}
-        {formsMode && !isFullscreen && (
+        {!isChromeHidden && formsMode && (
           <div className="w-64 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-y-auto">
             <FormToolbar
               onDetectForms={onDetectForms || (() => {})}
@@ -535,7 +660,7 @@ export function PDFViewer({
         )}
 
         {/* AI Panel Sidebar */}
-        {aiMode && !isFullscreen && (
+        {!isChromeHidden && aiMode && (
           <div className="w-80 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden flex flex-col">
             {/* AI Panel Tab Selector */}
             <div className="flex border-b border-gray-200 dark:border-gray-700">
@@ -630,18 +755,8 @@ export function PDFViewer({
         ) : (
           <>
             {viewMode === 'single' && (
-              <div 
-                ref={contentRef} 
-                className={`flex-1 overflow-auto ${isFullscreen ? 'bg-black' : 'bg-gray-100 dark:bg-gray-900 cursor-auto'}`}
-              >
-                <div 
-                  className="min-h-full flex items-center justify-center p-4"
-                  onClick={(e) => {
-                    if (isFullscreen && e.target === e.currentTarget) {
-                      nextPage();
-                    }
-                  }}
-                >
+              <div ref={contentRef} className="flex-1 overflow-auto bg-gray-100 dark:bg-gray-900">
+                <div className="min-h-full flex items-center justify-center p-4">
                   <PDFPage
                     key={`single-${activeTabId}`}
                     document={document}
@@ -649,8 +764,8 @@ export function PDFViewer({
                     scale={scale}
                     rotation={rotation}
                     searchHighlights={searchHighlights}
-                    showAnnotations={annotationMode}
-                    showForms={formsMode}
+                    showAnnotations={showPageAnnotations}
+                    showForms={showPageForms}
                     onNoTextContent={handleNoTextContent}
                   />
                 </div>
@@ -667,15 +782,15 @@ export function PDFViewer({
                   rotation={rotation}
                   currentPage={currentPage}
                   searchHighlights={searchHighlights}
-                  showAnnotations={annotationMode}
-                  showForms={formsMode}
+                  showAnnotations={showPageAnnotations}
+                  showForms={showPageForms}
                   onPageChange={goToPage}
                   onNoTextContent={handleNoTextContent}
                 />
               </div>
             )}
 
-            {viewMode === 'facing' && (
+            {(viewMode === 'two-page' || viewMode === 'book') && (
               <div ref={contentRef} className="flex-1">
                 <PDFFacingView
                   key={`face-${activeTabId}`}
@@ -684,9 +799,10 @@ export function PDFViewer({
                   scale={scale}
                   rotation={rotation}
                   currentPage={currentPage}
+                  mode={viewMode}
                   searchHighlights={searchHighlights}
-                  showAnnotations={annotationMode}
-                  showForms={formsMode}
+                  showAnnotations={showPageAnnotations}
+                  showForms={showPageForms}
                   onPageChange={goToPage}
                 />
               </div>
@@ -694,6 +810,27 @@ export function PDFViewer({
           </>
         )}
       </div>
+
+      {document && shellMode !== 'normal' && (
+        <ViewerFloatingControls
+          shellMode={shellMode}
+          scale={scale}
+          isVisible={isFloatingToolbarVisible}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPreviousPage={previousPage}
+          onNextPage={nextPage}
+          onZoomIn={zoomIn}
+          onZoomOut={zoomOut}
+          onFitToScreen={() => {
+            void handleFitToScreen();
+          }}
+          onInteract={showFloatingToolbar}
+          onExit={() => {
+            void exitSpecialMode();
+          }}
+        />
+      )}
 
       {/* Properties Dialog */}
       {document && (

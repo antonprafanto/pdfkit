@@ -53,6 +53,15 @@ const shortcutSections: ShortcutSection[] = [
       { keys: 'Ctrl + F', description: 'Open/close search' },
     ],
   },
+  {
+    title: 'Reading Modes',
+    shortcuts: [
+      { keys: 'Ctrl + Alt + R', description: 'Toggle read mode' },
+      { keys: 'F11', description: 'Toggle full screen' },
+      { keys: 'F5', description: 'Start slide show' },
+      { keys: 'Esc', description: 'Exit read/full screen/slide show' },
+    ],
+  },
 ];
 
 export function KeyboardShortcutsHelp({ open, onClose }: KeyboardShortcutsHelpProps) {

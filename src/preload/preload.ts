@@ -1,4 +1,10 @@
 import { contextBridge, ipcRenderer } from 'electron';
+import type {
+  ExternalDisplayInfo,
+  PresenterDocumentPayload,
+  PresenterStartPayload,
+  PresenterStatus,
+} from '../shared/types/presenter';
 
 /**
  * Preload Script - Secure bridge between main and renderer process
@@ -157,6 +163,49 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('menu-about', subscription);
     return () => ipcRenderer.removeListener('menu-about', subscription);
   },
+  onMenuToggleViewerFullscreen: (callback: () => void) => {
+    const subscription = () => callback();
+    ipcRenderer.on('menu-toggle-viewer-fullscreen', subscription);
+    return () => ipcRenderer.removeListener('menu-toggle-viewer-fullscreen', subscription);
+  },
+  onMenuStartSlideshow: (callback: () => void) => {
+    const subscription = () => callback();
+    ipcRenderer.on('menu-start-slideshow', subscription);
+    return () => ipcRenderer.removeListener('menu-start-slideshow', subscription);
+  },
+
+  // Presenter Mode
+  getExternalDisplays: () => ipcRenderer.invoke('presenter:get-external-displays'),
+  getPresenterStatus: () => ipcRenderer.invoke('presenter:get-status'),
+  getPresenterBootstrapData: () => ipcRenderer.invoke('presenter:get-bootstrap-data'),
+  startPresenterMode: (payload: PresenterStartPayload) =>
+    ipcRenderer.invoke('presenter:start', payload),
+  stopPresenterMode: () => ipcRenderer.invoke('presenter:stop'),
+  setPresenterPage: (pageNumber: number) => ipcRenderer.invoke('presenter:set-page', pageNumber),
+  onPresenterDisplaysChanged: (callback: (displays: ExternalDisplayInfo[]) => void) => {
+    const subscription = (_event: Electron.IpcRendererEvent, displays: ExternalDisplayInfo[]) =>
+      callback(displays);
+    ipcRenderer.on('presenter:displays-changed', subscription);
+    return () => ipcRenderer.removeListener('presenter:displays-changed', subscription);
+  },
+  onPresenterStatusChanged: (callback: (status: PresenterStatus) => void) => {
+    const subscription = (_event: Electron.IpcRendererEvent, status: PresenterStatus) =>
+      callback(status);
+    ipcRenderer.on('presenter:status-changed', subscription);
+    return () => ipcRenderer.removeListener('presenter:status-changed', subscription);
+  },
+  onPresenterLoadDocument: (callback: (payload: PresenterDocumentPayload) => void) => {
+    const subscription = (_event: Electron.IpcRendererEvent, payload: PresenterDocumentPayload) =>
+      callback(payload);
+    ipcRenderer.on('presenter:load-document', subscription);
+    return () => ipcRenderer.removeListener('presenter:load-document', subscription);
+  },
+  onPresenterPageChanged: (callback: (pageNumber: number) => void) => {
+    const subscription = (_event: Electron.IpcRendererEvent, pageNumber: number) =>
+      callback(pageNumber);
+    ipcRenderer.on('presenter:set-page', subscription);
+    return () => ipcRenderer.removeListener('presenter:set-page', subscription);
+  },
 
   // Plugin System
   getPlugins: () => ipcRenderer.invoke('get-plugins'),
@@ -238,6 +287,18 @@ export interface ElectronAPI {
   onMenuZoomReset: (callback: () => void) => () => void;
   onMenuCheckUpdates: (callback: () => void) => () => void;
   onMenuAbout: (callback: () => void) => () => void;
+  onMenuToggleViewerFullscreen: (callback: () => void) => () => void;
+  onMenuStartSlideshow: (callback: () => void) => () => void;
+  getExternalDisplays: () => Promise<ExternalDisplayInfo[]>;
+  getPresenterStatus: () => Promise<PresenterStatus>;
+  getPresenterBootstrapData: () => Promise<PresenterDocumentPayload | null>;
+  startPresenterMode: (payload: PresenterStartPayload) => Promise<{ success: boolean; error?: string }>;
+  stopPresenterMode: () => Promise<void>;
+  setPresenterPage: (pageNumber: number) => Promise<void>;
+  onPresenterDisplaysChanged: (callback: (displays: ExternalDisplayInfo[]) => void) => () => void;
+  onPresenterStatusChanged: (callback: (status: PresenterStatus) => void) => () => void;
+  onPresenterLoadDocument: (callback: (payload: PresenterDocumentPayload) => void) => () => void;
+  onPresenterPageChanged: (callback: (pageNumber: number) => void) => () => void;
   // Office Conversion
   checkLibreOffice: () => Promise<{ installed: boolean; path?: string; version?: string; downloadUrl: string }>;
   convertOfficeToPdf: (filePath: string) => Promise<{ success: boolean; outputPath?: string; error?: string }>;

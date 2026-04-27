@@ -6,6 +6,7 @@
 import { PDFDocumentProxy } from '../lib/pdf-config';
 import { PDFPage, SearchHighlight } from './PDFPage';
 import { Button } from './ui';
+import type { ViewMode } from '../lib/view-mode';
 
 interface PDFFacingViewProps {
   document: PDFDocumentProxy;
@@ -13,6 +14,7 @@ interface PDFFacingViewProps {
   scale: number;
   rotation: number;
   currentPage: number;
+  mode: Extract<ViewMode, 'two-page' | 'book'>;
   searchHighlights?: SearchHighlight[];
   showAnnotations?: boolean;
   showForms?: boolean;
@@ -25,51 +27,70 @@ export function PDFFacingView({
   scale,
   rotation,
   currentPage,
+  mode,
   searchHighlights,
   showAnnotations,
   showForms,
   onPageChange,
 }: PDFFacingViewProps) {
-  // Calculate which pages to show (always show even-numbered page on right)
-  // For page 1: show only page 1 (cover)
-  // For page 2-3: show pages 2 and 3
-  // For page 4-5: show pages 4 and 5, etc.
-
   const getVisiblePages = (page: number): [number | null, number | null] => {
-    if (page === 1) {
-      return [null, 1]; // Cover page only on right
+    if (mode === 'book') {
+      if (page === 1) {
+        return [null, 1];
+      }
+
+      const leftPage = page % 2 === 0 ? page : page - 1;
+      const rightPage = leftPage + 1;
+      return [leftPage <= totalPages ? leftPage : null, rightPage <= totalPages ? rightPage : null];
     }
 
-    // Make sure we're on an even page for the spread
-    const leftPage = page % 2 === 0 ? page : page - 1;
+    const leftPage = page % 2 === 0 ? page - 1 : page;
     const rightPage = leftPage + 1;
-
     return [leftPage <= totalPages ? leftPage : null, rightPage <= totalPages ? rightPage : null];
   };
 
   const [leftPage, rightPage] = getVisiblePages(currentPage);
 
   const goToPreviousSpread = () => {
-    if (currentPage === 1) return;
-    if (currentPage === 2) {
-      onPageChange(1);
+    if (mode === 'book') {
+      if (currentPage === 1) return;
+      if (currentPage === 2) {
+        onPageChange(1);
+      } else {
+        const spreadStart = currentPage % 2 === 0 ? currentPage : currentPage - 1;
+        onPageChange(Math.max(1, spreadStart - 2));
+      }
+      return;
+    }
+
+    const spreadStart = currentPage % 2 === 0 ? currentPage - 1 : currentPage;
+    if (spreadStart > 1) {
+      onPageChange(spreadStart - 2);
     } else {
-      const newPage = Math.max(1, currentPage - 2);
-      onPageChange(newPage);
+      onPageChange(1);
     }
   };
 
   const goToNextSpread = () => {
-    if (currentPage === 1) {
-      onPageChange(2);
+    if (mode === 'book') {
+      if (currentPage === 1) {
+        onPageChange(2);
+      } else {
+        const spreadStart = currentPage % 2 === 0 ? currentPage : currentPage - 1;
+        onPageChange(Math.min(totalPages, spreadStart + 2));
+      }
+      return;
     } else {
-      const newPage = Math.min(totalPages, currentPage + 2);
-      onPageChange(newPage);
+      const spreadStart = currentPage % 2 === 0 ? currentPage - 1 : currentPage;
+      onPageChange(Math.min(totalPages, spreadStart + 2));
     }
   };
 
-  const canGoPrevious = currentPage > 1;
-  const canGoNext = currentPage < totalPages;
+  const canGoPrevious = mode === 'book' ? currentPage > 1 : (currentPage % 2 === 0 ? currentPage - 1 : currentPage) > 1;
+  const canGoNext =
+    mode === 'book'
+      ? currentPage < totalPages
+      : (currentPage % 2 === 0 ? currentPage - 1 : currentPage) + 1 < totalPages;
 
   return (
     <div className="flex h-full flex-col">

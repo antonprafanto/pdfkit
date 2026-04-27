@@ -19,7 +19,10 @@ export interface KeyboardShortcutHandlers {
   onFirstPage?: () => void;
   onLastPage?: () => void;
   onPrint?: () => void;
-  onTogglePresentationMode?: () => void;
+  onToggleReadMode?: () => void;
+  onToggleFullscreen?: () => void;
+  onStartSlideshow?: () => void;
+  onExitSpecialModes?: () => void;
 }
 
 export function useKeyboardShortcuts(handlers: KeyboardShortcutHandlers) {
@@ -35,7 +38,7 @@ export function useKeyboardShortcuts(handlers: KeyboardShortcutHandlers) {
         return;
       }
 
-      const { ctrlKey, shiftKey, key } = event;
+      const { altKey, ctrlKey, shiftKey, key } = event;
 
       // Navigation shortcuts
       if (key === 'ArrowRight' || key === 'PageDown' || key === ' ') {
@@ -90,12 +93,17 @@ export function useKeyboardShortcuts(handlers: KeyboardShortcutHandlers) {
         event.preventDefault();
         console.log('[useKeyboardShortcuts] Ctrl+P pressed, triggering print');
         handlers.onPrint?.();
-      }
-
-      // Presentation mode shortcut (F11 or F5)
-      else if (key === 'F11' || key === 'F5') {
+      } else if ((ctrlKey || event.metaKey) && altKey && (key === 'r' || key === 'R')) {
         event.preventDefault();
-        handlers.onTogglePresentationMode?.();
+        handlers.onToggleReadMode?.();
+      } else if (key === 'F11') {
+        event.preventDefault();
+        handlers.onToggleFullscreen?.();
+      } else if (key === 'F5') {
+        event.preventDefault();
+        handlers.onStartSlideshow?.();
+      } else if (key === 'Escape') {
+        handlers.onExitSpecialModes?.();
       }
     };
 

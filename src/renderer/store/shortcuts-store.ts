@@ -41,6 +41,9 @@ const DEFAULT_SHORTCUTS: ShortcutBinding[] = [
   // View
   { id: 'toggleSearch', name: 'Toggle Search', description: 'Open/close search panel', category: 'view', defaultKeys: ['Ctrl+F'], customKeys: null },
   { id: 'toggleThumbnails', name: 'Toggle Thumbnails', description: 'Show/hide thumbnail sidebar', category: 'view', defaultKeys: ['Ctrl+T'], customKeys: null },
+  { id: 'toggleReadMode', name: 'Toggle Read Mode', description: 'Enter or exit read mode', category: 'view', defaultKeys: ['Ctrl+Alt+R'], customKeys: null },
+  { id: 'toggleFullscreen', name: 'Toggle Full Screen', description: 'Enter or exit viewer full screen', category: 'view', defaultKeys: ['F11'], customKeys: null },
+  { id: 'startSlideshow', name: 'Start Slide Show', description: 'Start slideshow presentation mode', category: 'view', defaultKeys: ['F5'], customKeys: null },
   { id: 'showShortcuts', name: 'Show Shortcuts', description: 'Open keyboard shortcuts help', category: 'view', defaultKeys: ['F1', '?'], customKeys: null },
   
   // File

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from './ui/Button';
+import type { ViewMode, ViewerShellMode } from '../lib/view-mode';
 
 interface RibbonToolbarProps {
   // File operations
@@ -18,8 +19,12 @@ interface RibbonToolbarProps {
   onZoomIn: () => void;
   onZoomOut: () => void;
   // View modes
-  viewMode: 'single' | 'continuous' | 'facing';
-  onSetViewMode: (mode: 'single' | 'continuous' | 'facing') => void;
+  viewMode: ViewMode;
+  onSetViewMode: (mode: ViewMode) => void;
+  shellMode: ViewerShellMode;
+  onToggleReadMode: () => void;
+  onToggleFullscreen: () => void;
+  onStartSlideshow: () => void;
   showThumbnails: boolean;
   onToggleThumbnails: () => void;
   // Presentation
@@ -80,9 +85,25 @@ interface RibbonToolbarProps {
   onCheckUpdates?: () => void;
   themeToggle?: React.ReactNode;
   isOnline?: boolean;
+  canUsePresenterMode?: boolean;
+  isPresenterActive?: boolean;
+  onOpenPresenterMode?: () => void;
+  onStopPresenterMode?: () => void;
+  presenterStopwatchSeconds?: number;
+  isPresenterStopwatchRunning?: boolean;
+  onTogglePresenterStopwatch?: () => void;
+  onResetPresenterStopwatch?: () => void;
 }
 
 type TabId = 'beranda' | 'edit' | 'halaman' | 'alat' | 'tampilan';
+
+const formatStopwatch = (totalSeconds: number) => {
+  const minutes = Math.floor(totalSeconds / 60)
+    .toString()
+    .padStart(2, '0');
+  const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+  return `${minutes}:${seconds}`;
+};
 
 const RibbonToolbar: React.FC<RibbonToolbarProps> = (props) => {
   const { t } = useTranslation();
@@ -876,10 +897,96 @@ const RibbonToolbar: React.FC<RibbonToolbarProps> = (props) => {
             <rect x="13" y="4" width="7" height="16" strokeWidth={2} />
           </svg>
         }
-        label={t('toolbar.facingPages')}
-        onClick={() => props.onSetViewMode('facing')}
-        active={props.viewMode === 'facing'}
+        label={t('toolbar.twoPage', 'Two Page')}
+        onClick={() => props.onSetViewMode('two-page')}
+        active={props.viewMode === 'two-page'}
       />
+      <RibbonButton
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <rect x="4" y="4" width="7" height="16" strokeWidth={2} />
+            <rect x="13" y="4" width="7" height="16" strokeWidth={2} />
+          </svg>
+        }
+        label={t('toolbar.book', 'Book')}
+        onClick={() => props.onSetViewMode('book')}
+        active={props.viewMode === 'book'}
+      />
+
+      <Separator />
+
+      <RibbonButton
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 19h16M6 5h12a1 1 0 011 1v9H5V6a1 1 0 011-1z"
+            />
+          </svg>
+        }
+        label={t('toolbar.readMode', 'Read Mode')}
+        onClick={props.onToggleReadMode}
+        active={props.shellMode === 'read'}
+        disabled={!props.hasDocument}
+      />
+      <RibbonButton
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 3H5a2 2 0 00-2 2v3m16 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3m-16 0v3a2 2 0 002 2h3"
+            />
+          </svg>
+        }
+        label={t('toolbar.fullScreen', 'Full Screen')}
+        onClick={props.onToggleFullscreen}
+        active={props.shellMode === 'fullscreen'}
+        disabled={!props.hasDocument}
+      />
+      <RibbonButton
+        icon={
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 5v14l11-7-11-7zM5 5v14"
+            />
+          </svg>
+        }
+        label={t('toolbar.slideShow', 'Slide Show')}
+        onClick={props.onStartSlideshow}
+        active={props.shellMode === 'slideshow'}
+        disabled={!props.hasDocument}
+      />
+
+      {(props.canUsePresenterMode || props.isPresenterActive) && (
+        <RibbonButton
+          icon={
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <rect x="3" y="5" width="13" height="9" rx="1" strokeWidth={2} />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 19h3m-7 0h14m3-10h-2m2 4h-2"
+              />
+            </svg>
+          }
+          label={
+            props.isPresenterActive
+              ? t('toolbar.stopPresenterMode', 'Stop Presenter')
+              : t('toolbar.presenterMode', 'Presenter Mode')
+          }
+          onClick={props.isPresenterActive ? props.onStopPresenterMode : props.onOpenPresenterMode}
+          active={props.isPresenterActive}
+          disabled={!props.hasDocument && !props.isPresenterActive}
+        />
+      )}
 
       <Separator />
 
@@ -991,6 +1098,34 @@ const RibbonToolbar: React.FC<RibbonToolbarProps> = (props) => {
 
         {/* Header actions - integrated into ribbon */}
         <div className="flex items-center gap-1">
+          {props.isPresenterActive && (
+            <div className="mr-2 flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-xs dark:border-amber-800 dark:bg-amber-950/40">
+              <span className="font-medium text-amber-700 dark:text-amber-300">
+                {formatStopwatch(props.presenterStopwatchSeconds || 0)}
+              </span>
+              <button
+                onClick={props.onTogglePresenterStopwatch}
+                className="rounded px-1.5 py-0.5 text-amber-700 transition-colors hover:bg-amber-100 dark:text-amber-300 dark:hover:bg-amber-900/60"
+                title={
+                  props.isPresenterStopwatchRunning
+                    ? t('toolbar.pauseStopwatch', 'Pause stopwatch')
+                    : t('toolbar.startStopwatch', 'Start stopwatch')
+                }
+              >
+                {props.isPresenterStopwatchRunning
+                  ? t('toolbar.pause', 'Pause')
+                  : t('toolbar.start', 'Start')}
+              </button>
+              <button
+                onClick={props.onResetPresenterStopwatch}
+                className="rounded px-1.5 py-0.5 text-amber-700 transition-colors hover:bg-amber-100 dark:text-amber-300 dark:hover:bg-amber-900/60"
+                title={t('toolbar.resetStopwatch', 'Reset stopwatch')}
+              >
+                {t('toolbar.reset', 'Reset')}
+              </button>
+            </div>
+          )}
+
           {/* Search Tools Button */}
           {props.onSearchTools && (
             <button

@@ -60,7 +60,7 @@ export function createMenu(mainWindow: BrowserWindow | null): Menu {
       ],
     },
 
-    // View Menu - Dev tools and fullscreen
+    // View Menu - Dev tools and viewer display modes
     {
       label: 'View',
       submenu: [
@@ -72,7 +72,24 @@ export function createMenu(mainWindow: BrowserWindow | null): Menu {
         { role: 'zoomIn' as const },
         { role: 'zoomOut' as const },
         { type: 'separator' },
-        { role: 'togglefullscreen' as const },
+        {
+          label: 'Full Screen',
+          accelerator: 'F11',
+          click: () => {
+            if (mainWindow && mainWindow.webContents) {
+              mainWindow.webContents.send('menu-toggle-viewer-fullscreen');
+            }
+          },
+        },
+        {
+          label: 'Slide Show',
+          accelerator: 'F5',
+          click: () => {
+            if (mainWindow && mainWindow.webContents) {
+              mainWindow.webContents.send('menu-start-slideshow');
+            }
+          },
+        },
       ],
     },
 

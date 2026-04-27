@@ -3,14 +3,14 @@
  * Test settings persistence and operations
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { useSettingsStore } from '../store/settings-store';
 
 describe('Settings Store', () => {
   beforeEach(() => {
     // Reset store to initial state
     useSettingsStore.setState({
-      formFieldFont: 'Inter',
+      formFieldFont: 'courier',
       formFieldFontSize: 14,
       language: 'en',
       highContrast: false,
@@ -40,15 +40,15 @@ describe('Settings Store', () => {
   });
 
   describe('Font Settings', () => {
-    it('should have default font as Inter', () => {
+    it('should have default font as Courier', () => {
       const { formFieldFont } = useSettingsStore.getState();
-      expect(formFieldFont).toBe('Inter');
+      expect(formFieldFont).toBe('courier');
     });
 
     it('should update font family', () => {
       const { setFormFieldFont } = useSettingsStore.getState();
-      setFormFieldFont('Arial');
-      expect(useSettingsStore.getState().formFieldFont).toBe('Arial');
+      setFormFieldFont('arial');
+      expect(useSettingsStore.getState().formFieldFont).toBe('arial');
     });
 
     it('should update font size', () => {
@@ -85,8 +85,14 @@ describe('Settings Store', () => {
 
     it('should set default view mode', () => {
       const { setDefaultViewMode } = useSettingsStore.getState();
-      setDefaultViewMode('continuous');
-      expect(useSettingsStore.getState().defaultViewMode).toBe('continuous');
+      setDefaultViewMode('two-page');
+      expect(useSettingsStore.getState().defaultViewMode).toBe('two-page');
+    });
+
+    it('should migrate legacy facing mode to book', () => {
+      const { setDefaultViewMode } = useSettingsStore.getState();
+      setDefaultViewMode('facing' as any);
+      expect(useSettingsStore.getState().defaultViewMode).toBe('book');
     });
   });
 

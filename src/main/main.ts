@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Menu, dialog, shell, globalShortcut } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu, dialog, shell, globalShortcut, screen } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
 import { ConnectivityService } from './services/connectivity.service';
@@ -12,6 +12,12 @@ import {
   checkLibreOfficeInstalled,
   getLibreOfficeDownloadUrl,
 } from './libreoffice-converter';
+import type {
+  ExternalDisplayInfo,
+  PresenterDocumentPayload,
+  PresenterStartPayload,
+  PresenterStatus,
+} from '../shared/types/presenter';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling
 if (require('electron-squirrel-startup')) {
@@ -48,13 +54,144 @@ if (!gotTheLock) {
 }
 
 let mainWindow: BrowserWindow | null = null;
+let presenterWindow: BrowserWindow | null = null;
 let connectivityService: ConnectivityService;
 // Store file paths to open (when launched via file association)
 let filesToOpen: string[] = [];
+let presenterBootstrapData: PresenterDocumentPayload | null = null;
+let presenterStatus: PresenterStatus = {
+  active: false,
+  displayId: null,
+  sourceTabId: null,
+};
 
 // Reliable production detection - app.isPackaged is true when built/packaged
 const isDev = !app.isPackaged;
 console.log('[Main] isDev:', isDev, 'isPackaged:', app.isPackaged);
+
+function getExternalDisplays(): ExternalDisplayInfo[] {
+  const primaryDisplay = screen.getPrimaryDisplay();
+
+  return screen
+    .getAllDisplays()
+    .filter((display) => display.id !== primaryDisplay.id)
+    .map((display, index) => ({
+      id: display.id,
+      label: `Display ${index + 1}`,
+      width: display.bounds.width,
+      height: display.bounds.height,
+    }));
+}
+
+function sendPresenterDisplays(): void {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('presenter:displays-changed', getExternalDisplays());
+  }
+}
+
+function sendPresenterStatus(): void {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('presenter:status-changed', presenterStatus);
+  }
+}
+
+function setPresenterStatus(status: PresenterStatus): void {
+  presenterStatus = status;
+  sendPresenterStatus();
+}
+
+function loadPresenterWindow(windowToLoad: BrowserWindow): void {
+  if (isDev) {
+    windowToLoad.loadURL('http://localhost:5173?presenter=1');
+    return;
+  }
+
+  windowToLoad.loadFile(path.join(__dirname, '../../renderer/index.html'), {
+    search: '?presenter=1',
+  });
+}
+
+function stopPresenterMode(): void {
+  presenterBootstrapData = null;
+  setPresenterStatus({
+    active: false,
+    displayId: null,
+    sourceTabId: null,
+  });
+
+  if (presenterWindow && !presenterWindow.isDestroyed()) {
+    const windowToClose = presenterWindow;
+    presenterWindow = null;
+    windowToClose.close();
+    return;
+  }
+
+  presenterWindow = null;
+}
+
+async function startPresenterMode(payload: PresenterStartPayload): Promise<void> {
+  const targetDisplay = screen.getAllDisplays().find((display) => display.id === payload.displayId);
+  const externalDisplayIds = new Set(getExternalDisplays().map((display) => display.id));
+
+  if (!targetDisplay || !externalDisplayIds.has(payload.displayId)) {
+    throw new Error('Selected display is no longer available');
+  }
+
+  stopPresenterMode();
+
+  presenterBootstrapData = {
+    fileName: payload.fileName,
+    pageNumber: payload.pageNumber,
+    pdfBytes: payload.pdfBytes,
+  };
+
+  presenterWindow = new BrowserWindow({
+    x: targetDisplay.bounds.x,
+    y: targetDisplay.bounds.y,
+    width: targetDisplay.bounds.width,
+    height: targetDisplay.bounds.height,
+    fullscreen: true,
+    autoHideMenuBar: true,
+    backgroundColor: '#000000',
+    title: payload.fileName ? `Presenter - ${payload.fileName}` : 'Presenter - PDF Kit',
+    webPreferences: {
+      preload: path.join(__dirname, '../preload/preload.js'),
+      nodeIntegration: false,
+      contextIsolation: true,
+      sandbox: true,
+    },
+    show: false,
+  });
+
+  presenterWindow.once('ready-to-show', () => {
+    presenterWindow?.show();
+    presenterWindow?.setFullScreen(true);
+  });
+
+  presenterWindow.webContents.once('did-finish-load', () => {
+    if (presenterWindow && !presenterWindow.isDestroyed() && presenterBootstrapData) {
+      presenterWindow.webContents.send('presenter:load-document', presenterBootstrapData);
+    }
+  });
+
+  presenterWindow.on('closed', () => {
+    presenterWindow = null;
+    presenterBootstrapData = null;
+    setPresenterStatus({
+      active: false,
+      displayId: null,
+      sourceTabId: null,
+    });
+  });
+
+  loadPresenterWindow(presenterWindow);
+
+  setPresenterStatus({
+    active: true,
+    displayId: payload.displayId,
+    sourceTabId: payload.sourceTabId,
+  });
+}
 
 // Check for file path in command line arguments (Windows/Linux)
 const args = process.argv.slice(1);
@@ -142,17 +279,49 @@ function createWindow(): void {
 
   // Cleanup on close
   mainWindow.on('closed', () => {
+    stopPresenterMode();
     mainWindow = null;
   });
 
   // Setup menu with mainWindow reference for Print handler
   const menu = createMenu(mainWindow);
   Menu.setApplicationMenu(menu);
+
+  mainWindow.webContents.once('did-finish-load', () => {
+    sendPresenterDisplays();
+    sendPresenterStatus();
+  });
 }
 
 // App lifecycle
 app.whenReady().then(async () => {
   createWindow();
+
+  screen.on('display-added', () => {
+    sendPresenterDisplays();
+  });
+
+  screen.on('display-removed', () => {
+    const activeDisplayId = presenterStatus.displayId;
+    sendPresenterDisplays();
+    if (
+      activeDisplayId !== null &&
+      !getExternalDisplays().some((display) => display.id === activeDisplayId)
+    ) {
+      stopPresenterMode();
+    }
+  });
+
+  screen.on('display-metrics-changed', () => {
+    const activeDisplayId = presenterStatus.displayId;
+    sendPresenterDisplays();
+    if (
+      activeDisplayId !== null &&
+      !getExternalDisplays().some((display) => display.id === activeDisplayId)
+    ) {
+      stopPresenterMode();
+    }
+  });
 
   // Initialize connectivity service
   connectivityService = new ConnectivityService();
@@ -208,6 +377,7 @@ app.whenReady().then(async () => {
 
 // Quit when all windows are closed (except on macOS)
 app.on('window-all-closed', async () => {
+  stopPresenterMode();
   // Shutdown plugins
   await pluginLifecycle.shutdown();
 
@@ -217,6 +387,47 @@ app.on('window-all-closed', async () => {
   if (process.platform !== 'darwin') {
     connectivityService?.stopMonitoring();
     app.quit();
+  }
+});
+
+ipcMain.handle('presenter:get-external-displays', () => {
+  return getExternalDisplays();
+});
+
+ipcMain.handle('presenter:get-status', () => {
+  return presenterStatus;
+});
+
+ipcMain.handle('presenter:get-bootstrap-data', () => {
+  return presenterBootstrapData;
+});
+
+ipcMain.handle('presenter:start', async (_, payload: PresenterStartPayload) => {
+  try {
+    await startPresenterMode(payload);
+    return { success: true };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to start presenter mode',
+    };
+  }
+});
+
+ipcMain.handle('presenter:stop', () => {
+  stopPresenterMode();
+});
+
+ipcMain.handle('presenter:set-page', (_event, pageNumber: number) => {
+  if (presenterBootstrapData) {
+    presenterBootstrapData = {
+      ...presenterBootstrapData,
+      pageNumber,
+    };
+  }
+
+  if (presenterWindow && !presenterWindow.isDestroyed()) {
+    presenterWindow.webContents.send('presenter:set-page', pageNumber);
   }
 });
 
