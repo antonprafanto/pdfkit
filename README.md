@@ -9,15 +9,15 @@
 </p>
 
 <p align="center">
+  <a href="https://pdfkit.my.id/" target="_blank">🌐 Official Website</a> •
   <a href="#features">Features</a> •
   <a href="#installation">Installation</a> •
   <a href="#quick-start">Quick Start</a> •
-  <a href="#documentation">Documentation</a> •
-  <a href="#contributing">Contributing</a>
+  <a href="#documentation">Documentation</a>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.1.0-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.0.19-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
   <img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg" alt="Platform">
   <img src="https://img.shields.io/badge/electron-33.x-9feaf9.svg" alt="Electron">
@@ -38,6 +38,15 @@ PDF Kit is a comprehensive, offline-first PDF toolkit built with Electron and Re
 - **🤖 AI-Powered**: Optional AI features for document analysis
 - **🔌 Extensible**: Plugin system for custom functionality
 - **🆓 Open Source**: MIT licensed, free forever
+
+---
+
+## 🚀 What's New in v1.0.19
+
+- **Smart Drag & Drop Merge**: Reorder, merge, and arrange PDF pages easily with intuitive drag-and-drop.
+- **Pro Presentation Mode**: Launch a distraction-free slideshow with automatic external monitor detection (F5).
+- **Brand New Website**: Visit [pdfkit.my.id](https://pdfkit.my.id/) featuring our new Neo Brutalism design!
+- **Portable Version Available**: Use PDF Kit anywhere without installation.
 
 ---
 
@@ -79,11 +88,11 @@ PDF Kit is a comprehensive, offline-first PDF toolkit built with Electron and Re
 
 ### Download
 
-Download the latest release for your platform:
+Download the latest release for your platform (v1.0.19):
 
-- **Windows**: [PDF-Kit-Setup.exe](https://github.com/antonprafanto/pdfkit/releases/download/v1.0.17/PDF.Kit.Setup.1.0.17.exe)
-- **macOS**: coming soon
-- **Linux**: coming soon
+- **Windows (Installer)**: [PDF.Kit.Setup.1.0.19.exe](https://github.com/antonprafanto/pdfkit/releases/download/1.0.19/PDF.Kit.Setup.1.0.19.exe)
+- **Windows (Portable)**: [PDF.Kit.Portable.1.0.19.exe](https://github.com/antonprafanto/pdfkit/releases/download/1.0.19/PDF.Kit.Portable.1.0.19.exe)
+- **macOS / Linux**: Coming soon
 
 ### Build from Source
 
