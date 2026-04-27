@@ -106,18 +106,15 @@
         display: inline-flex;
         align-items: center;
         gap: 10px;
-        padding: 14px 28px;
         background-color: var(--blue);
         color: var(--white);
         font-family: 'Space Grotesk', sans-serif;
         font-weight: 700;
-        font-size: 1rem;
         border: 3px solid var(--black);
         box-shadow: var(--shadow-lg);
         text-decoration: none;
         transition: transform 0.1s ease, box-shadow 0.1s ease;
         cursor: pointer;
-        white-space: nowrap;
       }
       .nb-btn-primary:hover {
         transform: translate(-3px, -3px);
@@ -131,18 +128,15 @@
         display: inline-flex;
         align-items: center;
         gap: 10px;
-        padding: 14px 28px;
         background-color: var(--white);
         color: var(--black);
         font-family: 'Space Grotesk', sans-serif;
         font-weight: 700;
-        font-size: 1rem;
         border: 3px solid var(--black);
         box-shadow: var(--shadow-lg);
         text-decoration: none;
         transition: transform 0.1s ease, box-shadow 0.1s ease;
         cursor: pointer;
-        white-space: nowrap;
       }
       .nb-btn-secondary:hover {
         transform: translate(-3px, -3px);
@@ -307,15 +301,17 @@
         </div>
 
         <!-- CTA Buttons -->
-        <div class="flex flex-wrap gap-4 mb-16" data-aos="fade-up" data-aos-delay="200" data-aos-duration="700">
-          <a href="https://github.com/antonprafanto/pdfkit/releases/download/1.0.19/PDF.Kit.Setup.1.0.19.exe" class="nb-btn-primary" style="font-size: 1.1rem; padding: 16px 32px;">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-            <span data-lang="id">Download Installer</span>
-            <span data-lang="en" class="lang-hidden">Download Installer</span>
-            <span style="opacity:0.8; font-size:0.85rem;">(v1.0.19)</span>
+        <div class="flex flex-col sm:flex-row gap-4 mb-16 w-full max-w-lg sm:max-w-none mx-auto sm:justify-start" data-aos="fade-up" data-aos-delay="200" data-aos-duration="700">
+          <a href="https://github.com/antonprafanto/pdfkit/releases/download/1.0.19/PDF.Kit.Setup.1.0.19.exe" class="nb-btn-primary w-full sm:w-auto justify-center py-4 px-6 sm:py-4 sm:px-8 text-base sm:text-lg">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+            <span class="flex items-center gap-1">
+              <span data-lang="id" class="whitespace-nowrap">Download Installer</span>
+              <span data-lang="en" class="lang-hidden whitespace-nowrap">Download Installer</span>
+              <span style="opacity:0.8; font-size:0.85rem;" class="whitespace-nowrap">(v1.0.19)</span>
+            </span>
           </a>
-          <a href="https://github.com/antonprafanto/pdfkit/releases/download/1.0.19/PDF.Kit.Portable.1.0.19.exe" class="nb-btn-secondary" style="font-size: 1.1rem; padding: 16px 32px;">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+          <a href="https://github.com/antonprafanto/pdfkit/releases/download/1.0.19/PDF.Kit.Portable.1.0.19.exe" class="nb-btn-secondary w-full sm:w-auto justify-center py-4 px-6 sm:py-4 sm:px-8 text-base sm:text-lg whitespace-nowrap">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
             <span data-lang="id">Versi Portable</span>
             <span data-lang="en" class="lang-hidden">Portable Version</span>
           </a>
@@ -324,14 +320,14 @@
         <!-- Hero Mockup Screenshots -->
         <div class="relative w-full" data-aos="fade-up" data-aos-delay="300" data-aos-duration="900">
           <!-- Blue background block behind screenshots -->
-          <div class="absolute -bottom-1 left-0 right-0 h-32" style="background: var(--blue);"></div>
-          <div class="relative flex justify-center items-end gap-4 sm:gap-8">
+          <div class="absolute -bottom-1 left-0 right-0 h-32 sm:h-40" style="background: var(--blue);"></div>
+          <div class="relative flex justify-center items-end gap-2 sm:gap-8 min-h-[220px]">
             <!-- Background screenshot -->
-            <div class="nb-border nb-shadow-xl absolute bottom-0 left-4 sm:left-24 w-[45%] sm:w-[38%]" style="transform: rotate(-4deg); transform-origin: bottom left;">
+            <div class="nb-border nb-shadow-xl absolute bottom-0 left-0 sm:left-24 w-[55%] sm:w-[38%] translate-x-4 sm:translate-x-0" style="transform: rotate(-4deg); transform-origin: bottom left;">
               <img src="assets/img (1).png" alt="PDF Kit Workspace" class="w-full" style="max-height: 340px; object-fit: cover; object-position: top;" />
             </div>
             <!-- Foreground main screenshot -->
-            <div class="nb-border nb-shadow-xl relative z-10 w-[70%] sm:w-[60%]" style="transform: translateY(16px);">
+            <div class="nb-border nb-shadow-xl relative z-10 w-[85%] sm:w-[60%] sm:-translate-x-4 translate-y-3 sm:translate-y-4">
               <img src="assets/image.png" alt="PDF Kit Main View" class="w-full" />
             </div>
           </div>
@@ -452,8 +448,8 @@
                   <span class="nb-tag">+14 Lagi</span>
                 </div>
               </div>
-              <div class="sm:w-[45%] nb-border overflow-hidden flex-shrink-0" style="box-shadow: 5px 5px 0 var(--black);">
-                <img src="assets/img (4).png" alt="PDF Kit Tools Grid" class="w-full h-full object-cover object-top group-hover:scale-[1.04] transition-transform duration-500" />
+              <div class="w-full sm:w-[45%] h-48 sm:h-auto nb-border overflow-hidden flex-shrink-0" style="box-shadow: 5px 5px 0 var(--black);">
+                <img src="assets/img (4).png" alt="PDF Kit Tools Grid" class="w-full h-full object-cover object-top sm:group-hover:scale-[1.04] transition-transform duration-500" />
               </div>
             </div>
           </div>
@@ -559,14 +555,14 @@
           <span data-lang="id">Gratis. Offline. Tanpa batas. Untuk selamanya.</span>
           <span data-lang="en" class="lang-hidden">Free. Offline. Unlimited. Forever.</span>
         </p>
-        <div class="flex flex-wrap justify-center gap-4">
-          <a href="https://github.com/antonprafanto/pdfkit/releases/download/1.0.19/PDF.Kit.Setup.1.0.19.exe" class="nb-btn-primary" style="background: var(--yellow); color: var(--black); font-size: 1.1rem; padding: 18px 36px;">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-            <span data-lang="id">Download PDF Kit (Setup)</span>
-            <span data-lang="en" class="lang-hidden">Download PDF Kit (Setup)</span>
+        <div class="flex flex-col sm:flex-row gap-4 mb-4 w-full max-w-lg sm:max-w-none mx-auto sm:justify-center">
+          <a href="https://github.com/antonprafanto/pdfkit/releases/download/1.0.19/PDF.Kit.Setup.1.0.19.exe" class="nb-btn-primary w-full sm:w-auto justify-center py-4 px-6 sm:py-5 sm:px-10 text-base sm:text-lg" style="background: var(--yellow); color: var(--black);">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+            <span data-lang="id" class="whitespace-nowrap">Download PDF Kit (Setup)</span>
+            <span data-lang="en" class="lang-hidden whitespace-nowrap">Download PDF Kit (Setup)</span>
           </a>
-          <a href="https://github.com/antonprafanto/pdfkit/releases/download/1.0.19/PDF.Kit.Portable.1.0.19.exe" class="nb-btn-secondary" style="font-size: 1.1rem; padding: 18px 36px;">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+          <a href="https://github.com/antonprafanto/pdfkit/releases/download/1.0.19/PDF.Kit.Portable.1.0.19.exe" class="nb-btn-secondary w-full sm:w-auto justify-center py-4 px-6 sm:py-5 sm:px-10 text-base sm:text-lg whitespace-nowrap">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
             <span data-lang="id">Versi Portable</span>
             <span data-lang="en" class="lang-hidden">Portable Version</span>
           </a>
