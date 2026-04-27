@@ -3,34 +3,24 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PDF Kit - Alat PDF Gratis & Offline | Your Complete PDF Toolkit</title>
-    <meta
-      name="description"
-      content="Gabung, Pisah, Kompres, Konversi, dan Tanda Tangani PDF secara offline. Gratis, open-source, dan menjaga privasi. Free, offline, and secure PDF tools for Windows."
-    />
+    <title>PDF Kit - Alat PDF Gratis &amp; Offline | Your Complete PDF Toolkit</title>
+    <meta name="description" content="Gabung, Pisah, Kompres, Konversi, dan Tanda Tangani PDF secara offline. Gratis, open-source, dan menjaga privasi. Free, offline, and secure PDF tools for Windows." />
     <meta name="keywords" content="PDF Tool, PDF Merger, PDF Splitter, OCR, Offline PDF, Open Source, Windows App" />
     <meta name="author" content="Anton Prafanto" />
-
-    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://pdfkit.my.id/" />
-    <meta property="og:title" content="PDF Kit - Alat PDF Gratis & Offline | Your Complete PDF Toolkit" />
-    <meta property="og:description" content="Aplikasi PDF All-in-One: Merge, Split, Compress, OCR, & Sign. 100% Offline & Gratis. Download untuk Windows sekarang!" />
+    <meta property="og:title" content="PDF Kit - Alat PDF Gratis &amp; Offline | Your Complete PDF Toolkit" />
+    <meta property="og:description" content="Aplikasi PDF All-in-One: Merge, Split, Compress, OCR, &amp; Sign. 100% Offline &amp; Gratis." />
     <meta property="og:image" content="https://pdfkit.my.id/assets/icon.png" />
-
-    <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:url" content="https://pdfkit.my.id/" />
-    <meta property="twitter:title" content="PDF Kit - The Ultimate Free & Offline PDF Tool" />
-    <meta property="twitter:description" content="Merge, Split, Compress, Edit, and Sign PDFs without uploading your files anywhere. Keep your sensitive data on your device." />
+    <meta property="twitter:title" content="PDF Kit - The Ultimate Free &amp; Offline PDF Tool" />
     <meta property="twitter:image" content="https://pdfkit.my.id/assets/icon.png" />
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- AOS Animation CSS -->
+    <!-- AOS -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
-
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="assets/icon.png" />
 
@@ -42,19 +32,9 @@
         "name": "PDF Kit",
         "operatingSystem": "Windows 11",
         "applicationCategory": "ProductivityApplication",
-        "offers": {
-          "@type": "Offer",
-          "price": "0",
-          "priceCurrency": "USD"
-        },
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
         "downloadUrl": "https://github.com/antonprafanto/pdfkit/releases/download/1.0.19/PDF.Kit.Setup.1.0.19.exe",
-        "featureList": "Merge PDF, Split PDF, Compress PDF, OCR, Digital Signature, Image to PDF",
-        "screenshot": "https://pdfkit.my.id/assets/icon.png",
-        "author": {
-          "@type": "Person",
-          "name": "Anton Prafanto",
-          "url": "https://github.com/antonprafanto"
-        }
+        "author": { "@type": "Person", "name": "Anton Prafanto", "url": "https://github.com/antonprafanto" }
       }
     </script>
 
@@ -63,335 +43,570 @@
         theme: {
           extend: {
             colors: {
-              brand: {
-                50: '#eef2ff',
-                100: '#e0e7ff',
-                400: '#818cf8',
-                500: '#6366f1',
-                600: '#4f46e5',
-                700: '#4338ca',
-                900: '#312e81',
-              },
+              blue: {
+                brand: '#2563EB',
+                dark: '#1E40AF',
+                light: '#60A5FA',
+                pale: '#DBEAFE',
+              }
             },
             fontFamily: {
-              sans: ['Inter', 'sans-serif'],
+              sans: ['Space Grotesk', 'sans-serif'],
+              mono: ['Space Mono', 'monospace'],
             },
           },
         },
       };
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
     <style>
+      :root {
+        --blue: #2563EB;
+        --blue-dark: #1E40AF;
+        --blue-light: #60A5FA;
+        --blue-pale: #DBEAFE;
+        --yellow: #FDE047;
+        --black: #0A0A0A;
+        --white: #FAFAFA;
+        --shadow: 4px 4px 0px #0A0A0A;
+        --shadow-lg: 6px 6px 0px #0A0A0A;
+        --shadow-xl: 8px 8px 0px #0A0A0A;
+      }
+
+      * { box-sizing: border-box; }
+
       body {
-        font-family: 'Inter', sans-serif;
+        font-family: 'Space Grotesk', sans-serif;
+        background-color: var(--white);
+        color: var(--black);
       }
-      .glass-nav {
-        background: rgba(15, 23, 42, 0.7);
-        backdrop-filter: blur(16px);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+      .lang-hidden { display: none !important; }
+
+      /* ==== NEO BRUTALISM COMPONENTS ==== */
+      .nb-border {
+        border: 3px solid var(--black);
       }
-      .glass-card {
-        background: rgba(30, 41, 59, 0.4);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.05);
+      .nb-shadow {
+        box-shadow: var(--shadow);
       }
-      .lang-hidden {
-        display: none !important;
+      .nb-shadow-lg {
+        box-shadow: var(--shadow-lg);
       }
-      @keyframes float {
-        0% { transform: translateY(0px); }
-        50% { transform: translateY(-10px); }
-        100% { transform: translateY(0px); }
+      .nb-shadow-xl {
+        box-shadow: var(--shadow-xl);
       }
-      .animate-float {
-        animation: float 6s ease-in-out infinite;
+      .nb-btn-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 28px;
+        background-color: var(--blue);
+        color: var(--white);
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 700;
+        font-size: 1rem;
+        border: 3px solid var(--black);
+        box-shadow: var(--shadow-lg);
+        text-decoration: none;
+        transition: transform 0.1s ease, box-shadow 0.1s ease;
+        cursor: pointer;
+        white-space: nowrap;
       }
-      .animate-float-delayed {
-        animation: float 6s ease-in-out 3s infinite;
+      .nb-btn-primary:hover {
+        transform: translate(-3px, -3px);
+        box-shadow: 9px 9px 0px var(--black);
       }
+      .nb-btn-primary:active {
+        transform: translate(2px, 2px);
+        box-shadow: 2px 2px 0px var(--black);
+      }
+      .nb-btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 28px;
+        background-color: var(--white);
+        color: var(--black);
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 700;
+        font-size: 1rem;
+        border: 3px solid var(--black);
+        box-shadow: var(--shadow-lg);
+        text-decoration: none;
+        transition: transform 0.1s ease, box-shadow 0.1s ease;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .nb-btn-secondary:hover {
+        transform: translate(-3px, -3px);
+        box-shadow: 9px 9px 0px var(--black);
+        background-color: var(--blue-pale);
+      }
+      .nb-card {
+        border: 3px solid var(--black);
+        box-shadow: var(--shadow-lg);
+        background-color: var(--white);
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+      }
+      .nb-card:hover {
+        transform: translate(-4px, -4px);
+        box-shadow: 10px 10px 0px var(--black);
+      }
+      .nb-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        font-family: 'Space Mono', monospace;
+        font-size: 0.75rem;
+        font-weight: 700;
+        border: 2px solid var(--black);
+        background-color: var(--yellow);
+        color: var(--black);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .nb-tag {
+        display: inline-block;
+        padding: 3px 10px;
+        font-family: 'Space Mono', monospace;
+        font-size: 0.7rem;
+        font-weight: 700;
+        border: 2px solid var(--black);
+        background-color: var(--blue-pale);
+        color: var(--blue-dark);
+        text-transform: uppercase;
+      }
+      .nb-stripe {
+        background: repeating-linear-gradient(
+          -45deg,
+          var(--blue-pale),
+          var(--blue-pale) 6px,
+          transparent 6px,
+          transparent 22px
+        );
+      }
+      .nb-nav {
+        background: var(--white);
+        border-bottom: 3px solid var(--black);
+      }
+      .nb-heading {
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 800;
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+      }
+
+      .hero-dot-grid {
+        background-image: radial-gradient(var(--blue-light) 1.5px, transparent 1.5px);
+        background-size: 28px 28px;
+      }
+
+      /* Marquee scroll */
+      @keyframes marquee {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+      }
+      .marquee-track {
+        animation: marquee 20s linear infinite;
+        white-space: nowrap;
+        display: inline-flex;
+      }
+
+      /* Card icon bounce */
+      @keyframes wiggle {
+        0%, 100% { transform: rotate(-3deg); }
+        50% { transform: rotate(3deg); }
+      }
+      .group:hover .icon-wiggle {
+        animation: wiggle 0.4s ease infinite;
+      }
+
+      img { display: block; }
     </style>
   </head>
-  <body class="bg-slate-950 text-slate-100 antialiased overflow-x-hidden selection:bg-brand-500 selection:text-white">
-    
-    <!-- Background Gradient Mesh -->
-    <div class="fixed inset-0 w-full h-full z-0 pointer-events-none overflow-hidden">
-      <div class="absolute -top-[10%] left-[20%] w-[40rem] h-[40rem] bg-indigo-600/20 rounded-full blur-[120px] mix-blend-screen"></div>
-      <div class="absolute top-[20%] right-[10%] w-[35rem] h-[35rem] bg-fuchsia-600/20 rounded-full blur-[100px] mix-blend-screen"></div>
-      <div class="absolute -bottom-[10%] left-[40%] w-[50rem] h-[50rem] bg-blue-600/10 rounded-full blur-[150px] mix-blend-screen"></div>
-    </div>
 
-    <!-- Navigation -->
-    <nav class="fixed w-full z-50 glass-nav transition-all duration-300" data-aos="fade-down" data-aos-duration="800">
+  <body class="overflow-x-hidden">
+
+    <!-- ========== NAVBAR ========== -->
+    <nav class="fixed top-0 left-0 right-0 z-50 nb-nav" data-aos="fade-down" data-aos-duration="600">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
-          <div class="flex items-center space-x-3">
-            <img src="assets/icon.png" alt="PDF Kit Logo" class="h-10 w-10 hover:rotate-12 transition-transform duration-300 drop-shadow-md" />
-            <span class="font-bold text-xl tracking-tight text-white">PDF Kit</span>
+        <div class="flex justify-between items-center h-[68px]">
+          <!-- Logo -->
+          <a href="#" class="flex items-center gap-3">
+            <img src="assets/icon.png" alt="PDF Kit Logo" class="h-10 w-10" />
+            <span class="nb-heading text-xl" style="color: var(--black);">PDF Kit</span>
+          </a>
+
+          <!-- Nav Links (desktop) -->
+          <div class="hidden md:flex items-center gap-8">
+            <a href="#features" class="font-bold text-sm uppercase tracking-wider hover:text-blue-600 transition-colors" data-lang="id">Fitur</a>
+            <a href="#features" class="font-bold text-sm uppercase tracking-wider hover:text-blue-600 transition-colors lang-hidden" data-lang="en">Features</a>
+            <a href="#privacy" class="font-bold text-sm uppercase tracking-wider hover:text-blue-600 transition-colors" data-lang="id">Privasi</a>
+            <a href="#privacy" class="font-bold text-sm uppercase tracking-wider hover:text-blue-600 transition-colors lang-hidden" data-lang="en">Privacy</a>
           </div>
-          <div class="flex items-center space-x-8">
-            <div class="hidden md:flex space-x-8">
-              <a href="#features" class="text-slate-300 hover:text-white transition-colors font-medium relative group" data-lang="id">
-                Fitur Terbaru
-                <span class="absolute bottom-0 left-0 w-full h-0.5 bg-brand-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
-              </a>
-              <a href="#features" class="text-slate-300 hover:text-white transition-colors font-medium lang-hidden relative group" data-lang="en">
-                Features
-                <span class="absolute bottom-0 left-0 w-full h-0.5 bg-brand-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
-              </a>
 
-              <a href="#privacy" class="text-slate-300 hover:text-white transition-colors font-medium relative group" data-lang="id">
-                Privasi
-                <span class="absolute bottom-0 left-0 w-full h-0.5 bg-brand-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
-              </a>
-              <a href="#privacy" class="text-slate-300 hover:text-white transition-colors font-medium lang-hidden relative group" data-lang="en">
-                Privacy
-                <span class="absolute bottom-0 left-0 w-full h-0.5 bg-brand-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
-              </a>
-            </div>
-
+          <!-- Right side -->
+          <div class="flex items-center gap-3">
             <!-- Language Toggle -->
-            <div class="flex items-center bg-slate-800 rounded-full p-1 border border-slate-700 shadow-inner">
-              <button onclick="setLang('id')" id="btn-id" class="px-3 py-1 rounded-full text-xs font-bold transition-all bg-brand-500 text-white shadow-sm">ID</button>
-              <button onclick="setLang('en')" id="btn-en" class="px-3 py-1 rounded-full text-xs font-bold transition-all text-slate-400 hover:text-white">EN</button>
+            <div class="flex nb-border overflow-hidden">
+              <button onclick="setLang('id')" id="btn-id" class="px-3 py-1.5 text-xs font-bold uppercase font-mono transition-colors" style="background: var(--blue); color: white;">ID</button>
+              <button onclick="setLang('en')" id="btn-en" class="px-3 py-1.5 text-xs font-bold uppercase font-mono transition-colors" style="background: var(--white); color: var(--black);">EN</button>
             </div>
-
-            <a href="https://github.com/antonprafanto/pdfkit" target="_blank" class="text-slate-400 hover:text-white transition-colors hidden md:block" aria-label="GitHub">
-              <svg class="h-6 w-6 transform hover:scale-110 transition-transform duration-200" fill="currentColor" viewBox="0 0 24 24">
-                <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.943 0-1.091.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.597 1.028 2.688 0 3.848-2.339 4.687-4.566 4.935.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"></path>
-              </svg>
+            <!-- GitHub -->
+            <a href="https://github.com/antonprafanto/pdfkit" target="_blank" class="nb-btn-secondary py-2 px-3 hidden md:inline-flex" style="font-size: 0.8rem;">
+              <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.943 0-1.091.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.597 1.028 2.688 0 3.848-2.339 4.687-4.566 4.935.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"></path></svg>
+              GitHub
             </a>
           </div>
         </div>
       </div>
     </nav>
 
-    <!-- Hero Section -->
-    <div class="relative pt-32 pb-20 sm:pt-40 sm:pb-28 overflow-hidden z-10">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <!-- Indonesian Hero -->
-        <div data-lang="id" data-aos="zoom-in-up" data-aos-duration="1000">
-          <div class="inline-flex items-center px-4 py-2 rounded-full border border-brand-500/30 bg-brand-500/10 text-brand-300 mb-6 backdrop-blur-md">
-            <span class="flex h-2 w-2 relative mr-3">
-              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
-              <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
-            </span>
-            <span class="text-sm font-semibold tracking-wide">Rilis Baru: v1.0.19</span>
-          </div>
-          <h1 class="text-5xl sm:text-7xl font-extrabold tracking-tight mb-6 text-white drop-shadow-sm">
-            Toolkit <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">PDF Terlengkap</span> Anda.
+    <!-- ========== HERO ========== -->
+    <section class="relative pt-24 pb-0 overflow-hidden" style="background-color: var(--blue-pale);">
+      <!-- Dot grid background -->
+      <div class="absolute inset-0 hero-dot-grid opacity-50 pointer-events-none"></div>
+
+      <!-- Top label -->
+      <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
+        <div class="flex flex-wrap gap-3 mb-6" data-aos="fade-up" data-aos-duration="500">
+          <span class="nb-badge">🚀 v1.0.19 — Baru Rilis!</span>
+          <span class="nb-tag">✓ 100% OFFLINE</span>
+          <span class="nb-tag">✓ OPEN SOURCE</span>
+          <span class="nb-tag">✓ WINDOWS 11</span>
+        </div>
+
+        <!-- ID Heading -->
+        <div data-lang="id" data-aos="fade-up" data-aos-delay="100" data-aos-duration="700">
+          <h1 class="nb-heading text-5xl sm:text-7xl lg:text-8xl mb-6">
+            Toolkit PDF<br/>
+            <span style="color: var(--blue); -webkit-text-stroke: 2px var(--black);">Terlengkap</span><br/>
+            untuk Windows.
           </h1>
-          <p class="mt-6 text-xl text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed">
-            Gabungkan, Pisah, Kompres, Edit, dan Tanda Tangani PDF.  
-            <strong class="text-white font-semibold">100% Offline. Gratis. Menjaga Privasi.</strong>
+          <p class="text-xl sm:text-2xl font-medium max-w-2xl mb-10 leading-relaxed" style="color: #374151;">
+            Gabungkan, Pisah, Kompres, Edit, dan Tanda Tangani PDF — semua <strong>tanpa internet</strong>, tanpa batas, tanpa biaya.
           </p>
         </div>
 
-        <!-- English Hero -->
-        <div data-lang="en" class="lang-hidden" data-aos="zoom-in-up" data-aos-duration="1000">
-          <div class="inline-flex items-center px-4 py-2 rounded-full border border-brand-500/30 bg-brand-500/10 text-brand-300 mb-6 backdrop-blur-md">
-            <span class="flex h-2 w-2 relative mr-3">
-              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
-              <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
-            </span>
-            <span class="text-sm font-semibold tracking-wide">New Release: v1.0.19</span>
-          </div>
-          <h1 class="text-5xl sm:text-7xl font-extrabold tracking-tight mb-6 text-white drop-shadow-sm">
-            Your Complete <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">PDF Toolkit</span>.
+        <!-- EN Heading -->
+        <div data-lang="en" class="lang-hidden" data-aos="fade-up" data-aos-delay="100" data-aos-duration="700">
+          <h1 class="nb-heading text-5xl sm:text-7xl lg:text-8xl mb-6">
+            The Most Complete<br/>
+            <span style="color: var(--blue); -webkit-text-stroke: 2px var(--black);">PDF Toolkit</span><br/>
+            for Windows.
           </h1>
-          <p class="mt-6 text-xl text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed">
-            Merge, Split, Compress, Edit, and Sign PDFs.  
-            <strong class="text-white font-semibold">100% Offline. Free. Privacy-focused.</strong>
+          <p class="text-xl sm:text-2xl font-medium max-w-2xl mb-10 leading-relaxed" style="color: #374151;">
+            Merge, Split, Compress, Edit, and Sign PDFs — all <strong>without internet</strong>, without limits, without cost.
           </p>
         </div>
 
-        <div class="flex flex-col sm:flex-row justify-center items-center gap-5" data-aos="fade-up" data-aos-delay="200" data-aos-duration="1000">
-          <a href="https://github.com/antonprafanto/pdfkit/releases/download/1.0.19/PDF.Kit.Setup.1.0.19.exe" class="group relative inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-white transition-all duration-200 bg-brand-600 border border-transparent rounded-full overflow-hidden hover:bg-brand-500 hover:-translate-y-1 hover:shadow-[0_0_40px_rgba(99,102,241,0.5)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-600 focus:ring-offset-slate-900">
-            <svg class="w-5 h-5 mr-3 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-            <span data-lang="id">Download untuk Windows</span>
-            <span data-lang="en" class="lang-hidden">Download for Windows</span>
-            <span class="ml-2 text-brand-200 text-sm font-medium opacity-80">(v1.0.19)</span>
+        <!-- CTA Buttons -->
+        <div class="flex flex-wrap gap-4 mb-16" data-aos="fade-up" data-aos-delay="200" data-aos-duration="700">
+          <a href="https://github.com/antonprafanto/pdfkit/releases/download/1.0.19/PDF.Kit.Setup.1.0.19.exe" class="nb-btn-primary" style="font-size: 1.1rem; padding: 16px 32px;">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+            <span data-lang="id">Download Installer</span>
+            <span data-lang="en" class="lang-hidden">Download Installer</span>
+            <span style="opacity:0.8; font-size:0.85rem;">(v1.0.19)</span>
           </a>
-          <a href="https://github.com/antonprafanto/pdfkit/releases/download/1.0.19/PDF.Kit.Portable.1.0.19.exe" class="inline-flex items-center px-8 py-4 text-lg font-medium rounded-full text-slate-300 bg-slate-800/80 border border-slate-700 hover:bg-slate-800 hover:text-white hover:-translate-y-1 hover:border-slate-600 transition-all duration-200 backdrop-blur-md">
-            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+          <a href="https://github.com/antonprafanto/pdfkit/releases/download/1.0.19/PDF.Kit.Portable.1.0.19.exe" class="nb-btn-secondary" style="font-size: 1.1rem; padding: 16px 32px;">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
             <span data-lang="id">Versi Portable</span>
             <span data-lang="en" class="lang-hidden">Portable Version</span>
           </a>
         </div>
-        <p class="mt-6 text-sm text-slate-400 font-medium tracking-wide" data-aos="fade-up" data-aos-delay="300">
-          <span data-lang="id">Gratis & Open Source • Membutuhkan Windows 11</span>
-          <span data-lang="en" class="lang-hidden">Free & Open Source • Requires Windows 11</span>
-        </p>
 
-        <!-- Overlapping Images Showcase -->
-        <div class="mt-20 relative mx-auto max-w-6xl h-64 sm:h-[500px]" data-aos="zoom-in" data-aos-delay="400" data-aos-duration="1200">
-          <div class="absolute inset-0 flex justify-center items-center">
-            <!-- Background Image -->
-            <img src="assets/img (1).png" alt="PDF Kit Main Workspace" class="absolute w-[80%] rounded-xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] opacity-60 scale-95 -translate-y-6 animate-float-delayed" />
-            <!-- Foreground Image -->
-            <img src="assets/image.png" alt="PDF Kit Editor View" class="absolute w-[85%] rounded-xl border border-white/20 shadow-[0_0_60px_rgba(99,102,241,0.3)] animate-float" />
+        <!-- Hero Mockup Screenshots -->
+        <div class="relative w-full" data-aos="fade-up" data-aos-delay="300" data-aos-duration="900">
+          <!-- Blue background block behind screenshots -->
+          <div class="absolute -bottom-1 left-0 right-0 h-32" style="background: var(--blue);"></div>
+          <div class="relative flex justify-center items-end gap-4 sm:gap-8">
+            <!-- Background screenshot -->
+            <div class="nb-border nb-shadow-xl absolute bottom-0 left-4 sm:left-24 w-[45%] sm:w-[38%]" style="transform: rotate(-4deg); transform-origin: bottom left;">
+              <img src="assets/img (1).png" alt="PDF Kit Workspace" class="w-full" style="max-height: 340px; object-fit: cover; object-position: top;" />
+            </div>
+            <!-- Foreground main screenshot -->
+            <div class="nb-border nb-shadow-xl relative z-10 w-[70%] sm:w-[60%]" style="transform: translateY(16px);">
+              <img src="assets/image.png" alt="PDF Kit Main View" class="w-full" />
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Bento Grid Features Section -->
-    <div id="features" class="py-24 relative z-10">
+      <!-- Blue bottom section -->
+      <div class="w-full py-6" style="background: var(--blue); border-top: 3px solid var(--black);">
+        <!-- Marquee ticker -->
+        <div class="overflow-hidden">
+          <div class="marquee-track">
+            <span class="text-white font-mono font-bold text-sm uppercase px-8" style="opacity:0.9;">✦ MERGE PDF &nbsp;&nbsp;&nbsp;&nbsp; ✦ SPLIT PDF &nbsp;&nbsp;&nbsp;&nbsp; ✦ COMPRESS PDF &nbsp;&nbsp;&nbsp;&nbsp; ✦ OCR &nbsp;&nbsp;&nbsp;&nbsp; ✦ DIGITAL SIGNATURE &nbsp;&nbsp;&nbsp;&nbsp; ✦ PDF TO WORD &nbsp;&nbsp;&nbsp;&nbsp; ✦ PRESENTATION MODE &nbsp;&nbsp;&nbsp;&nbsp; ✦ DRAG &amp; DROP &nbsp;&nbsp;&nbsp;&nbsp; ✦ OFFLINE &amp; FREE &nbsp;&nbsp;&nbsp;&nbsp; ✦ OPEN SOURCE &nbsp;&nbsp;&nbsp;&nbsp;</span>
+            <span class="text-white font-mono font-bold text-sm uppercase px-8" style="opacity:0.9;" aria-hidden="true">✦ MERGE PDF &nbsp;&nbsp;&nbsp;&nbsp; ✦ SPLIT PDF &nbsp;&nbsp;&nbsp;&nbsp; ✦ COMPRESS PDF &nbsp;&nbsp;&nbsp;&nbsp; ✦ OCR &nbsp;&nbsp;&nbsp;&nbsp; ✦ DIGITAL SIGNATURE &nbsp;&nbsp;&nbsp;&nbsp; ✦ PDF TO WORD &nbsp;&nbsp;&nbsp;&nbsp; ✦ PRESENTATION MODE &nbsp;&nbsp;&nbsp;&nbsp; ✦ DRAG &amp; DROP &nbsp;&nbsp;&nbsp;&nbsp; ✦ OFFLINE &amp; FREE &nbsp;&nbsp;&nbsp;&nbsp; ✦ OPEN SOURCE &nbsp;&nbsp;&nbsp;&nbsp;</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== FEATURES BENTO GRID ========== -->
+    <section id="features" class="py-20" style="background: var(--white);">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="mb-16 text-center" data-aos="fade-up">
-          <h2 class="text-3xl font-extrabold tracking-tight sm:text-5xl mb-4 text-white">
-            <span data-lang="id">Lakukan Segalanya dengan PDF.</span>
-            <span data-lang="en" class="lang-hidden">Do everything with PDFs.</span>
-          </h2>
-          <p class="text-xl text-slate-400 max-w-3xl mx-auto">
-            <span data-lang="id">Desain antarmuka baru dengan fitur kelas pro. Selalu offline. Selalu aman.</span>
-            <span data-lang="en" class="lang-hidden">Redesigned interface with pro-grade features. Always offline. Always secure.</span>
+
+        <!-- Section header -->
+        <div class="mb-14" data-aos="fade-up">
+          <p class="nb-badge mb-4">
+            <span data-lang="id">✦ Apa yang Baru — v1.0.19</span>
+            <span data-lang="en" class="lang-hidden">✦ What's New — v1.0.19</span>
           </p>
+          <h2 class="nb-heading text-4xl sm:text-6xl">
+            <span data-lang="id">Lakukan Segalanya<br/>dengan PDF.</span>
+            <span data-lang="en" class="lang-hidden">Do Everything<br/>with PDFs.</span>
+          </h2>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 auto-rows-[minmax(300px,auto)]">
-          
-          <!-- Bento Item 1: Large Visual (Merge/Edit) -->
-          <div class="md:col-span-8 glass-card rounded-3xl p-8 hover:bg-slate-800/60 transition-colors group relative overflow-hidden" data-aos="fade-up" data-aos-delay="100">
-            <div class="absolute inset-0 bg-gradient-to-br from-brand-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <div class="relative z-10 flex flex-col h-full justify-between">
-              <div>
-                <h3 class="text-2xl font-bold text-white mb-2">
-                  <span data-lang="id">Drag & Drop Merge Cerdas</span>
-                  <span data-lang="en" class="lang-hidden">Smart Drag & Drop Merge</span>
+        <!-- Bento Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-5 auto-rows-[minmax(280px,auto)]">
+
+          <!-- CARD 1 — Large: Drag & Drop Merge (col 8) -->
+          <div class="md:col-span-8 nb-card group overflow-hidden" data-aos="fade-up" data-aos-delay="100">
+            <div class="p-8 flex flex-col h-full">
+              <div class="flex-1">
+                <div class="nb-badge mb-4" style="background: var(--blue); color: white; border-color: var(--black);">NEW IN v1.0.19</div>
+                <h3 class="nb-heading text-3xl mb-3">
+                  <span data-lang="id">Drag &amp; Drop Merge Cerdas</span>
+                  <span data-lang="en" class="lang-hidden">Smart Drag &amp; Drop Merge</span>
                 </h3>
-                <p class="text-slate-300 text-lg max-w-lg mb-6">
-                  <span data-lang="id">Susun ulang urutan halaman dan gabungkan banyak file PDF semudah memindahkan ikon di desktop Anda.</span>
-                  <span data-lang="en" class="lang-hidden">Reorder pages and merge multiple PDF files as easily as moving icons on your desktop.</span>
+                <p class="text-lg font-medium mb-6" style="color: #4B5563;">
+                  <span data-lang="id">Susun ulang, gabung, dan atur halaman PDF semudah seret-dan-lepas. Tidak perlu teknik khusus.</span>
+                  <span data-lang="en" class="lang-hidden">Reorder, merge, and arrange PDF pages as easy as drag-and-drop. No special technique needed.</span>
                 </p>
               </div>
-              <img src="assets/img (3).png" alt="Drag and drop merge interface" class="rounded-xl border border-white/10 shadow-2xl mt-4 group-hover:scale-[1.02] transform transition duration-500 origin-bottom" />
+              <div class="nb-border overflow-hidden" style="box-shadow: 5px 5px 0 var(--black);">
+                <img src="assets/img (3).png" alt="Drag and Drop Merge" class="w-full object-cover group-hover:scale-[1.03] transition-transform duration-500 origin-center" style="max-height: 250px; object-position: top;" />
+              </div>
             </div>
           </div>
 
-          <!-- Bento Item 2: Small Text (Presentation Mode) -->
-          <div class="md:col-span-4 glass-card rounded-3xl p-8 hover:bg-slate-800/60 transition-colors group relative overflow-hidden flex flex-col justify-between" data-aos="fade-up" data-aos-delay="200">
-            <div class="absolute inset-0 bg-gradient-to-tl from-purple-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <div class="relative z-10">
-              <div class="w-14 h-14 bg-purple-500/20 rounded-2xl flex items-center justify-center text-purple-400 mb-6 border border-purple-500/30">
-                <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
-              </div>
-              <h3 class="text-2xl font-bold text-white mb-3">
+          <!-- CARD 2 — Small: Presentation Mode (col 4) -->
+          <div class="md:col-span-4 nb-card group overflow-hidden" style="background: var(--blue);" data-aos="fade-up" data-aos-delay="200">
+            <div class="p-8 flex flex-col h-full" style="border-color: var(--black);">
+              <div class="nb-badge mb-4" style="background: var(--yellow); color: var(--black); border-color: var(--black);">NEW IN v1.0.19</div>
+              <h3 class="nb-heading text-3xl mb-3 text-white">
                 <span data-lang="id">Mode Presentasi Pro</span>
                 <span data-lang="en" class="lang-hidden">Pro Presentation Mode</span>
               </h3>
-              <p class="text-slate-300 text-lg mb-6">
-                <span data-lang="id">Pukau penonton dengan slideshow bebas gangguan. Eksternal monitor terdeteksi otomatis untuk presentasi tingkat lanjut.</span>
-                <span data-lang="en" class="lang-hidden">Awe your audience with a distraction-free slideshow. External monitors automatically detected for advanced presenting.</span>
+              <p class="text-lg font-medium mb-6" style="color: #BFDBFE;">
+                <span data-lang="id">Slideshow bebas gangguan. Sinkronisasi monitor eksternal otomatis (F5).</span>
+                <span data-lang="en" class="lang-hidden">Distraction-free slideshow. Auto external monitor sync (F5).</span>
               </p>
-              
-              <!-- Embedded Images -->
-              <div class="relative h-32 w-full mt-4 flex justify-center items-center group-hover:scale-[1.03] transition-transform duration-500">
-                <img src="assets/image copy 2.png" alt="Presentation Mode Background" class="absolute w-[80%] rounded-lg border border-white/20 shadow-xl transform -translate-x-4 rotate-[-6deg] opacity-80 group-hover:-translate-x-6 group-hover:rotate-[-8deg] transition-transform duration-500" />
-                <img src="assets/image copy.png" alt="Presentation Mode UI" class="absolute w-[85%] rounded-lg border border-white/30 shadow-2xl z-10 transform translate-x-2 rotate-[2deg] group-hover:translate-x-4 group-hover:rotate-[4deg] transition-transform duration-500" />
+              <!-- Stacked images -->
+              <div class="relative h-40 flex-1">
+                <div class="absolute bottom-0 left-0 right-0" style="transform: rotate(-4deg);">
+                  <img src="assets/image copy 2.png" alt="Presentation Mode Screenshot 2" class="w-full nb-border" style="border-color: white; max-height: 120px; object-fit: cover; object-position: top;" />
+                </div>
+                <div class="absolute bottom-4 left-4 right-4 z-10" style="transform: rotate(2deg);">
+                  <img src="assets/image copy.png" alt="Presentation Mode Screenshot 1" class="w-full nb-border" style="border-color: white; max-height: 120px; object-fit: cover; object-position: top; box-shadow: 4px 4px 0 rgba(0,0,0,0.5);" />
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- Bento Item 3: Small Text (Fast & Secure) -->
-          <div class="md:col-span-4 glass-card rounded-3xl p-8 hover:bg-slate-800/60 transition-colors group relative overflow-hidden flex flex-col justify-center" data-aos="fade-up" data-aos-delay="300">
-            <div class="absolute inset-0 bg-gradient-to-br from-green-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <div class="relative z-10">
-              <div class="w-14 h-14 bg-green-500/20 rounded-2xl flex items-center justify-center text-green-400 mb-6 border border-green-500/30">
-                <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-              </div>
-              <h3 class="text-2xl font-bold text-white mb-3">
-                <span data-lang="id">100% Bebas Internet</span>
-                <span data-lang="en" class="lang-hidden">100% Internet-Free</span>
+          <!-- CARD 3 — Small: 100% Offline (col 4) -->
+          <div class="md:col-span-4 nb-card group overflow-hidden" style="background: var(--yellow);" data-aos="fade-up" data-aos-delay="300">
+            <div class="p-8 flex flex-col h-full">
+              <span class="icon-wiggle text-5xl mb-6 block">🔒</span>
+              <h3 class="nb-heading text-3xl mb-3">
+                <span data-lang="id">100% Bebas<br/>Internet</span>
+                <span data-lang="en" class="lang-hidden">100% Internet<br/>Free</span>
               </h3>
-              <p class="text-slate-300 text-lg">
-                <span data-lang="id">Jangan pernah mengambil resiko membocorkan dokumen kantor/negara. PDF Kit berjalan selamanya secara lokal.</span>
-                <span data-lang="en" class="lang-hidden">Never risk leaking confidential or government documents. PDF Kit runs entirely and forever locally.</span>
+              <p class="text-lg font-medium" style="color: #374151;">
+                <span data-lang="id">Data sensitif Anda tidak pernah meninggalkan perangkat. PDF Kit berjalan 100% secara lokal, selamanya.</span>
+                <span data-lang="en" class="lang-hidden">Your sensitive data never leaves your device. PDF Kit runs 100% locally, forever.</span>
               </p>
             </div>
           </div>
 
-          <!-- Bento Item 4: Large Visual (Settings/Tools Viewer) -->
-          <div class="md:col-span-8 glass-card rounded-3xl p-8 hover:bg-slate-800/60 transition-colors group relative overflow-hidden" data-aos="fade-up" data-aos-delay="400">
-            <div class="absolute inset-0 bg-gradient-to-tr from-cyan-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <div class="relative z-10 flex justify-between items-center h-full gap-8">
+          <!-- CARD 4 — Large: Tool Management (col 8) -->
+          <div class="md:col-span-8 nb-card group overflow-hidden" data-aos="fade-up" data-aos-delay="400">
+            <div class="p-8 flex flex-col sm:flex-row h-full gap-6">
               <div class="flex-1">
-                <h3 class="text-2xl font-bold text-white mb-2">
-                  <span data-lang="id">Manajemen Alat Komprehensif</span>
-                  <span data-lang="en" class="lang-hidden">Comprehensive Tool Management</span>
+                <h3 class="nb-heading text-3xl mb-3">
+                  <span data-lang="id">21+ Alat PDF<br/>dalam Satu Tempat</span>
+                  <span data-lang="en" class="lang-hidden">21+ PDF Tools<br/>in One Place</span>
                 </h3>
-                <p class="text-slate-300 text-lg mt-3">
-                  <span data-lang="id">Akses 21+ alat PDF premium — Konversi ke Office, Tanda Tangan Digital, hingga Ekstraksi OCR. Semuanya dapat dikelola dalam satu grid alat yang rapi.</span>
-                  <span data-lang="en" class="lang-hidden">Access 21+ premium PDF tools — Office Conversion, Digital Signatures, to OCR Extraction. All manageable in one clean tool grid.</span>
+                <p class="text-lg font-medium mb-4" style="color: #4B5563;">
+                  <span data-lang="id">Dari Merge, Split, Compress, OCR, hingga Konversi Office dan Tanda Tangan Digital. Semua tersedia.</span>
+                  <span data-lang="en" class="lang-hidden">From Merge, Split, Compress, OCR, to Office Conversion and Digital Signature. All available.</span>
+                </p>
+                <!-- Tool tags -->
+                <div class="flex flex-wrap gap-2 mt-4">
+                  <span class="nb-tag">Merge</span>
+                  <span class="nb-tag">Split</span>
+                  <span class="nb-tag">Compress</span>
+                  <span class="nb-tag">Sign</span>
+                  <span class="nb-tag">OCR</span>
+                  <span class="nb-tag">PDF→Word</span>
+                  <span class="nb-tag">Image→PDF</span>
+                  <span class="nb-tag">+14 Lagi</span>
+                </div>
+              </div>
+              <div class="sm:w-[45%] nb-border overflow-hidden flex-shrink-0" style="box-shadow: 5px 5px 0 var(--black);">
+                <img src="assets/img (4).png" alt="PDF Kit Tools Grid" class="w-full h-full object-cover object-top group-hover:scale-[1.04] transition-transform duration-500" />
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== STATS BAR ========== -->
+    <section class="border-y-4" style="border-color: var(--black); background: var(--blue);">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-0">
+          <div class="text-center py-4 md:border-r-2" style="border-color: rgba(255,255,255,0.3);">
+            <p class="nb-heading text-4xl sm:text-5xl text-white mb-1">21+</p>
+            <p class="text-sm font-mono font-bold uppercase text-blue-200"><span data-lang="id">Alat PDF</span><span data-lang="en" class="lang-hidden">PDF Tools</span></p>
+          </div>
+          <div class="text-center py-4 md:border-r-2" style="border-color: rgba(255,255,255,0.3);">
+            <p class="nb-heading text-4xl sm:text-5xl text-white mb-1">0</p>
+            <p class="text-sm font-mono font-bold uppercase text-blue-200"><span data-lang="id">Upload ke Server</span><span data-lang="en" class="lang-hidden">Server Uploads</span></p>
+          </div>
+          <div class="text-center py-4 md:border-r-2" style="border-color: rgba(255,255,255,0.3);">
+            <p class="nb-heading text-4xl sm:text-5xl text-white mb-1">100%</p>
+            <p class="text-sm font-mono font-bold uppercase text-blue-200">Offline &amp; Gratis</p>
+          </div>
+          <div class="text-center py-4">
+            <p class="nb-heading text-4xl sm:text-5xl text-white mb-1">v1.0.19</p>
+            <p class="text-sm font-mono font-bold uppercase text-blue-200"><span data-lang="id">Versi Terbaru</span><span data-lang="en" class="lang-hidden">Latest Version</span></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== PRIVACY SECTION ========== -->
+    <section id="privacy" class="py-20" style="background: var(--white);">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid md:grid-cols-2 gap-12 items-center">
+          <!-- Left: Text -->
+          <div data-aos="fade-right" data-aos-duration="800">
+            <span class="nb-badge mb-6 block w-fit">
+              <span data-lang="id">🔐 Privasi Anda Terlindungi</span>
+              <span data-lang="en" class="lang-hidden">🔐 Your Privacy Protected</span>
+            </span>
+            <h2 class="nb-heading text-4xl sm:text-5xl mb-6">
+              <span data-lang="id">Data Anda Tetap<br/><span style="color: var(--blue);">Milik Anda.</span></span>
+              <span data-lang="en" class="lang-hidden">Your Data Stays<br/><span style="color: var(--blue);">Yours.</span></span>
+            </h2>
+            <p class="text-xl font-medium mb-8" style="color: #4B5563;">
+              <span data-lang="id">Tidak seperti alat online yang mengharuskan Anda mengunggah dokumen rahasia ke server mereka, PDF Kit berjalan sepenuhnya di mesin Windows <strong>lokal</strong> Anda.</span>
+              <span data-lang="en" class="lang-hidden">Unlike online tools that require uploading confidential documents to their servers, PDF Kit runs entirely on your <strong>local</strong> Windows machine.</span>
+            </p>
+            <ul class="space-y-4">
+              <li class="flex items-center gap-3">
+                <span class="nb-border text-center font-bold font-mono w-8 h-8 flex items-center justify-center shrink-0" style="background: var(--blue); color: white; font-size:14px;">✓</span>
+                <span class="font-semibold text-lg"><span data-lang="id">Tidak ada batas ukuran file</span><span data-lang="en" class="lang-hidden">No file size limit</span></span>
+              </li>
+              <li class="flex items-center gap-3">
+                <span class="nb-border text-center font-bold font-mono w-8 h-8 flex items-center justify-center shrink-0" style="background: var(--blue); color: white; font-size:14px;">✓</span>
+                <span class="font-semibold text-lg"><span data-lang="id">Nol risiko kebocoran data</span><span data-lang="en" class="lang-hidden">Zero data leakage risk</span></span>
+              </li>
+              <li class="flex items-center gap-3">
+                <span class="nb-border text-center font-bold font-mono w-8 h-8 flex items-center justify-center shrink-0" style="background: var(--blue); color: white; font-size:14px;">✓</span>
+                <span class="font-semibold text-lg"><span data-lang="id">Bekerja tanpa internet</span><span data-lang="en" class="lang-hidden">Works without internet</span></span>
+              </li>
+              <li class="flex items-center gap-3">
+                <span class="nb-border text-center font-bold font-mono w-8 h-8 flex items-center justify-center shrink-0" style="background: var(--blue); color: white; font-size:14px;">✓</span>
+                <span class="font-semibold text-lg"><span data-lang="id">Sepenuhnya Open Source</span><span data-lang="en" class="lang-hidden">Fully Open Source</span></span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Right: Decorative Block -->
+          <div class="flex justify-center" data-aos="fade-left" data-aos-duration="800">
+            <div class="relative">
+              <!-- Shadow block -->
+              <div class="absolute top-5 left-5 w-full h-full nb-stripe nb-border" style="z-index: 0;"></div>
+              <!-- Main block -->
+              <div class="relative p-12 nb-border nb-shadow-xl text-center" style="z-index: 1; background: var(--blue-pale);">
+                <div class="text-8xl mb-4">🛡️</div>
+                <p class="nb-heading text-4xl mb-2" style="color: var(--blue);">100%</p>
+                <p class="font-mono font-bold text-xl uppercase" style="color: var(--black);">
+                  <span data-lang="id">Aman &amp; Privat</span>
+                  <span data-lang="en" class="lang-hidden">Safe &amp; Private</span>
                 </p>
               </div>
-              <div class="w-1/2 hidden sm:block relative h-[250px]">
-                <img src="assets/img (4).png" alt="PDF Tools Grid Interface" class="absolute w-full mt-4 rounded-tl-xl border-t border-l border-white/10 shadow-2xl origin-bottom-right group-hover:scale-[1.05] group-hover:-translate-x-2 group-hover:-translate-y-2 transform transition duration-500 object-cover object-top" style="height: 120%; object-position: top left;" />
-              </div>
             </div>
           </div>
-
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- CTA Section -->
-    <div id="privacy" class="relative py-24 mb-10 mx-4 sm:mx-8 rounded-3xl overflow-hidden glass-card border border-brand-500/20 z-10" data-aos="zoom-in" data-aos-duration="1000">
-      <div class="absolute inset-0 bg-brand-900/40 mix-blend-multiply"></div>
-      <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h2 class="text-4xl sm:text-5xl font-bold text-white mb-6">
-          <span data-lang="id">Siap mengambil kendali PDF Anda?</span>
-          <span data-lang="en" class="lang-hidden">Ready to take control of your PDFs?</span>
-        </h2>
-        <p class="text-xl text-brand-200 mb-10 max-w-2xl mx-auto">
-          <span data-lang="id">Tinggalkan aplikasi freemium yang membatasi unggahan Anda. Nikmati kebebasan offline tanpa batas kapasitas.</span>
-          <span data-lang="en" class="lang-hidden">Drop freemium apps that limit your uploads. Enjoy unlimited offline freedom without capacity caps.</span>
+    <!-- ========== CTA ========== -->
+    <section class="py-0 border-t-4" style="border-color: var(--black); background: var(--blue);">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center" data-aos="zoom-in" data-aos-duration="800">
+        <p class="nb-badge mb-6 inline-block" style="background: var(--yellow); color: var(--black);">
+          <span data-lang="id">📥 Unduh Sekarang — GRATIS</span>
+          <span data-lang="en" class="lang-hidden">📥 Download Now — FREE</span>
         </p>
-        <a href="https://github.com/antonprafanto/pdfkit/releases/download/1.0.19/PDF.Kit.Setup.1.0.19.exe" class="inline-block px-10 py-5 bg-white text-slate-900 font-bold rounded-full shadow-[0_0_30px_rgba(255,255,255,0.3)] hover:bg-brand-50 hover:scale-105 transition transform text-lg">
-          <span data-lang="id">Unduh PDF Kit Sekarang</span>
-          <span data-lang="en" class="lang-hidden">Download PDF Kit Now</span>
-        </a>
+        <h2 class="nb-heading text-5xl sm:text-7xl text-white mb-6">
+          <span data-lang="id">Siap mengambil<br/>kendali PDF-mu?</span>
+          <span data-lang="en" class="lang-hidden">Ready to take<br/>control of your PDFs?</span>
+        </h2>
+        <p class="text-xl font-medium text-blue-200 mb-10">
+          <span data-lang="id">Gratis. Offline. Tanpa batas. Untuk selamanya.</span>
+          <span data-lang="en" class="lang-hidden">Free. Offline. Unlimited. Forever.</span>
+        </p>
+        <div class="flex flex-wrap justify-center gap-4">
+          <a href="https://github.com/antonprafanto/pdfkit/releases/download/1.0.19/PDF.Kit.Setup.1.0.19.exe" class="nb-btn-primary" style="background: var(--yellow); color: var(--black); font-size: 1.1rem; padding: 18px 36px;">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+            <span data-lang="id">Download PDF Kit (Setup)</span>
+            <span data-lang="en" class="lang-hidden">Download PDF Kit (Setup)</span>
+          </a>
+          <a href="https://github.com/antonprafanto/pdfkit/releases/download/1.0.19/PDF.Kit.Portable.1.0.19.exe" class="nb-btn-secondary" style="font-size: 1.1rem; padding: 18px 36px;">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+            <span data-lang="id">Versi Portable</span>
+            <span data-lang="en" class="lang-hidden">Portable Version</span>
+          </a>
+        </div>
+        <p class="font-mono font-bold text-sm text-blue-300 mt-8 uppercase tracking-widest">
+          <span data-lang="id">Membutuhkan Windows 11 atau lebih tinggi</span>
+          <span data-lang="en" class="lang-hidden">Requires Windows 11 or higher</span>
+        </p>
       </div>
-    </div>
+    </section>
 
-    <!-- Footer -->
-    <footer class="bg-slate-950/80 pt-12 pb-8 border-t border-slate-800 z-10 relative backdrop-blur-md">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center">
-        <div class="flex items-center space-x-3 mb-4 md:mb-0">
-          <img src="assets/icon.png" alt="Logo" class="h-8 w-8 grayscale opacity-50" />
-          <span class="text-slate-500 font-medium tracking-wider">PDF Kit</span>
+    <!-- ========== FOOTER ========== -->
+    <footer class="border-t-4 py-8" style="border-color: var(--black); background: var(--black);">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="flex items-center gap-3">
+          <img src="assets/icon.png" alt="Logo" class="h-8 w-8" />
+          <span class="font-bold text-white font-mono">PDF Kit</span>
         </div>
-        <div class="flex space-x-6 mb-4 md:mb-0">
-          <a href="https://github.com/antonprafanto/pdfkit" class="text-slate-500 hover:text-white transition-colors text-sm">GitHub Repository</a>
-          <a href="#" class="text-slate-500 hover:text-white transition-colors text-sm">Release Notes</a>
+        <div class="flex items-center gap-6">
+          <a href="https://github.com/antonprafanto/pdfkit" class="font-mono font-bold text-sm text-gray-400 hover:text-white transition-colors uppercase">GitHub</a>
+          <a href="https://github.com/antonprafanto/pdfkit/releases" class="font-mono font-bold text-sm text-gray-400 hover:text-white transition-colors uppercase">Releases</a>
         </div>
-        <div class="text-slate-600 text-sm tracking-wide">&copy; 2026 PDF Kit. Open Source. MIT License.</div>
+        <p class="font-mono text-sm text-gray-500">&copy; 2026 PDF Kit. MIT License. Open Source.</p>
       </div>
     </footer>
 
     <!-- AOS Script -->
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
-      AOS.init({
-        once: true,
-        offset: 50,
-        duration: 800,
-        easing: 'ease-out-cubic',
-      });
+      AOS.init({ once: true, offset: 50, duration: 700, easing: 'ease-out-cubic' });
 
       function setLang(lang) {
-        // Update Toggle Button Styles
         const btnId = document.getElementById('btn-id');
         const btnEn = document.getElementById('btn-en');
-
         if (lang === 'id') {
-          btnId.className = 'px-3 py-1 rounded-full text-xs font-bold transition-all bg-brand-500 text-white shadow-sm';
-          btnEn.className = 'px-3 py-1 rounded-full text-xs font-bold transition-all text-slate-400 hover:text-white';
+          btnId.style.background = 'var(--blue)';
+          btnId.style.color = 'white';
+          btnEn.style.background = 'var(--white)';
+          btnEn.style.color = 'var(--black)';
         } else {
-          btnEn.className = 'px-3 py-1 rounded-full text-xs font-bold transition-all bg-brand-500 text-white shadow-sm';
-          btnId.className = 'px-3 py-1 rounded-full text-xs font-bold transition-all text-slate-400 hover:text-white';
+          btnEn.style.background = 'var(--blue)';
+          btnEn.style.color = 'white';
+          btnId.style.background = 'var(--white)';
+          btnId.style.color = 'var(--black)';
         }
-
-        // Toggle Visibility
         document.querySelectorAll('[data-lang]').forEach((el) => {
           if (el.dataset.lang === lang) {
             el.classList.remove('lang-hidden');
