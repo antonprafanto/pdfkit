@@ -20,10 +20,12 @@ if (require('electron-squirrel-startup')) {
 
 // Enforce single instance - if another instance is launched, pass file to existing instance
 const gotTheLock = app.requestSingleInstanceLock();
+console.log('[Main] gotTheLock:', gotTheLock);
 
 if (!gotTheLock) {
   // This is the second instance - quit immediately
   // The first instance will handle the file
+  console.log('[Main] Quitting because gotTheLock is false');
   app.quit();
 } else {
   // This is the first instance - handle second instance attempts
@@ -390,6 +392,43 @@ ipcMain.handle('save-pdf-file', async (_, filePath: string, pdfBytes: Uint8Array
     return { success: true };
   } catch (error: any) {
     console.error('Error saving PDF:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// Select directory dialog (for export images, etc.)
+ipcMain.handle('select-directory-dialog', async (_, title?: string) => {
+  if (!mainWindow) return null;
+
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: title || 'Select Output Folder',
+    defaultPath: app.getPath('downloads'),
+    properties: ['openDirectory', 'createDirectory'],
+  });
+
+  if (result.canceled || result.filePaths.length === 0) return null;
+  return result.filePaths[0];
+});
+
+// Open a path in the OS file explorer
+ipcMain.handle('open-path', async (_, folderPath: string) => {
+  try {
+    await shell.openPath(folderPath);
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Save file to a directory (uses path.join for proper OS path separator)
+ipcMain.handle('save-file-to-directory', async (_, dirPath: string, fileName: string, fileBytes: Uint8Array) => {
+  try {
+    const filePath = path.join(dirPath, fileName);
+    const buffer = Buffer.from(fileBytes);
+    await fs.promises.writeFile(filePath, buffer);
+    return { success: true, filePath };
+  } catch (error: any) {
+    console.error('Error saving file to directory:', error);
     return { success: false, error: error.message };
   }
 });

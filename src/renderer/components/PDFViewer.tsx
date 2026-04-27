@@ -159,7 +159,23 @@ export function PDFViewer({
   const [aiPanel, setAIPanel] = useState<'chat' | 'analysis'>('chat');
   const [scanPdfNotified, setScanPdfNotified] = useState(false); // Track if we've shown scan PDF notification
   const contentRef = useRef<HTMLDivElement>(null);
+  const mainViewRef = useRef<HTMLDivElement>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const viewportSize = useViewportSize(contentRef);
+
+  const previousViewModeRef = useRef<string | null>(null);
+
+  const togglePresentationMode = async () => {
+    try {
+      if (!window.document.fullscreenElement && mainViewRef.current) {
+        await mainViewRef.current.requestFullscreen();
+      } else if (window.document.exitFullscreen && window.document.fullscreenElement) {
+        await window.document.exitFullscreen();
+      }
+    } catch (err) {
+      console.error('Error toggling fullscreen:', err);
+    }
+  };
 
   // Reset scan notification when document changes
   useEffect(() => {
@@ -221,7 +237,7 @@ export function PDFViewer({
   }, [zoomIn, zoomOut]);
 
   // Handle fit to width/page when document or viewport changes
-  const handleFitToWidth = async () => {
+  const handleFitToWidth = useCallback(async () => {
     if (!document || !contentRef.current) return;
 
     const page = await document.getPage(currentPage);
@@ -229,9 +245,9 @@ export function PDFViewer({
     const pageWidth = viewport.width;
 
     fitToWidth(viewportSize.width, pageWidth);
-  };
+  }, [document, currentPage, rotation, viewportSize.width, fitToWidth]);
 
-  const handleFitToPage = async () => {
+  const handleFitToPage = useCallback(async () => {
     if (!document || !contentRef.current) return;
 
     const page = await document.getPage(currentPage);
@@ -240,7 +256,34 @@ export function PDFViewer({
     const pageHeight = viewport.height;
 
     fitToPage(viewportSize.width, viewportSize.height, pageWidth, pageHeight);
-  };
+  }, [document, currentPage, rotation, viewportSize.width, viewportSize.height, fitToPage]);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const isFs = !!window.document.fullscreenElement;
+      setIsFullscreen(isFs);
+
+      if (isFs) {
+        // Entering fullscreen
+        previousViewModeRef.current = viewMode;
+        setViewMode('single');
+      } else {
+        // Exiting fullscreen
+        if (previousViewModeRef.current) {
+          setViewMode(previousViewModeRef.current as any);
+        }
+      }
+    };
+    window.document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => window.document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, [viewMode, setViewMode]);
+
+  // Keep fitToPage enforced while in fullscreen and when resizing
+  useEffect(() => {
+    if (isFullscreen && viewMode === 'single') {
+      handleFitToPage();
+    }
+  }, [isFullscreen, viewportSize.width, viewportSize.height, handleFitToPage, viewMode]);
 
   // Handle print - opens PDF with system default app for proper preview
   const handlePrint = useCallback(async () => {
@@ -323,6 +366,9 @@ export function PDFViewer({
     onFirstPage: () => goToPage(1),
     onLastPage: () => goToPage(totalPages),
     onPrint: handlePrint, // Add print handler for Ctrl+P
+    onTogglePresentationMode: () => {
+      if (document) togglePresentationMode();
+    },
   });
 
   // Render the main viewer structure regardless of document state
@@ -395,15 +441,55 @@ export function PDFViewer({
         onCheckUpdates={onCheckUpdates}
         themeToggle={themeToggle}
         isOnline={isOnline}
+        isFullscreen={isFullscreen}
+        onTogglePresentationMode={togglePresentationMode}
       />
 
       {/* Annotation Toolbar */}
       {annotationMode && <AnnotationToolbar />}
 
       {/* Main Content */}
-      <div className="flex flex-1 overflow-hidden relative">
+      <div id="pdf-viewer-main-content" ref={mainViewRef} className="flex flex-1 overflow-hidden relative bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+        
+        {/* Presentation Navigation Overlay */}
+        {isFullscreen && (
+          <div className="absolute inset-0 z-50 flex justify-between pointer-events-none">
+            {/* Left Zone - Prev Page */}
+            <button 
+              className="w-24 h-full pointer-events-auto opacity-0 hover:opacity-100 flex items-center justify-start px-4 bg-gradient-to-r from-black/20 to-transparent text-white transition-opacity"
+              onClick={(e) => { e.stopPropagation(); previousPage(); }}
+              aria-label={t('toolbar.previousPage', 'Previous Page')}
+            >
+              <svg className="w-12 h-12 drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+            </button>
+
+            {/* Right Zone - Next Page */}
+            <button 
+              className="w-24 h-full pointer-events-auto opacity-0 hover:opacity-100 flex items-center justify-end px-4 bg-gradient-to-l from-black/20 to-transparent text-white transition-opacity"
+              onClick={(e) => { e.stopPropagation(); nextPage(); }}
+              aria-label={t('toolbar.nextPage', 'Next Page')}
+            >
+              <svg className="w-12 h-12 drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+            </button>
+
+            {/* Exit Presentation Button */}
+            <button 
+              className="absolute top-6 right-6 p-3 bg-black/60 text-white rounded-full hover:bg-black/90 pointer-events-auto opacity-0 hover:opacity-100 transition-opacity drop-shadow-lg"
+              onClick={(e) => { e.stopPropagation(); togglePresentationMode(); }}
+              title={t('toolbar.exitPresentation', 'Exit Presentation (Esc)')}
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            
+            {/* Page Indicator */}
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 bg-black/60 text-white rounded-full text-sm font-medium pointer-events-none opacity-30 transition-opacity hover:opacity-100 drop-shadow-lg">
+              {currentPage} / {totalPages}
+            </div>
+          </div>
+        )}
+
         {/* Thumbnails Sidebar */}
-        {showThumbnails && document && (
+        {showThumbnails && document && !isFullscreen && (
           <PDFThumbnailSidebar
             key={`thumbs-${activeTabId}`}
             document={document}
@@ -426,14 +512,14 @@ export function PDFViewer({
         )}
 
         {/* Annotation List Sidebar */}
-        {annotationMode && (
+        {annotationMode && !isFullscreen && (
           <div className="w-64 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden">
             <AnnotationListSidebar onNavigateToPage={goToPage} />
           </div>
         )}
 
         {/* Forms Toolbar Sidebar */}
-        {formsMode && (
+        {formsMode && !isFullscreen && (
           <div className="w-64 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-y-auto">
             <FormToolbar
               onDetectForms={onDetectForms || (() => {})}
@@ -449,7 +535,7 @@ export function PDFViewer({
         )}
 
         {/* AI Panel Sidebar */}
-        {aiMode && (
+        {aiMode && !isFullscreen && (
           <div className="w-80 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden flex flex-col">
             {/* AI Panel Tab Selector */}
             <div className="flex border-b border-gray-200 dark:border-gray-700">
@@ -544,8 +630,18 @@ export function PDFViewer({
         ) : (
           <>
             {viewMode === 'single' && (
-              <div ref={contentRef} className="flex-1 overflow-auto bg-gray-100 dark:bg-gray-900">
-                <div className="min-h-full flex items-center justify-center p-4">
+              <div 
+                ref={contentRef} 
+                className={`flex-1 overflow-auto ${isFullscreen ? 'bg-black' : 'bg-gray-100 dark:bg-gray-900 cursor-auto'}`}
+              >
+                <div 
+                  className="min-h-full flex items-center justify-center p-4"
+                  onClick={(e) => {
+                    if (isFullscreen && e.target === e.currentTarget) {
+                      nextPage();
+                    }
+                  }}
+                >
                   <PDFPage
                     key={`single-${activeTabId}`}
                     document={document}

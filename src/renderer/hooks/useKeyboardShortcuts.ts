@@ -19,6 +19,7 @@ export interface KeyboardShortcutHandlers {
   onFirstPage?: () => void;
   onLastPage?: () => void;
   onPrint?: () => void;
+  onTogglePresentationMode?: () => void;
 }
 
 export function useKeyboardShortcuts(handlers: KeyboardShortcutHandlers) {
@@ -89,6 +90,12 @@ export function useKeyboardShortcuts(handlers: KeyboardShortcutHandlers) {
         event.preventDefault();
         console.log('[useKeyboardShortcuts] Ctrl+P pressed, triggering print');
         handlers.onPrint?.();
+      }
+
+      // Presentation mode shortcut (F11 or F5)
+      else if (key === 'F11' || key === 'F5') {
+        event.preventDefault();
+        handlers.onTogglePresentationMode?.();
       }
     };
 

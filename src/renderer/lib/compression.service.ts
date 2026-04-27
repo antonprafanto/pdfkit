@@ -148,10 +148,11 @@ export class CompressionService {
     console.log(`[Compression] Compressed: ${this.formatBytes(compressedSize)}`);
     console.log(`[Compression] Saved: ${this.formatBytes(savings)} (${savingsPercent.toFixed(1)}%)`);
 
-    // If compressed is larger, return original
+    // If compressed is larger, return a copy of original
+    // (original pdfBytes buffer may be non-transferable from PDF.js internals)
     if (compressedSize >= originalSize) {
       console.log('[Compression] Compressed file is larger than original, returning original');
-      return pdfBytes;
+      return new Uint8Array(pdfBytes);
     }
 
     return compressedBytes;

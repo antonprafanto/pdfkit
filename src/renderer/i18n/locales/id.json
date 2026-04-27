@@ -159,7 +159,9 @@
     "properties": "Properti",
     "shortcuts": "Pintasan Keyboard",
     "print": "Cetak",
-    "share": "Bagikan"
+    "share": "Bagikan",
+    "presentationMode": "Mode Presentasi",
+    "exitPresentation": "Keluar dari Presentasi"
   },
   "share": {
     "title": "Bagikan PDF Kit",

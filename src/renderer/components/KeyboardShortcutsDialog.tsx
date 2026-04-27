@@ -33,6 +33,7 @@ const SHORTCUTS: Shortcut[] = [
   { key: 'Ctrl+-', description: 'shortcuts.zoomOut', category: 'view' },
   { key: 'Ctrl+0', description: 'shortcuts.resetZoom', category: 'view' },
   { key: 'F11', description: 'shortcuts.fullscreen', category: 'view' },
+  { key: 'F5', description: 'toolbar.presentationMode', category: 'view' },
   { key: 'Ctrl+F', description: 'shortcuts.find', category: 'view' },
   
   // Editing

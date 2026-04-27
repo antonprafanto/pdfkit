@@ -121,7 +121,9 @@
     "properties": "Properties",
     "shortcuts": "Keyboard Shortcuts",
     "print": "Print",
-    "share": "Share"
+    "share": "Share",
+    "presentationMode": "Presentation Mode",
+    "exitPresentation": "Exit Presentation"
   },
   "share": {
     "title": "Share PDF Kit",

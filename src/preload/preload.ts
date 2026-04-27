@@ -30,6 +30,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   saveFileDialog: (defaultName: string) => ipcRenderer.invoke('save-file-dialog', defaultName),
   savePdfFile: (filePath: string, pdfBytes: Uint8Array) =>
     ipcRenderer.invoke('save-pdf-file', filePath, pdfBytes),
+  selectDirectoryDialog: (title?: string) => ipcRenderer.invoke('select-directory-dialog', title),
+  openPath: (folderPath: string) => ipcRenderer.invoke('open-path', folderPath),
+  saveFileToDirectory: (dirPath: string, fileName: string, fileBytes: Uint8Array) =>
+    ipcRenderer.invoke('save-file-to-directory', dirPath, fileName, fileBytes),
   openMultipleFilesDialog: () => ipcRenderer.invoke('open-multiple-files-dialog'),
   readFileFromPath: (filePath: string) => ipcRenderer.invoke('read-file-from-path', filePath),
   
@@ -209,6 +213,9 @@ export interface ElectronAPI {
   printPDF: (options?: { pdfPath?: string; pdfBytes?: Uint8Array; fileName?: string }) => Promise<{ success: boolean; error?: string }>;
   saveFileDialog: (defaultName: string) => Promise<string | null>;
   savePdfFile: (filePath: string, pdfBytes: Uint8Array) => Promise<{ success: boolean; error?: string }>;
+  selectDirectoryDialog: (title?: string) => Promise<string | null>;
+  openPath: (folderPath: string) => Promise<{ success: boolean; error?: string }>;
+  saveFileToDirectory: (dirPath: string, fileName: string, fileBytes: Uint8Array) => Promise<{ success: boolean; filePath?: string; error?: string }>;
   openMultipleFilesDialog: () => Promise<Array<{ name: string; data: Uint8Array }> | null>;
   readFileFromPath: (filePath: string) => Promise<{ success: boolean; name?: string; data?: Uint8Array; error?: string }>;
   simpleUpdateCheck: () => Promise<{ hasUpdate: boolean; latestVersion: string; currentVersion: string; downloadUrl: string; releaseNotes: string; error?: string }>;

@@ -191,28 +191,28 @@ export function SplitPDFDialog({ open, onClose }: SplitPDFDialogProps) {
 
       setProcessing(false, 100);
 
-      // Save each split file
+      // Ask user to pick output folder ONCE
+      const outputDir = await window.electronAPI.selectDirectoryDialog('Select Output Folder');
+      if (!outputDir) {
+        setIsSplitting(false);
+        setProcessing(false, 0);
+        return;
+      }
+
+      // Save all split files to the selected folder
       for (let i = 0; i < splitPdfBytes.length; i++) {
-        const defaultName = fileNames[i];
-        const filePath = await window.electronAPI.saveFileDialog(defaultName);
+        const result = await window.electronAPI.saveFileToDirectory(outputDir, fileNames[i], splitPdfBytes[i]);
 
-        if (filePath) {
-          const result = await window.electronAPI.savePdfFile(filePath, splitPdfBytes[i]);
-
-          if (!result.success) {
-            setError(`Failed to save file ${i + 1}: ${result.error}`);
-            setIsSplitting(false);
-            setProcessing(false, 0);
-            return;
-          }
-        } else {
-          // User cancelled, stop splitting
-          setError('Split operation cancelled');
+        if (!result.success) {
+          setError(`Failed to save file ${i + 1}: ${result.error}`);
           setIsSplitting(false);
           setProcessing(false, 0);
           return;
         }
       }
+
+      // Open the output folder
+      await window.electronAPI.openPath(outputDir);
 
       // All files saved successfully
       toast.success('PDF split successfully!', `Created ${splitPdfBytes.length} files`);
@@ -448,7 +448,7 @@ export function SplitPDFDialog({ open, onClose }: SplitPDFDialogProps) {
         {/* Tips */}
         <div className="rounded-md bg-gray-50 p-3 dark:bg-gray-800">
           <p className="text-xs text-gray-600 dark:text-gray-400">
-            <strong>Tips:</strong> You'll be prompted to save each split file separately.
+            <strong>Tips:</strong> You&apos;ll be prompted to select an output folder. All split files will be saved there automatically.
           </p>
         </div>
       </div>

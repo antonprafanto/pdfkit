@@ -165,7 +165,10 @@ export function BatchOperationsDialog({ open, onClose, defaultOperation = 'merge
   };
 
   const handleBatchConvert = async () => {
-    // Save each image file individually
+    // Ask user to pick output folder ONCE
+    const outputDir = await window.electronAPI.selectDirectoryDialog('Select Output Folder');
+    if (!outputDir) return;
+
     let totalImages = 0;
     
     for (let i = 0; i < files.length; i++) {
@@ -216,12 +219,8 @@ export function BatchOperationsDialog({ open, onClose, defaultOperation = 'merge
             
             const baseName = batchFile.name.replace('.pdf', '');
             const imageName = `${baseName}_page_${pageNum}.${imageFormat}`;
-            const filePath = await window.electronAPI.saveFileDialog(imageName);
-            
-            if (filePath) {
-              await window.electronAPI.savePdfFile(filePath, bytes);
-              totalImages++;
-            }
+            await window.electronAPI.saveFileToDirectory(outputDir, imageName, bytes);
+            totalImages++;
           }
           
           setProgress({
@@ -236,11 +235,18 @@ export function BatchOperationsDialog({ open, onClose, defaultOperation = 'merge
         console.error(`Error converting ${batchFile.name}:`, err);
       }
     }
+
+    // Open the output folder
+    await window.electronAPI.openPath(outputDir);
     
     toast.success('Batch conversion complete!', `${totalImages} images exported`);
   };
 
   const handleBatchCompress = async () => {
+    // Ask user to pick output folder ONCE
+    const outputDir = await window.electronAPI.selectDirectoryDialog('Select Output Folder');
+    if (!outputDir) return;
+
     const results = await batchService.processFiles(
       files,
       async (batchFile, onFileProgress) => {
@@ -258,23 +264,25 @@ export function BatchOperationsDialog({ open, onClose, defaultOperation = 'merge
       setProgress
     );
 
-    // Save all compressed files
+    // Save all compressed files to the selected folder
     let successCount = 0;
     for (const { file, result, error: err } of results) {
       if (result && !err) {
         const newName = file.name.replace('.pdf', '_compressed.pdf');
-        const filePath = await window.electronAPI.saveFileDialog(newName);
-        if (filePath) {
-          const saveResult = await window.electronAPI.savePdfFile(filePath, result);
-          if (saveResult.success) successCount++;
-        }
+        const saveResult = await window.electronAPI.saveFileToDirectory(outputDir, newName, result);
+        if (saveResult.success) successCount++;
       }
     }
 
+    await window.electronAPI.openPath(outputDir);
     toast.success('Batch compression complete!', `${successCount} of ${files.length} files processed`);
   };
 
   const handleBatchWatermark = async () => {
+    // Ask user to pick output folder ONCE
+    const outputDir = await window.electronAPI.selectDirectoryDialog('Select Output Folder');
+    if (!outputDir) return;
+
     const results = await batchService.processFiles(
       files,
       async (batchFile, onFileProgress) => {
@@ -294,23 +302,25 @@ export function BatchOperationsDialog({ open, onClose, defaultOperation = 'merge
       setProgress
     );
 
-    // Save all watermarked files
+    // Save all watermarked files to the selected folder
     let successCount = 0;
     for (const { file, result, error: err } of results) {
       if (result && !err) {
         const newName = file.name.replace('.pdf', '_watermarked.pdf');
-        const filePath = await window.electronAPI.saveFileDialog(newName);
-        if (filePath) {
-          const saveResult = await window.electronAPI.savePdfFile(filePath, result);
-          if (saveResult.success) successCount++;
-        }
+        const saveResult = await window.electronAPI.saveFileToDirectory(outputDir, newName, result);
+        if (saveResult.success) successCount++;
       }
     }
 
+    await window.electronAPI.openPath(outputDir);
     toast.success('Batch watermarking complete!', `${successCount} of ${files.length} files processed`);
   };
 
   const handleBatchEncrypt = async () => {
+    // Ask user to pick output folder ONCE
+    const outputDir = await window.electronAPI.selectDirectoryDialog('Select Output Folder');
+    if (!outputDir) return;
+
     const results = await batchService.processFiles(
       files,
       async (batchFile, onFileProgress) => {
@@ -327,19 +337,17 @@ export function BatchOperationsDialog({ open, onClose, defaultOperation = 'merge
       setProgress
     );
 
-    // Save all encrypted files
+    // Save all encrypted files to the selected folder
     let successCount = 0;
     for (const { file, result, error: err } of results) {
       if (result && !err) {
         const newName = file.name.replace('.pdf', '_encrypted.pdf');
-        const filePath = await window.electronAPI.saveFileDialog(newName);
-        if (filePath) {
-          const saveResult = await window.electronAPI.savePdfFile(filePath, result);
-          if (saveResult.success) successCount++;
-        }
+        const saveResult = await window.electronAPI.saveFileToDirectory(outputDir, newName, result);
+        if (saveResult.success) successCount++;
       }
     }
 
+    await window.electronAPI.openPath(outputDir);
     toast.success('Batch encryption complete!', `${successCount} of ${files.length} files processed`);
   };
 

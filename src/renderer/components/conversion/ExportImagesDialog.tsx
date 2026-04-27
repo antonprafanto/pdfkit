@@ -107,45 +107,51 @@ export function ExportImagesDialog({ open, onClose }: ExportImagesDialogProps) {
       setError(null);
       setProgress(0);
 
+      // Ask user to pick output folder ONCE
+      const outputDir = await window.electronAPI.selectDirectoryDialog('Select Output Folder');
+      if (!outputDir) {
+        // User cancelled
+        setIsExporting(false);
+        return;
+      }
+
       const baseName = fileName?.replace('.pdf', '') || 'document';
       const ext = format === 'jpeg' ? 'jpg' : format;
 
-      // Export pages
+      // Export pages as blobs
       const blobs = await conversionService.exportPagesAsImages(
         document,
         pageNumbers,
         { format, quality: quality / 100, scale },
         (current, total) => {
-          setProgress(Math.round((current / total) * 100));
+          setProgress(Math.round((current / total) * 80)); // 0-80% for rendering
         }
       );
 
-      // Save each image
+      // Save all images to the selected folder
       for (let i = 0; i < blobs.length; i++) {
         const pageNum = pageNumbers[i];
-        const defaultName = `${baseName}_page_${pageNum}.${ext}`;
-        const filePath = await window.electronAPI.saveFileDialog(defaultName);
+        const imageFileName = `${baseName}_page_${pageNum}.${ext}`;
 
-        if (filePath) {
-          const arrayBuffer = await blobs[i].arrayBuffer();
-          const uint8Array = new Uint8Array(arrayBuffer);
-          const result = await window.electronAPI.savePdfFile(filePath, uint8Array);
+        const arrayBuffer = await blobs[i].arrayBuffer();
+        const uint8Array = new Uint8Array(arrayBuffer);
+        const result = await window.electronAPI.saveFileToDirectory(outputDir, imageFileName, uint8Array);
 
-          if (!result.success) {
-            setError(`Failed to save page ${pageNum}: ${result.error}`);
-            setIsExporting(false);
-            return;
-          }
-        } else {
-          // User cancelled
-          setError('Export cancelled');
+        if (!result.success) {
+          setError(`Failed to save page ${pageNum}: ${result.error}`);
           setIsExporting(false);
           return;
         }
+
+        // Update progress: 80-100% for saving
+        setProgress(80 + Math.round(((i + 1) / blobs.length) * 20));
       }
 
+      // Open the output folder in explorer
+      await window.electronAPI.openPath(outputDir);
+
       // Success
-      toast.success('Images exported successfully!', `Exported ${blobs.length} image(s)`);
+      toast.success('Images exported successfully!', `Exported ${blobs.length} image(s) to folder`);
       onClose();
     } catch (err: any) {
       setError(err.message || 'Failed to export images');

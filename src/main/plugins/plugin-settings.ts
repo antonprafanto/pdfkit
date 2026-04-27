@@ -18,12 +18,24 @@ interface PluginSettingsData {
  * Plugin Settings Manager
  */
 export class PluginSettings {
-  private settingsPath: string;
-  private data: PluginSettingsData;
+  private _settingsPath: string | null = null;
+  private data: PluginSettingsData | null = null;
+
+  private get settingsPath(): string {
+    if (!this._settingsPath) {
+      this._settingsPath = path.join(app.getPath('userData'), SETTINGS_FILE);
+    }
+    return this._settingsPath;
+  }
+
+  private ensureLoaded(): void {
+    if (!this.data) {
+      this.data = this.loadSettings();
+    }
+  }
 
   constructor() {
-    this.settingsPath = path.join(app.getPath('userData'), SETTINGS_FILE);
-    this.data = this.loadSettings();
+    // Lazy initialization - settingsPath and data are resolved on first access
   }
 
   /**
@@ -60,14 +72,16 @@ export class PluginSettings {
    * Get list of enabled plugin IDs
    */
   getEnabledPlugins(): string[] {
-    return this.data.enabledPlugins;
+    this.ensureLoaded();
+    return this.data!.enabledPlugins;
   }
 
   /**
    * Set list of enabled plugin IDs
    */
   setEnabledPlugins(pluginIds: string[]): void {
-    this.data.enabledPlugins = pluginIds;
+    this.ensureLoaded();
+    this.data!.enabledPlugins = pluginIds;
     this.saveSettings();
   }
 
@@ -75,8 +89,9 @@ export class PluginSettings {
    * Add plugin to enabled list
    */
   enablePlugin(pluginId: string): void {
-    if (!this.data.enabledPlugins.includes(pluginId)) {
-      this.data.enabledPlugins.push(pluginId);
+    this.ensureLoaded();
+    if (!this.data!.enabledPlugins.includes(pluginId)) {
+      this.data!.enabledPlugins.push(pluginId);
       this.saveSettings();
     }
   }
@@ -85,9 +100,10 @@ export class PluginSettings {
    * Remove plugin from enabled list
    */
   disablePlugin(pluginId: string): void {
-    const index = this.data.enabledPlugins.indexOf(pluginId);
+    this.ensureLoaded();
+    const index = this.data!.enabledPlugins.indexOf(pluginId);
     if (index > -1) {
-      this.data.enabledPlugins.splice(index, 1);
+      this.data!.enabledPlugins.splice(index, 1);
       this.saveSettings();
     }
   }
@@ -96,14 +112,16 @@ export class PluginSettings {
    * Get settings for a specific plugin
    */
   getPluginSettings(pluginId: string): Record<string, any> {
-    return this.data.pluginSettings[pluginId] || {};
+    this.ensureLoaded();
+    return this.data!.pluginSettings[pluginId] || {};
   }
 
   /**
    * Set settings for a specific plugin
    */
   setPluginSettings(pluginId: string, settings: Record<string, any>): void {
-    this.data.pluginSettings[pluginId] = settings;
+    this.ensureLoaded();
+    this.data!.pluginSettings[pluginId] = settings;
     this.saveSettings();
   }
 
@@ -111,10 +129,11 @@ export class PluginSettings {
    * Set a single setting for a plugin
    */
   setPluginSetting(pluginId: string, key: string, value: any): void {
-    if (!this.data.pluginSettings[pluginId]) {
-      this.data.pluginSettings[pluginId] = {};
+    this.ensureLoaded();
+    if (!this.data!.pluginSettings[pluginId]) {
+      this.data!.pluginSettings[pluginId] = {};
     }
-    this.data.pluginSettings[pluginId][key] = value;
+    this.data!.pluginSettings[pluginId][key] = value;
     this.saveSettings();
   }
 
@@ -122,14 +141,16 @@ export class PluginSettings {
    * Get a single setting for a plugin
    */
   getPluginSetting(pluginId: string, key: string): any {
-    return this.data.pluginSettings[pluginId]?.[key];
+    this.ensureLoaded();
+    return this.data!.pluginSettings[pluginId]?.[key];
   }
 
   /**
    * Remove all settings for a plugin
    */
   removePluginSettings(pluginId: string): void {
-    delete this.data.pluginSettings[pluginId];
+    this.ensureLoaded();
+    delete this.data!.pluginSettings[pluginId];
     this.disablePlugin(pluginId);
     this.saveSettings();
   }

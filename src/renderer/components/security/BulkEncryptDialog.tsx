@@ -70,6 +70,10 @@ export function BulkEncryptDialog({ open, onClose }: BulkEncryptDialogProps) {
       return;
     }
 
+    // Ask user to pick output folder ONCE
+    const outputDir = await window.electronAPI.selectDirectoryDialog('Select Output Folder');
+    if (!outputDir) return;
+
     setIsProcessing(true);
     setError(null);
     setProgress({ current: 0, total: files.length });
@@ -89,15 +93,14 @@ export function BulkEncryptDialog({ open, onClose }: BulkEncryptDialogProps) {
           permissions,
         });
 
-        // Save encrypted file
-        const defaultName = files[i].name.replace('.pdf', '_encrypted.pdf');
-        const filePath = await window.electronAPI.saveFileDialog(defaultName);
+        // Save encrypted file to the selected folder
+        const newName = files[i].name.replace('.pdf', '_encrypted.pdf');
+        const result = await window.electronAPI.saveFileToDirectory(outputDir, newName, encryptedBytes);
 
-        if (filePath) {
-          await window.electronAPI.savePdfFile(filePath, encryptedBytes);
+        if (result.success) {
           updatedFiles[i] = { ...updatedFiles[i], status: 'done' };
         } else {
-          updatedFiles[i] = { ...updatedFiles[i], status: 'pending' };
+          updatedFiles[i] = { ...updatedFiles[i], status: 'error', error: result.error };
         }
       } catch (err: any) {
         updatedFiles[i] = { 
@@ -111,6 +114,9 @@ export function BulkEncryptDialog({ open, onClose }: BulkEncryptDialogProps) {
     }
 
     setIsProcessing(false);
+
+    // Open the output folder
+    await window.electronAPI.openPath(outputDir);
 
     // Check if all successful
     const allDone = updatedFiles.every(f => f.status === 'done');

@@ -12,13 +12,19 @@ import { PluginManifest, LoadedPlugin, PluginState } from '../../shared/plugin-t
  * Plugin Loader class
  */
 export class PluginLoader {
-  private pluginsDir: string;
+  private _pluginsDir: string | null = null;
   private loadedPlugins: Map<string, LoadedPlugin> = new Map();
 
+  private get pluginsDir(): string {
+    if (!this._pluginsDir) {
+      this._pluginsDir = path.join(app.getPath('userData'), 'plugins');
+      this.ensurePluginsDir();
+    }
+    return this._pluginsDir;
+  }
+
   constructor() {
-    // Plugins directory is in app's userData folder
-    this.pluginsDir = path.join(app.getPath('userData'), 'plugins');
-    this.ensurePluginsDir();
+    // Lazy initialization - pluginsDir is resolved on first access
   }
 
   /**
