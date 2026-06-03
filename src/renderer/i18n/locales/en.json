@@ -695,6 +695,7 @@
     "validating": "Validating...",
     "valid": "✓ Valid",
     "invalid": "✗ Invalid",
+    "invalidConfig": "Invalid configuration",
     "baseUrl": "Base URL / API Endpoint",
     "modelName": "Model Name",
     "customHeaders": "Custom Headers (JSON, optional)",

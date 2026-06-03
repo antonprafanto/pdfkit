@@ -69,6 +69,7 @@ export const AISettingsTab: React.FC<AISettingsTabProps> = ({ className = '' }) 
   const [validationStatus, setValidationStatus] = useState<{
     [key in AIProvider]?: 'idle' | 'validating' | 'valid' | 'invalid';
   }>({});
+  const [configError, setConfigError] = useState<string | null>(null);
 
   const [tempKeys, setTempKeys] = useState({
     openai: apiKeys.openai,
@@ -94,25 +95,35 @@ export const AISettingsTab: React.FC<AISettingsTabProps> = ({ className = '' }) 
     { id: 'gemini', name: 'Google Gemini', description: 'Gemini 1.5 Flash' },
   ];
 
+  const applyOpenAICompatibleTempConfig = (): boolean => {
+    try {
+      const nextConfig = buildOpenAICompatibleConfig(
+        tempOpenAICompatibleConfig.baseURL,
+        tempOpenAICompatibleConfig.model,
+        tempOpenAICompatibleConfig.customHeaders
+      );
+      setOpenAICompatibleConfig(nextConfig);
+      aiService.setOpenAIConfig('openaiCompatible', nextConfig);
+      setConfigError(null);
+      return true;
+    } catch (error) {
+      setConfigError(error instanceof Error ? error.message : t('ai.invalidConfig', 'Invalid configuration'));
+      setValidationStatus((prev) => ({ ...prev, openaiCompatible: 'invalid' }));
+      return false;
+    }
+  };
+
   const handleKeyChange = (provider: AIProvider, value: string) => {
     setTempKeys((prev) => ({ ...prev, [provider]: value }));
+    if (provider === 'openaiCompatible') {
+      setConfigError(null);
+      setValidationStatus((prev) => ({ ...prev, openaiCompatible: 'idle' }));
+    }
   };
 
   const handleSaveKey = (provider: AIProvider) => {
-    if (provider === 'openaiCompatible') {
-      try {
-        const nextConfig = buildOpenAICompatibleConfig(
-          tempOpenAICompatibleConfig.baseURL,
-          tempOpenAICompatibleConfig.model,
-          tempOpenAICompatibleConfig.customHeaders
-        );
-
-        setOpenAICompatibleConfig(nextConfig);
-        aiService.setOpenAIConfig('openaiCompatible', nextConfig);
-      } catch (error) {
-        setValidationStatus((prev) => ({ ...prev, [provider]: 'invalid' }));
-        return;
-      }
+    if (provider === 'openaiCompatible' && !applyOpenAICompatibleTempConfig()) {
+      return;
     }
 
     setApiKey(provider, tempKeys[provider]);
@@ -125,20 +136,8 @@ export const AISettingsTab: React.FC<AISettingsTabProps> = ({ className = '' }) 
       return;
     }
 
-    if (provider === 'openaiCompatible') {
-      try {
-        const nextConfig = buildOpenAICompatibleConfig(
-          tempOpenAICompatibleConfig.baseURL,
-          tempOpenAICompatibleConfig.model,
-          tempOpenAICompatibleConfig.customHeaders
-        );
-
-        setOpenAICompatibleConfig(nextConfig);
-        aiService.setOpenAIConfig('openaiCompatible', nextConfig);
-      } catch (error) {
-        setValidationStatus((prev) => ({ ...prev, [provider]: 'invalid' }));
-        return;
-      }
+    if (provider === 'openaiCompatible' && !applyOpenAICompatibleTempConfig()) {
+      return;
     }
 
     setValidationStatus((prev) => ({ ...prev, [provider]: 'validating' }));
@@ -158,14 +157,6 @@ export const AISettingsTab: React.FC<AISettingsTabProps> = ({ className = '' }) 
       if (isValid) {
         // Save the key if validation passed
         setApiKey(provider, tempKeys[provider]);
-        if (provider === 'openaiCompatible') {
-          const nextConfig = buildOpenAICompatibleConfig(
-            tempOpenAICompatibleConfig.baseURL,
-            tempOpenAICompatibleConfig.model,
-            tempOpenAICompatibleConfig.customHeaders
-          );
-          setOpenAICompatibleConfig(nextConfig);
-        }
       }
     } catch (error) {
       setValidationStatus((prev) => ({ ...prev, [provider]: 'invalid' }));
@@ -305,7 +296,9 @@ export const AISettingsTab: React.FC<AISettingsTabProps> = ({ className = '' }) 
                     </svg>
                   </span>
                 ) : (
-                  t('ai.testConnection', 'Test Connection')
+                  provider.id === 'openaiCompatible'
+                    ? t('ai.testConnection', 'Test Connection')
+                    : t('ai.testKey', 'Test')
                 )}
               </Button>
             </div>
@@ -319,9 +312,11 @@ export const AISettingsTab: React.FC<AISettingsTabProps> = ({ className = '' }) 
                   <input
                     type="text"
                     value={tempOpenAICompatibleConfig.baseURL}
-                    onChange={(e) =>
-                      setTempOpenAICompatibleConfig((prev) => ({ ...prev, baseURL: e.target.value }))
-                    }
+                    onChange={(e) => {
+                      setTempOpenAICompatibleConfig((prev) => ({ ...prev, baseURL: e.target.value }));
+                      setConfigError(null);
+                      setValidationStatus((prev) => ({ ...prev, openaiCompatible: 'idle' }));
+                    }}
                     placeholder="https://api.openai.com/v1"
                     className="w-full px-3 py-2 rounded-lg border border-border bg-card text-foreground text-sm"
                   />
@@ -333,9 +328,11 @@ export const AISettingsTab: React.FC<AISettingsTabProps> = ({ className = '' }) 
                   <input
                     type="text"
                     value={tempOpenAICompatibleConfig.model}
-                    onChange={(e) =>
-                      setTempOpenAICompatibleConfig((prev) => ({ ...prev, model: e.target.value }))
-                    }
+                    onChange={(e) => {
+                      setTempOpenAICompatibleConfig((prev) => ({ ...prev, model: e.target.value }));
+                      setConfigError(null);
+                      setValidationStatus((prev) => ({ ...prev, openaiCompatible: 'idle' }));
+                    }}
                     placeholder="gpt-4o-mini"
                     className="w-full px-3 py-2 rounded-lg border border-border bg-card text-foreground text-sm"
                   />
@@ -346,17 +343,22 @@ export const AISettingsTab: React.FC<AISettingsTabProps> = ({ className = '' }) 
                   </label>
                   <textarea
                     value={tempOpenAICompatibleConfig.customHeaders}
-                    onChange={(e) =>
+                    onChange={(e) => {
                       setTempOpenAICompatibleConfig((prev) => ({
                         ...prev,
                         customHeaders: e.target.value,
-                      }))
-                    }
+                      }));
+                      setConfigError(null);
+                      setValidationStatus((prev) => ({ ...prev, openaiCompatible: 'idle' }));
+                    }}
                     placeholder='{"HTTP-Referer":"https://your-app.example"}'
                     rows={4}
                     className="w-full px-3 py-2 rounded-lg border border-border bg-card text-foreground text-sm font-mono"
                   />
                 </div>
+                {configError && (
+                  <p className="text-xs text-red-500">{configError}</p>
+                )}
               </div>
             )}
 

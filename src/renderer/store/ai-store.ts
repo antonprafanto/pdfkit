@@ -112,30 +112,26 @@ export const useAIStore = create<AIState>()(
         set({ selectedProvider: provider });
         aiService.setProvider(provider);
 
-        if (provider === 'openaiCompatible') {
-          aiService.setOpenAIConfig('openaiCompatible', get().openaiCompatibleConfig);
-        }
-
         // Initialize the provider with stored key
         const key = get().apiKeys[provider];
         if (key) {
           aiService.setApiKey(provider, key);
         }
+
+        if (provider === 'openaiCompatible') {
+          aiService.setOpenAIConfig('openaiCompatible', get().openaiCompatibleConfig);
+        }
       },
 
       setOpenAICompatibleConfig: (config) => {
-        set((state) => ({
-          openaiCompatibleConfig: {
-            ...state.openaiCompatibleConfig,
-            ...config,
-            customHeaders: config.customHeaders ?? state.openaiCompatibleConfig.customHeaders,
-          },
-        }));
-
-        aiService.setOpenAIConfig('openaiCompatible', {
-          ...get().openaiCompatibleConfig,
+        const currentConfig = get().openaiCompatibleConfig;
+        const nextConfig = {
+          ...currentConfig,
           ...config,
-        });
+        };
+
+        set({ openaiCompatibleConfig: nextConfig });
+        aiService.setOpenAIConfig('openaiCompatible', nextConfig);
       },
 
       // Add token usage

@@ -47,8 +47,8 @@ export interface AIProviderInterface {
   isConfigured(): boolean;
   validateKey(): Promise<boolean>;
   getModelName(): string;
-  setApiKey?: (apiKey: string) => void;
-  setConfig?: (config: Partial<OpenAICompatibleConfig>) => void;
+  setApiKey(apiKey: string): void;
+  setConfig(config: Partial<OpenAICompatibleConfig>): void;
 }
 
 class AIService {
@@ -74,7 +74,7 @@ class AIService {
    */
   setApiKey(provider: AIProvider, apiKey: string): void {
     const providerInstance = this.providers.get(provider);
-    providerInstance?.setApiKey?.(apiKey);
+    providerInstance?.setApiKey(apiKey);
   }
 
   /**
@@ -82,7 +82,7 @@ class AIService {
    */
   setOpenAIConfig(provider: 'openai' | 'openaiCompatible', config: Partial<OpenAICompatibleConfig>): void {
     const providerInstance = this.providers.get(provider);
-    providerInstance?.setConfig?.(config);
+    providerInstance?.setConfig(config);
   }
 
   /**

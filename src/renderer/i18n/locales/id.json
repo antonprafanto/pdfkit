@@ -733,6 +733,7 @@
     "validating": "Memvalidasi...",
     "valid": "✓ Valid",
     "invalid": "✗ Tidak Valid",
+    "invalidConfig": "Konfigurasi tidak valid",
     "baseUrl": "Base URL / Endpoint API",
     "modelName": "Nama Model",
     "customHeaders": "Header Kustom (JSON, opsional)",
