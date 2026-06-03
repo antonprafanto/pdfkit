@@ -3,7 +3,7 @@
  * Manages API keys for AI providers, provider selection, and usage stats
  */
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAIStore } from '../../store/ai-store';
 import { aiService, AIProvider } from '../../lib/ai/ai-service';
@@ -54,9 +54,15 @@ export const AISettingsTab: React.FC<AISettingsTabProps> = ({ className = '' }) 
     selectedProvider,
     tokenUsage,
     openaiCompatibleConfig,
+    openaiCompatibleProfiles,
+    selectedOpenAICompatibleProfileId,
     setApiKey,
     setSelectedProvider,
     setOpenAICompatibleConfig,
+    saveOpenAICompatibleProfile,
+    updateOpenAICompatibleProfile,
+    setSelectedOpenAICompatibleProfile,
+    deleteOpenAICompatibleProfile,
   } = useAIStore();
 
   const [showKeys, setShowKeys] = useState({
@@ -83,6 +89,31 @@ export const AISettingsTab: React.FC<AISettingsTabProps> = ({ className = '' }) 
     model: openaiCompatibleConfig.model,
     customHeaders: JSON.stringify(openaiCompatibleConfig.customHeaders, null, 2),
   });
+  const [tempProfileName, setTempProfileName] = useState(
+    openaiCompatibleProfiles.find((profile) => profile.id === selectedOpenAICompatibleProfileId)?.name || 'Default'
+  );
+
+  useEffect(() => {
+    const selectedProfile = openaiCompatibleProfiles.find(
+      (profile) => profile.id === selectedOpenAICompatibleProfileId
+    );
+    if (!selectedProfile) {
+      return;
+    }
+
+    setTempKeys((prev) => ({
+      ...prev,
+      openaiCompatible: selectedProfile.apiKey,
+    }));
+    setTempOpenAICompatibleConfig({
+      baseURL: selectedProfile.config.baseURL,
+      model: selectedProfile.config.model,
+      customHeaders: JSON.stringify(selectedProfile.config.customHeaders, null, 2),
+    });
+    setTempProfileName(selectedProfile.name);
+    setConfigError(null);
+    setValidationStatus((prev) => ({ ...prev, openaiCompatible: 'idle' }));
+  }, [openaiCompatibleProfiles, selectedOpenAICompatibleProfileId]);
 
   const providers: { id: AIProvider; name: string; description: string }[] = [
     { id: 'openai', name: 'OpenAI', description: 'GPT-4o-mini, Embeddings' },
@@ -111,6 +142,53 @@ export const AISettingsTab: React.FC<AISettingsTabProps> = ({ className = '' }) 
       setValidationStatus((prev) => ({ ...prev, openaiCompatible: 'invalid' }));
       return false;
     }
+  };
+
+  const getOpenAICompatibleTempConfig = () =>
+    buildOpenAICompatibleConfig(
+      tempOpenAICompatibleConfig.baseURL,
+      tempOpenAICompatibleConfig.model,
+      tempOpenAICompatibleConfig.customHeaders
+    );
+
+  const handleSaveOpenAICompatibleProfile = (mode: 'new' | 'update') => {
+    try {
+      const nextConfig = getOpenAICompatibleTempConfig();
+      const name = tempProfileName.trim();
+      if (!name) {
+        throw new Error(t('ai.profileNameRequired', 'Profile name is required'));
+      }
+
+      if (mode === 'new') {
+        saveOpenAICompatibleProfile(name, {
+          apiKey: tempKeys.openaiCompatible,
+          config: nextConfig,
+        });
+      } else {
+        updateOpenAICompatibleProfile(selectedOpenAICompatibleProfileId, {
+          name,
+          apiKey: tempKeys.openaiCompatible,
+          config: nextConfig,
+        });
+      }
+
+      setConfigError(null);
+      setValidationStatus((prev) => ({ ...prev, openaiCompatible: 'idle' }));
+    } catch (error) {
+      setConfigError(error instanceof Error ? error.message : t('ai.invalidConfig', 'Invalid configuration'));
+      setValidationStatus((prev) => ({ ...prev, openaiCompatible: 'invalid' }));
+    }
+  };
+
+  const handleDeleteOpenAICompatibleProfile = () => {
+    if (openaiCompatibleProfiles.length <= 1) {
+      setConfigError(t('ai.cannotDeleteLastProfile', 'At least one profile must remain'));
+      return;
+    }
+
+    deleteOpenAICompatibleProfile(selectedOpenAICompatibleProfileId);
+    setConfigError(null);
+    setValidationStatus((prev) => ({ ...prev, openaiCompatible: 'idle' }));
   };
 
   const handleKeyChange = (provider: AIProvider, value: string) => {
@@ -305,6 +383,64 @@ export const AISettingsTab: React.FC<AISettingsTabProps> = ({ className = '' }) 
 
             {provider.id === 'openaiCompatible' && (
               <div className="space-y-2 rounded-lg border border-border p-3 bg-secondary/20">
+                <div>
+                  <label className="block text-xs text-muted-foreground mb-1">
+                    {t('ai.savedProfiles', 'Saved Profiles')}
+                  </label>
+                  <select
+                    value={selectedOpenAICompatibleProfileId}
+                    onChange={(e) => setSelectedOpenAICompatibleProfile(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-border bg-card text-foreground text-sm"
+                  >
+                    {openaiCompatibleProfiles.map((profile) => (
+                      <option key={profile.id} value={profile.id}>
+                        {profile.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-muted-foreground mb-1">
+                    {t('ai.profileName', 'Profile Name')}
+                  </label>
+                  <input
+                    type="text"
+                    value={tempProfileName}
+                    onChange={(e) => {
+                      setTempProfileName(e.target.value);
+                      setConfigError(null);
+                    }}
+                    placeholder={t('ai.profileNamePlaceholder', 'e.g., OpenRouter, LM Studio')}
+                    className="w-full px-3 py-2 rounded-lg border border-border bg-card text-foreground text-sm"
+                  />
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleSaveOpenAICompatibleProfile('new')}
+                    className="whitespace-nowrap"
+                  >
+                    {t('ai.saveAsNewProfile', 'Save as New Profile')}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleSaveOpenAICompatibleProfile('update')}
+                    className="whitespace-nowrap"
+                  >
+                    {t('ai.updateProfile', 'Update Profile')}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleDeleteOpenAICompatibleProfile}
+                    className="whitespace-nowrap"
+                    disabled={openaiCompatibleProfiles.length <= 1}
+                  >
+                    {t('ai.deleteProfile', 'Delete Profile')}
+                  </Button>
+                </div>
                 <div>
                   <label className="block text-xs text-muted-foreground mb-1">
                     {t('ai.baseUrl', 'Base URL / API Endpoint')}
