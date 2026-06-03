@@ -5,7 +5,12 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { AIProvider, AIMessage, aiService } from '../lib/ai/ai-service';
+import {
+  AIProvider,
+  AIMessage,
+  OpenAICompatibleConfig,
+  aiService,
+} from '../lib/ai/ai-service';
 
 export interface Conversation {
   id: string;
@@ -22,41 +27,50 @@ interface TokenUsage {
   lastReset: string; // ISO date string
 }
 
+const defaultOpenAICompatibleConfig: OpenAICompatibleConfig = {
+  baseURL: 'https://api.openai.com/v1',
+  model: 'gpt-4o-mini',
+  customHeaders: {},
+};
+
 interface AIState {
   // API Keys (stored encrypted in localStorage via persist)
   apiKeys: {
     openai: string;
+    openaiCompatible: string;
     anthropic: string;
     gemini: string;
   };
-  
+
   // Provider settings
   selectedProvider: AIProvider;
-  
+  openaiCompatibleConfig: OpenAICompatibleConfig;
+
   // Token tracking
   tokenUsage: TokenUsage;
-  
+
   // Conversations
   conversations: Conversation[];
   activeConversationId: string | null;
-  
+
   // Loading states
   isProcessing: boolean;
   lastError: string | null;
-  
+
   // Actions
   setApiKey: (provider: AIProvider, key: string) => void;
   setSelectedProvider: (provider: AIProvider) => void;
+  setOpenAICompatibleConfig: (config: Partial<OpenAICompatibleConfig>) => void;
   addTokenUsage: (tokens: number) => void;
   resetDailyUsage: () => void;
-  
+
   // Conversation actions
   createConversation: (documentId?: string) => string;
   addMessage: (conversationId: string, message: AIMessage) => void;
   deleteConversation: (conversationId: string) => void;
   setActiveConversation: (conversationId: string | null) => void;
   clearConversations: () => void;
-  
+
   // Processing states
   setProcessing: (isProcessing: boolean) => void;
   setError: (error: string | null) => void;
@@ -68,10 +82,12 @@ export const useAIStore = create<AIState>()(
       // Initial state
       apiKeys: {
         openai: '',
+        openaiCompatible: '',
         anthropic: '',
         gemini: '',
       },
       selectedProvider: 'openai',
+      openaiCompatibleConfig: defaultOpenAICompatibleConfig,
       tokenUsage: {
         total: 0,
         today: 0,
@@ -95,6 +111,11 @@ export const useAIStore = create<AIState>()(
       setSelectedProvider: (provider) => {
         set({ selectedProvider: provider });
         aiService.setProvider(provider);
+
+        if (provider === 'openaiCompatible') {
+          aiService.setOpenAIConfig('openaiCompatible', get().openaiCompatibleConfig);
+        }
+
         // Initialize the provider with stored key
         const key = get().apiKeys[provider];
         if (key) {
@@ -102,12 +123,27 @@ export const useAIStore = create<AIState>()(
         }
       },
 
+      setOpenAICompatibleConfig: (config) => {
+        set((state) => ({
+          openaiCompatibleConfig: {
+            ...state.openaiCompatibleConfig,
+            ...config,
+            customHeaders: config.customHeaders ?? state.openaiCompatibleConfig.customHeaders,
+          },
+        }));
+
+        aiService.setOpenAIConfig('openaiCompatible', {
+          ...get().openaiCompatibleConfig,
+          ...config,
+        });
+      },
+
       // Add token usage
       addTokenUsage: (tokens) => {
         set((state) => {
           const today = new Date().toISOString().split('T')[0];
           const shouldReset = state.tokenUsage.lastReset !== today;
-          
+
           return {
             tokenUsage: {
               total: state.tokenUsage.total + tokens,
@@ -140,12 +176,12 @@ export const useAIStore = create<AIState>()(
           createdAt: new Date(),
           updatedAt: new Date(),
         };
-        
+
         set((state) => ({
           conversations: [newConversation, ...state.conversations],
           activeConversationId: id,
         }));
-        
+
         return id;
       },
 
@@ -159,9 +195,10 @@ export const useAIStore = create<AIState>()(
                   messages: [...conv.messages, message],
                   updatedAt: new Date(),
                   // Update title from first user message
-                  title: conv.messages.length === 0 && message.role === 'user'
-                    ? message.content.substring(0, 50) + (message.content.length > 50 ? '...' : '')
-                    : conv.title,
+                  title:
+                    conv.messages.length === 0 && message.role === 'user'
+                      ? message.content.substring(0, 50) + (message.content.length > 50 ? '...' : '')
+                      : conv.title,
                 }
               : conv
           ),
@@ -173,9 +210,7 @@ export const useAIStore = create<AIState>()(
         set((state) => ({
           conversations: state.conversations.filter((c) => c.id !== conversationId),
           activeConversationId:
-            state.activeConversationId === conversationId
-              ? null
-              : state.activeConversationId,
+            state.activeConversationId === conversationId ? null : state.activeConversationId,
         }));
       },
 
@@ -204,9 +239,29 @@ export const useAIStore = create<AIState>()(
       partialize: (state) => ({
         apiKeys: state.apiKeys,
         selectedProvider: state.selectedProvider,
+        openaiCompatibleConfig: state.openaiCompatibleConfig,
         tokenUsage: state.tokenUsage,
         // Don't persist conversations to keep localStorage small
       }),
+      merge: (persistedState, currentState) => {
+        const persisted = persistedState as Partial<AIState>;
+        return {
+          ...currentState,
+          ...persisted,
+          apiKeys: {
+            ...currentState.apiKeys,
+            ...(persisted.apiKeys || {}),
+          },
+          openaiCompatibleConfig: {
+            ...defaultOpenAICompatibleConfig,
+            ...(persisted.openaiCompatibleConfig || {}),
+            customHeaders: {
+              ...defaultOpenAICompatibleConfig.customHeaders,
+              ...(persisted.openaiCompatibleConfig?.customHeaders || {}),
+            },
+          },
+        };
+      },
     }
   )
 );
@@ -214,11 +269,13 @@ export const useAIStore = create<AIState>()(
 // Initialize AI service with stored keys on app load
 export const initializeAIService = () => {
   const state = useAIStore.getState();
-  const { apiKeys, selectedProvider } = state;
-  
+  const { apiKeys, selectedProvider, openaiCompatibleConfig } = state;
+
+  aiService.setOpenAIConfig('openaiCompatible', openaiCompatibleConfig);
+
   // Set the current provider
   aiService.setProvider(selectedProvider);
-  
+
   // Set API keys for all providers
   Object.entries(apiKeys).forEach(([provider, key]) => {
     if (key) {

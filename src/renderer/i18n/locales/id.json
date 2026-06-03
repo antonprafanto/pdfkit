@@ -727,12 +727,18 @@
     "searchHint": "Masukkan pencarian berdasarkan makna, bukan hanya kata kunci",
     "selectedProvider": "Penyedia AI Aktif",
     "apiKeys": "Kunci API",
+    "save": "Simpan",
     "testKey": "Tes",
+    "testConnection": "Tes Koneksi",
     "validating": "Memvalidasi...",
     "valid": "✓ Valid",
     "invalid": "✗ Tidak Valid",
+    "baseUrl": "Base URL / Endpoint API",
+    "modelName": "Nama Model",
+    "customHeaders": "Header Kustom (JSON, opsional)",
     "openaiHint": "Dapatkan kunci API dari platform.openai.com",
     "openaiSteps": "Daftar → Dashboard → API Keys → Buat kunci rahasia baru",
+    "openaiCompatibleHint": "Mendukung OpenRouter, LM Studio, vLLM, dan endpoint kompatibel OpenAI lainnya.",
     "anthropicHint": "Dapatkan kunci API dari console.anthropic.com",
     "anthropicSteps": "Daftar → Settings → API Keys → Buat Kunci",
     "geminiHint": "Dapatkan kunci API dari aistudio.google.com",
@@ -827,4 +833,3 @@
     "error": "Kesalahan memeriksa pembaruan:\n{{error}}"
   }
 }
-

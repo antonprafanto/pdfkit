@@ -13,18 +13,55 @@ interface AISettingsTabProps {
   className?: string;
 }
 
+const parseHeadersInput = (headersInput: string): Record<string, string> => {
+  if (!headersInput.trim()) {
+    return {};
+  }
+
+  const parsed = JSON.parse(headersInput) as unknown;
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw new Error('Headers must be a JSON object');
+  }
+
+  return Object.fromEntries(
+    Object.entries(parsed).map(([key, value]) => [key, String(value)])
+  );
+};
+
+const buildOpenAICompatibleConfig = (
+  baseURL: string,
+  model: string,
+  customHeadersInput: string
+) => {
+  const trimmedBaseURL = baseURL.trim();
+  const trimmedModel = model.trim();
+
+  if (!trimmedBaseURL || !trimmedModel) {
+    throw new Error('Base URL and model are required');
+  }
+
+  return {
+    baseURL: trimmedBaseURL,
+    model: trimmedModel,
+    customHeaders: parseHeadersInput(customHeadersInput),
+  };
+};
+
 export const AISettingsTab: React.FC<AISettingsTabProps> = ({ className = '' }) => {
   const { t } = useTranslation();
   const {
     apiKeys,
     selectedProvider,
     tokenUsage,
+    openaiCompatibleConfig,
     setApiKey,
     setSelectedProvider,
+    setOpenAICompatibleConfig,
   } = useAIStore();
 
   const [showKeys, setShowKeys] = useState({
     openai: false,
+    openaiCompatible: false,
     anthropic: false,
     gemini: false,
   });
@@ -35,12 +72,24 @@ export const AISettingsTab: React.FC<AISettingsTabProps> = ({ className = '' }) 
 
   const [tempKeys, setTempKeys] = useState({
     openai: apiKeys.openai,
+    openaiCompatible: apiKeys.openaiCompatible,
     anthropic: apiKeys.anthropic,
     gemini: apiKeys.gemini,
   });
 
+  const [tempOpenAICompatibleConfig, setTempOpenAICompatibleConfig] = useState({
+    baseURL: openaiCompatibleConfig.baseURL,
+    model: openaiCompatibleConfig.model,
+    customHeaders: JSON.stringify(openaiCompatibleConfig.customHeaders, null, 2),
+  });
+
   const providers: { id: AIProvider; name: string; description: string }[] = [
     { id: 'openai', name: 'OpenAI', description: 'GPT-4o-mini, Embeddings' },
+    {
+      id: 'openaiCompatible',
+      name: 'OpenAI-Compatible',
+      description: 'Custom endpoint, model, headers',
+    },
     { id: 'anthropic', name: 'Anthropic', description: 'Claude 3 Haiku' },
     { id: 'gemini', name: 'Google Gemini', description: 'Gemini 1.5 Flash' },
   ];
@@ -50,6 +99,22 @@ export const AISettingsTab: React.FC<AISettingsTabProps> = ({ className = '' }) 
   };
 
   const handleSaveKey = (provider: AIProvider) => {
+    if (provider === 'openaiCompatible') {
+      try {
+        const nextConfig = buildOpenAICompatibleConfig(
+          tempOpenAICompatibleConfig.baseURL,
+          tempOpenAICompatibleConfig.model,
+          tempOpenAICompatibleConfig.customHeaders
+        );
+
+        setOpenAICompatibleConfig(nextConfig);
+        aiService.setOpenAIConfig('openaiCompatible', nextConfig);
+      } catch (error) {
+        setValidationStatus((prev) => ({ ...prev, [provider]: 'invalid' }));
+        return;
+      }
+    }
+
     setApiKey(provider, tempKeys[provider]);
     setValidationStatus((prev) => ({ ...prev, [provider]: 'idle' }));
   };
@@ -60,8 +125,24 @@ export const AISettingsTab: React.FC<AISettingsTabProps> = ({ className = '' }) 
       return;
     }
 
+    if (provider === 'openaiCompatible') {
+      try {
+        const nextConfig = buildOpenAICompatibleConfig(
+          tempOpenAICompatibleConfig.baseURL,
+          tempOpenAICompatibleConfig.model,
+          tempOpenAICompatibleConfig.customHeaders
+        );
+
+        setOpenAICompatibleConfig(nextConfig);
+        aiService.setOpenAIConfig('openaiCompatible', nextConfig);
+      } catch (error) {
+        setValidationStatus((prev) => ({ ...prev, [provider]: 'invalid' }));
+        return;
+      }
+    }
+
     setValidationStatus((prev) => ({ ...prev, [provider]: 'validating' }));
-    
+
     // Temporarily set the key for validation
     aiService.setApiKey(provider, tempKeys[provider]);
     const originalProvider = aiService.getProvider();
@@ -73,10 +154,18 @@ export const AISettingsTab: React.FC<AISettingsTabProps> = ({ className = '' }) 
         ...prev,
         [provider]: isValid ? 'valid' : 'invalid',
       }));
-      
+
       if (isValid) {
         // Save the key if validation passed
         setApiKey(provider, tempKeys[provider]);
+        if (provider === 'openaiCompatible') {
+          const nextConfig = buildOpenAICompatibleConfig(
+            tempOpenAICompatibleConfig.baseURL,
+            tempOpenAICompatibleConfig.model,
+            tempOpenAICompatibleConfig.customHeaders
+          );
+          setOpenAICompatibleConfig(nextConfig);
+        }
       }
     } catch (error) {
       setValidationStatus((prev) => ({ ...prev, [provider]: 'invalid' }));
@@ -145,14 +234,12 @@ export const AISettingsTab: React.FC<AISettingsTabProps> = ({ className = '' }) 
         {providers.map((provider) => (
           <div key={provider.id} className="space-y-2">
             <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-foreground">
-                {provider.name}
-              </label>
+              <label className="text-sm font-medium text-foreground">{provider.name}</label>
               <span className={`text-xs ${getStatusColor(validationStatus[provider.id])}`}>
                 {getStatusText(validationStatus[provider.id])}
               </span>
             </div>
-            
+
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <input
@@ -169,17 +256,36 @@ export const AISettingsTab: React.FC<AISettingsTabProps> = ({ className = '' }) 
                 >
                   {showKeys[provider.id] ? (
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                      />
                     </svg>
                   ) : (
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                      />
                     </svg>
                   )}
                 </button>
               </div>
-              
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleSaveKey(provider.id)}
+                className="whitespace-nowrap"
+              >
+                {t('ai.save', 'Save')}
+              </Button>
+
               <Button
                 variant="outline"
                 size="sm"
@@ -191,19 +297,74 @@ export const AISettingsTab: React.FC<AISettingsTabProps> = ({ className = '' }) 
                   <span className="flex items-center gap-1">
                     <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
                     </svg>
                   </span>
                 ) : (
-                  t('ai.testKey', 'Test')
+                  t('ai.testConnection', 'Test Connection')
                 )}
               </Button>
             </div>
-            
+
+            {provider.id === 'openaiCompatible' && (
+              <div className="space-y-2 rounded-lg border border-border p-3 bg-secondary/20">
+                <div>
+                  <label className="block text-xs text-muted-foreground mb-1">
+                    {t('ai.baseUrl', 'Base URL / API Endpoint')}
+                  </label>
+                  <input
+                    type="text"
+                    value={tempOpenAICompatibleConfig.baseURL}
+                    onChange={(e) =>
+                      setTempOpenAICompatibleConfig((prev) => ({ ...prev, baseURL: e.target.value }))
+                    }
+                    placeholder="https://api.openai.com/v1"
+                    className="w-full px-3 py-2 rounded-lg border border-border bg-card text-foreground text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-muted-foreground mb-1">
+                    {t('ai.modelName', 'Model Name')}
+                  </label>
+                  <input
+                    type="text"
+                    value={tempOpenAICompatibleConfig.model}
+                    onChange={(e) =>
+                      setTempOpenAICompatibleConfig((prev) => ({ ...prev, model: e.target.value }))
+                    }
+                    placeholder="gpt-4o-mini"
+                    className="w-full px-3 py-2 rounded-lg border border-border bg-card text-foreground text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-muted-foreground mb-1">
+                    {t('ai.customHeaders', 'Custom Headers (JSON, optional)')}
+                  </label>
+                  <textarea
+                    value={tempOpenAICompatibleConfig.customHeaders}
+                    onChange={(e) =>
+                      setTempOpenAICompatibleConfig((prev) => ({
+                        ...prev,
+                        customHeaders: e.target.value,
+                      }))
+                    }
+                    placeholder='{"HTTP-Referer":"https://your-app.example"}'
+                    rows={4}
+                    className="w-full px-3 py-2 rounded-lg border border-border bg-card text-foreground text-sm font-mono"
+                  />
+                </div>
+              </div>
+            )}
+
             <p className="text-xs text-muted-foreground">
               {provider.id === 'openai' && (
                 <>
-                  🔗 <a 
+                  🔗{' '}
+                  <a
                     href="https://platform.openai.com/api-keys"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -220,9 +381,18 @@ export const AISettingsTab: React.FC<AISettingsTabProps> = ({ className = '' }) 
                   </span>
                 </>
               )}
+              {provider.id === 'openaiCompatible' && (
+                <span className="block mt-1 text-muted-foreground/70">
+                  {t(
+                    'ai.openaiCompatibleHint',
+                    'Works with OpenRouter, LM Studio, vLLM, and other OpenAI-compatible endpoints.'
+                  )}
+                </span>
+              )}
               {provider.id === 'anthropic' && (
                 <>
-                  🔗 <a 
+                  🔗{' '}
+                  <a
                     href="https://console.anthropic.com/settings/keys"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -241,7 +411,8 @@ export const AISettingsTab: React.FC<AISettingsTabProps> = ({ className = '' }) 
               )}
               {provider.id === 'gemini' && (
                 <>
-                  🔗 <a 
+                  🔗{' '}
+                  <a
                     href="https://aistudio.google.com/app/apikey"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -268,21 +439,17 @@ export const AISettingsTab: React.FC<AISettingsTabProps> = ({ className = '' }) 
         <h3 className="text-sm font-medium text-foreground border-b border-border pb-2">
           {t('ai.usage', 'Token Usage')}
         </h3>
-        
+
         <div className="grid grid-cols-2 gap-4">
           <div className="p-4 rounded-lg bg-secondary/50">
             <p className="text-xs text-muted-foreground mb-1">{t('ai.todayUsage', 'Today')}</p>
-            <p className="text-2xl font-semibold text-foreground">
-              {tokenUsage.today.toLocaleString()}
-            </p>
+            <p className="text-2xl font-semibold text-foreground">{tokenUsage.today.toLocaleString()}</p>
             <p className="text-xs text-muted-foreground">{t('ai.tokens', 'tokens')}</p>
           </div>
-          
+
           <div className="p-4 rounded-lg bg-secondary/50">
             <p className="text-xs text-muted-foreground mb-1">{t('ai.totalUsage', 'All Time')}</p>
-            <p className="text-2xl font-semibold text-foreground">
-              {tokenUsage.total.toLocaleString()}
-            </p>
+            <p className="text-2xl font-semibold text-foreground">{tokenUsage.total.toLocaleString()}</p>
             <p className="text-xs text-muted-foreground">{t('ai.tokens', 'tokens')}</p>
           </div>
         </div>
@@ -291,7 +458,11 @@ export const AISettingsTab: React.FC<AISettingsTabProps> = ({ className = '' }) 
       {/* Info Box */}
       <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
         <p className="text-sm text-blue-800 dark:text-blue-200">
-          💡 {t('ai.byokInfo', 'You use your own API keys (BYOK). We never store or send your keys to any server.')}
+          💡{' '}
+          {t(
+            'ai.byokInfo',
+            'You use your own API keys (BYOK). We never store or send your keys to any server.'
+          )}
         </p>
       </div>
     </div>
