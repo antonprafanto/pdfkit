@@ -74,7 +74,6 @@ PDF Kit is a comprehensive, offline-first PDF toolkit built with Electron and Re
 - 💬 **Chat with PDF** - Ask questions about your documents
 - 📊 **Summarization** - Generate document summaries
 - 🔍 **Semantic Search** - Find content by meaning, not just keywords
-- 🔌 **OpenAI-Compatible Endpoints** - Configure custom base URL, model, API key, and optional headers
 
 ### Organization
 
@@ -154,7 +153,7 @@ For detailed instructions, see the [User Manual](docs/USER_MANUAL.md).
 | Frontend       | React 19.x, TypeScript           |
 | Build Tool     | Vite 6.x                         |
 | PDF Library    | pdf-lib, pdfjs-dist              |
-| AI Integration | OpenAI, OpenAI-Compatible, Anthropic, Google Gemini |
+| AI Integration | OpenAI, Anthropic, Google Gemini |
 | Testing        | Vitest                           |
 | Styling        | CSS with modern features         |
 

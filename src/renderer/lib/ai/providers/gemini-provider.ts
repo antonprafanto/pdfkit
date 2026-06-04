@@ -4,13 +4,7 @@
  */
 
 import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai';
-import {
-  AIProviderInterface,
-  AIMessage,
-  ChatResponse,
-  EmbeddingResponse,
-  OpenAICompatibleConfig,
-} from '../ai-service';
+import { AIProviderInterface, AIMessage, ChatResponse, EmbeddingResponse } from '../ai-service';
 
 export class GeminiProvider implements AIProviderInterface {
   private genAI: GoogleGenerativeAI | null = null;
@@ -33,10 +27,6 @@ export class GeminiProvider implements AIProviderInterface {
     }
   }
 
-
-  setConfig(_config: Partial<OpenAICompatibleConfig>): void {
-    // Gemini provider does not use OpenAI-compatible endpoint settings
-  }
   isConfigured(): boolean {
     return Boolean(this.apiKey && this.genAI && this.model);
   }

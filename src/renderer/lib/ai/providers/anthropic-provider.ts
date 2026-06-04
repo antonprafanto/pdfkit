@@ -4,13 +4,7 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
-import {
-  AIProviderInterface,
-  AIMessage,
-  ChatResponse,
-  EmbeddingResponse,
-  OpenAICompatibleConfig,
-} from '../ai-service';
+import { AIProviderInterface, AIMessage, ChatResponse, EmbeddingResponse } from '../ai-service';
 
 export class AnthropicProvider implements AIProviderInterface {
   private client: Anthropic | null = null;
@@ -29,10 +23,6 @@ export class AnthropicProvider implements AIProviderInterface {
     }
   }
 
-
-  setConfig(_config: Partial<OpenAICompatibleConfig>): void {
-    // Anthropic provider does not use OpenAI-compatible endpoint settings
-  }
   isConfigured(): boolean {
     return Boolean(this.apiKey && this.client);
   }
