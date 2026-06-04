@@ -4,24 +4,69 @@
  */
 
 import OpenAI from 'openai';
-import { AIProviderInterface, AIMessage, ChatResponse, EmbeddingResponse } from '../ai-service';
+import {
+  AIProviderInterface,
+  AIMessage,
+  ChatResponse,
+  EmbeddingResponse,
+  OpenAICompatibleConfig,
+} from '../ai-service';
+
+interface OpenAIProviderOptions {
+  defaultModel?: string;
+  defaultEmbeddingModel?: string;
+  defaultBaseURL?: string;
+  providerName?: string;
+}
 
 export class OpenAIProvider implements AIProviderInterface {
   private client: OpenAI | null = null;
   private apiKey: string = '';
-  private model: string = 'gpt-4o-mini';
-  private embeddingModel: string = 'text-embedding-3-small';
+  private model: string;
+  private embeddingModel: string;
+  private baseURL: string;
+  private customHeaders: Record<string, string> = {};
+  private providerName: string;
+
+  constructor(options: OpenAIProviderOptions = {}) {
+    this.model = options.defaultModel || 'gpt-4o-mini';
+    this.embeddingModel = options.defaultEmbeddingModel || 'text-embedding-3-small';
+    this.baseURL = options.defaultBaseURL || 'https://api.openai.com/v1';
+    this.providerName = options.providerName || 'OpenAI';
+  }
+
+  setConfig(config: Partial<OpenAICompatibleConfig>): void {
+    if (config.baseURL !== undefined) {
+      this.baseURL = config.baseURL;
+    }
+    if (config.model !== undefined) {
+      this.model = config.model;
+    }
+    if (config.customHeaders !== undefined) {
+      this.customHeaders = config.customHeaders;
+    }
+
+    if (this.apiKey) {
+      this.createClient();
+    }
+  }
 
   setApiKey(apiKey: string): void {
     this.apiKey = apiKey;
     if (apiKey) {
-      this.client = new OpenAI({
-        apiKey,
-        dangerouslyAllowBrowser: true, // Required for browser environment
-      });
+      this.createClient();
     } else {
       this.client = null;
     }
+  }
+
+  private createClient(): void {
+    this.client = new OpenAI({
+      apiKey: this.apiKey,
+      baseURL: this.baseURL,
+      defaultHeaders: this.customHeaders,
+      dangerouslyAllowBrowser: true, // Required for browser environment
+    });
   }
 
   isConfigured(): boolean {
@@ -30,13 +75,13 @@ export class OpenAIProvider implements AIProviderInterface {
 
   async validateKey(): Promise<boolean> {
     if (!this.client) return false;
-    
+
     try {
       // Make a minimal API call to validate key
       await this.client.models.list();
       return true;
     } catch (error) {
-      console.error('OpenAI key validation failed:', error);
+      console.error(`${this.providerName} key validation failed:`, error);
       return false;
     }
   }
@@ -47,13 +92,13 @@ export class OpenAIProvider implements AIProviderInterface {
 
   async chat(messages: AIMessage[], options?: { maxTokens?: number }): Promise<ChatResponse> {
     if (!this.client) {
-      throw new Error('OpenAI client not configured');
+      throw new Error(`${this.providerName} client not configured`);
     }
 
     try {
       const response = await this.client.chat.completions.create({
         model: this.model,
-        messages: messages.map(m => ({
+        messages: messages.map((m) => ({
           role: m.role,
           content: m.content,
         })),
@@ -69,14 +114,14 @@ export class OpenAIProvider implements AIProviderInterface {
         model: this.model,
       };
     } catch (error: any) {
-      console.error('OpenAI chat error:', error);
-      throw new Error(`OpenAI error: ${error.message || 'Unknown error'}`);
+      console.error(`${this.providerName} chat error:`, error);
+      throw new Error(`${this.providerName} error: ${error.message || 'Unknown error'}`);
     }
   }
 
   async embed(text: string): Promise<EmbeddingResponse> {
     if (!this.client) {
-      throw new Error('OpenAI client not configured');
+      throw new Error(`${this.providerName} client not configured`);
     }
 
     try {
@@ -90,8 +135,8 @@ export class OpenAIProvider implements AIProviderInterface {
         tokensUsed: response.usage?.total_tokens || 0,
       };
     } catch (error: any) {
-      console.error('OpenAI embedding error:', error);
-      throw new Error(`OpenAI embedding error: ${error.message || 'Unknown error'}`);
+      console.error(`${this.providerName} embedding error:`, error);
+      throw new Error(`${this.providerName} embedding error: ${error.message || 'Unknown error'}`);
     }
   }
 }

@@ -689,12 +689,27 @@
     "searchHint": "Enter a query to search by meaning, not just keywords",
     "selectedProvider": "Active AI Provider",
     "apiKeys": "API Keys",
+    "save": "Save",
     "testKey": "Test",
+    "testConnection": "Test Connection",
     "validating": "Validating...",
     "valid": "✓ Valid",
     "invalid": "✗ Invalid",
+    "invalidConfig": "Invalid configuration",
+    "profileNameRequired": "Profile name is required",
+    "cannotDeleteLastProfile": "At least one profile must remain",
+    "savedProfiles": "Saved Profiles",
+    "profileName": "Profile Name",
+    "profileNamePlaceholder": "e.g., OpenRouter, LM Studio",
+    "saveAsNewProfile": "Save as New Profile",
+    "updateProfile": "Update Profile",
+    "deleteProfile": "Delete Profile",
+    "baseUrl": "Base URL / API Endpoint",
+    "modelName": "Model Name",
+    "customHeaders": "Custom Headers (JSON, optional)",
     "openaiHint": "Get your API key from platform.openai.com",
     "openaiSteps": "Sign up → Dashboard → API Keys → Create new secret key",
+    "openaiCompatibleHint": "Works with OpenRouter, LM Studio, vLLM, and other OpenAI-compatible endpoints.",
     "anthropicHint": "Get your API key from console.anthropic.com",
     "anthropicSteps": "Sign up → Settings → API Keys → Create Key",
     "geminiHint": "Get your API key from aistudio.google.com",
@@ -789,4 +804,3 @@
     "error": "Error checking for updates:\n{{error}}"
   }
 }
-

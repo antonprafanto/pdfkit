@@ -5,7 +5,12 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { AIProvider, AIMessage, aiService } from '../lib/ai/ai-service';
+import {
+  AIProvider,
+  AIMessage,
+  OpenAICompatibleConfig,
+  aiService,
+} from '../lib/ai/ai-service';
 
 export interface Conversation {
   id: string;
@@ -16,47 +21,149 @@ export interface Conversation {
   updatedAt: Date;
 }
 
+export interface OpenAICompatibleProfile {
+  id: string;
+  name: string;
+  apiKey: string;
+  config: OpenAICompatibleConfig;
+}
+
 interface TokenUsage {
   total: number;
   today: number;
   lastReset: string; // ISO date string
 }
 
+const defaultOpenAICompatibleConfig: OpenAICompatibleConfig = {
+  baseURL: 'https://api.openai.com/v1',
+  model: 'gpt-4o-mini',
+  customHeaders: {},
+};
+
+const defaultOpenAICompatibleProfileId = 'default-openai-compatible';
+
+const cloneOpenAICompatibleConfig = (config: OpenAICompatibleConfig): OpenAICompatibleConfig => ({
+  ...config,
+  customHeaders: { ...config.customHeaders },
+});
+
+let openAICompatibleProfileCounter = 0;
+
+const generateOpenAICompatibleProfileId = (): string => {
+  if (typeof globalThis.crypto?.randomUUID === 'function') {
+    return globalThis.crypto.randomUUID();
+  }
+
+  if (typeof globalThis.crypto?.getRandomValues === 'function') {
+    const bytes = globalThis.crypto.getRandomValues(new Uint32Array(2));
+    return `openai-compatible-${bytes[0].toString(16)}-${bytes[1].toString(16)}`;
+  }
+
+  openAICompatibleProfileCounter += 1;
+  return `openai-compatible-${Date.now()}-${openAICompatibleProfileCounter}`;
+};
+
+const createOpenAICompatibleProfile = (
+  name: string,
+  apiKey: string,
+  config: OpenAICompatibleConfig
+): OpenAICompatibleProfile => ({
+  id: generateOpenAICompatibleProfileId(),
+  name: name.trim(),
+  apiKey,
+  config: cloneOpenAICompatibleConfig(config),
+});
+
+const isValidOpenAICompatibleProfile = (profile: unknown): profile is OpenAICompatibleProfile => {
+  if (!profile || typeof profile !== 'object') {
+    return false;
+  }
+
+  const candidate = profile as {
+    id?: unknown;
+    name?: unknown;
+    apiKey?: unknown;
+    config?: {
+      baseURL?: unknown;
+      model?: unknown;
+      customHeaders?: unknown;
+    };
+  };
+
+  if (
+    typeof candidate.id !== 'string' ||
+    typeof candidate.name !== 'string' ||
+    typeof candidate.apiKey !== 'string' ||
+    !candidate.config ||
+    typeof candidate.config.baseURL !== 'string' ||
+    typeof candidate.config.model !== 'string' ||
+    !candidate.config.customHeaders ||
+    typeof candidate.config.customHeaders !== 'object' ||
+    Array.isArray(candidate.config.customHeaders)
+  ) {
+    return false;
+  }
+
+  return Object.values(candidate.config.customHeaders).every((value) => typeof value === 'string');
+};
+
+const defaultOpenAICompatibleProfile: OpenAICompatibleProfile = {
+  id: defaultOpenAICompatibleProfileId,
+  name: 'Default',
+  apiKey: '',
+  config: cloneOpenAICompatibleConfig(defaultOpenAICompatibleConfig),
+};
+
 interface AIState {
   // API Keys (stored encrypted in localStorage via persist)
   apiKeys: {
     openai: string;
+    openaiCompatible: string;
     anthropic: string;
     gemini: string;
   };
-  
+
   // Provider settings
   selectedProvider: AIProvider;
-  
+  openaiCompatibleConfig: OpenAICompatibleConfig;
+  openaiCompatibleProfiles: OpenAICompatibleProfile[];
+  selectedOpenAICompatibleProfileId: string;
+
   // Token tracking
   tokenUsage: TokenUsage;
-  
+
   // Conversations
   conversations: Conversation[];
   activeConversationId: string | null;
-  
+
   // Loading states
   isProcessing: boolean;
   lastError: string | null;
-  
+
   // Actions
   setApiKey: (provider: AIProvider, key: string) => void;
   setSelectedProvider: (provider: AIProvider) => void;
+  setOpenAICompatibleConfig: (config: Partial<OpenAICompatibleConfig>) => void;
+  saveOpenAICompatibleProfile: (
+    name: string,
+    payload: { apiKey: string; config: OpenAICompatibleConfig }
+  ) => string;
+  updateOpenAICompatibleProfile: (
+    id: string,
+    payload: { name: string; apiKey: string; config: OpenAICompatibleConfig }
+  ) => void;
+  setSelectedOpenAICompatibleProfile: (id: string) => void;
+  deleteOpenAICompatibleProfile: (id: string) => void;
   addTokenUsage: (tokens: number) => void;
   resetDailyUsage: () => void;
-  
+
   // Conversation actions
   createConversation: (documentId?: string) => string;
   addMessage: (conversationId: string, message: AIMessage) => void;
   deleteConversation: (conversationId: string) => void;
   setActiveConversation: (conversationId: string | null) => void;
   clearConversations: () => void;
-  
+
   // Processing states
   setProcessing: (isProcessing: boolean) => void;
   setError: (error: string | null) => void;
@@ -68,10 +175,14 @@ export const useAIStore = create<AIState>()(
       // Initial state
       apiKeys: {
         openai: '',
+        openaiCompatible: defaultOpenAICompatibleProfile.apiKey,
         anthropic: '',
         gemini: '',
       },
       selectedProvider: 'openai',
+      openaiCompatibleConfig: cloneOpenAICompatibleConfig(defaultOpenAICompatibleProfile.config),
+      openaiCompatibleProfiles: [defaultOpenAICompatibleProfile],
+      selectedOpenAICompatibleProfileId: defaultOpenAICompatibleProfile.id,
       tokenUsage: {
         total: 0,
         today: 0,
@@ -86,6 +197,14 @@ export const useAIStore = create<AIState>()(
       setApiKey: (provider, key) => {
         set((state) => ({
           apiKeys: { ...state.apiKeys, [provider]: key },
+          openaiCompatibleProfiles:
+            provider === 'openaiCompatible'
+              ? state.openaiCompatibleProfiles.map((profile) =>
+                  profile.id === state.selectedOpenAICompatibleProfileId
+                    ? { ...profile, apiKey: key }
+                    : profile
+                )
+              : state.openaiCompatibleProfiles,
         }));
         // Also update the AI service
         aiService.setApiKey(provider, key);
@@ -95,10 +214,160 @@ export const useAIStore = create<AIState>()(
       setSelectedProvider: (provider) => {
         set({ selectedProvider: provider });
         aiService.setProvider(provider);
+
         // Initialize the provider with stored key
         const key = get().apiKeys[provider];
         if (key) {
           aiService.setApiKey(provider, key);
+        }
+
+        if (provider === 'openaiCompatible') {
+          aiService.setOpenAIConfig('openaiCompatible', get().openaiCompatibleConfig);
+        }
+      },
+
+      setOpenAICompatibleConfig: (config) => {
+        const currentConfig = get().openaiCompatibleConfig;
+        const nextConfig = {
+          ...currentConfig,
+          ...config,
+          customHeaders: {
+            ...currentConfig.customHeaders,
+            ...(config.customHeaders || {}),
+          },
+        };
+
+        set((state) => ({
+          openaiCompatibleConfig: nextConfig,
+          openaiCompatibleProfiles: state.openaiCompatibleProfiles.map((profile) =>
+            profile.id === state.selectedOpenAICompatibleProfileId
+              ? {
+                  ...profile,
+                  config: cloneOpenAICompatibleConfig(nextConfig),
+                }
+              : profile
+          ),
+        }));
+        aiService.setOpenAIConfig('openaiCompatible', nextConfig);
+      },
+
+      saveOpenAICompatibleProfile: (name, payload) => {
+        const trimmedName = name.trim();
+        if (!trimmedName) {
+          return '';
+        }
+
+        const newProfile = createOpenAICompatibleProfile(trimmedName, payload.apiKey, payload.config);
+
+        set((state) => ({
+          openaiCompatibleProfiles: [...state.openaiCompatibleProfiles, newProfile],
+          selectedOpenAICompatibleProfileId: newProfile.id,
+          openaiCompatibleConfig: cloneOpenAICompatibleConfig(newProfile.config),
+          apiKeys: {
+            ...state.apiKeys,
+            openaiCompatible: newProfile.apiKey,
+          },
+        }));
+
+        aiService.setOpenAIConfig('openaiCompatible', newProfile.config);
+        aiService.setApiKey('openaiCompatible', newProfile.apiKey);
+
+        return newProfile.id;
+      },
+
+      updateOpenAICompatibleProfile: (id, payload) => {
+        const trimmedName = payload.name.trim();
+        if (!trimmedName) {
+          return;
+        }
+
+        let updatedProfile: OpenAICompatibleProfile | undefined;
+        set((state) => {
+          const existing = state.openaiCompatibleProfiles.find((profile) => profile.id === id);
+          if (!existing) {
+            return state;
+          }
+
+          updatedProfile = {
+            ...existing,
+            name: trimmedName,
+            apiKey: payload.apiKey,
+            config: cloneOpenAICompatibleConfig(payload.config),
+          };
+
+          return {
+            openaiCompatibleProfiles: state.openaiCompatibleProfiles.map((profile) =>
+              profile.id === id ? (updatedProfile as OpenAICompatibleProfile) : profile
+            ),
+            selectedOpenAICompatibleProfileId: id,
+            openaiCompatibleConfig: cloneOpenAICompatibleConfig(updatedProfile.config),
+            apiKeys: {
+              ...state.apiKeys,
+              openaiCompatible: payload.apiKey,
+            },
+          };
+        });
+
+        if (updatedProfile) {
+          aiService.setOpenAIConfig('openaiCompatible', updatedProfile.config);
+          aiService.setApiKey('openaiCompatible', updatedProfile.apiKey);
+        }
+      },
+
+      setSelectedOpenAICompatibleProfile: (id) => {
+        const profile = get().openaiCompatibleProfiles.find((item) => item.id === id);
+        if (!profile) {
+          return;
+        }
+
+        set((state) => ({
+          selectedOpenAICompatibleProfileId: id,
+          openaiCompatibleConfig: cloneOpenAICompatibleConfig(profile.config),
+          apiKeys: {
+            ...state.apiKeys,
+            openaiCompatible: profile.apiKey,
+          },
+        }));
+
+        aiService.setOpenAIConfig('openaiCompatible', profile.config);
+        aiService.setApiKey('openaiCompatible', profile.apiKey);
+      },
+
+      deleteOpenAICompatibleProfile: (id) => {
+        set((state) => {
+          if (state.openaiCompatibleProfiles.length <= 1) {
+            return state;
+          }
+
+          const remaining = state.openaiCompatibleProfiles.filter((profile) => profile.id !== id);
+          if (remaining.length === state.openaiCompatibleProfiles.length) {
+            return state;
+          }
+
+          const nextSelectedId =
+            state.selectedOpenAICompatibleProfileId === id
+              ? remaining[0].id
+              : state.selectedOpenAICompatibleProfileId;
+          const selectedProfile =
+            remaining.find((profile) => profile.id === nextSelectedId) || remaining[0];
+
+          return {
+            openaiCompatibleProfiles: remaining,
+            selectedOpenAICompatibleProfileId: selectedProfile.id,
+            openaiCompatibleConfig: cloneOpenAICompatibleConfig(selectedProfile.config),
+            apiKeys: {
+              ...state.apiKeys,
+              openaiCompatible: selectedProfile.apiKey,
+            },
+          };
+        });
+
+        const nextSelected = get().openaiCompatibleProfiles.find(
+          (profile) => profile.id === get().selectedOpenAICompatibleProfileId
+        );
+        if (nextSelected) {
+          aiService.setOpenAIConfig('openaiCompatible', nextSelected.config);
+          aiService.setApiKey('openaiCompatible', nextSelected.apiKey);
         }
       },
 
@@ -107,7 +376,7 @@ export const useAIStore = create<AIState>()(
         set((state) => {
           const today = new Date().toISOString().split('T')[0];
           const shouldReset = state.tokenUsage.lastReset !== today;
-          
+
           return {
             tokenUsage: {
               total: state.tokenUsage.total + tokens,
@@ -140,12 +409,12 @@ export const useAIStore = create<AIState>()(
           createdAt: new Date(),
           updatedAt: new Date(),
         };
-        
+
         set((state) => ({
           conversations: [newConversation, ...state.conversations],
           activeConversationId: id,
         }));
-        
+
         return id;
       },
 
@@ -159,9 +428,10 @@ export const useAIStore = create<AIState>()(
                   messages: [...conv.messages, message],
                   updatedAt: new Date(),
                   // Update title from first user message
-                  title: conv.messages.length === 0 && message.role === 'user'
-                    ? message.content.substring(0, 50) + (message.content.length > 50 ? '...' : '')
-                    : conv.title,
+                  title:
+                    conv.messages.length === 0 && message.role === 'user'
+                      ? message.content.substring(0, 50) + (message.content.length > 50 ? '...' : '')
+                      : conv.title,
                 }
               : conv
           ),
@@ -173,9 +443,7 @@ export const useAIStore = create<AIState>()(
         set((state) => ({
           conversations: state.conversations.filter((c) => c.id !== conversationId),
           activeConversationId:
-            state.activeConversationId === conversationId
-              ? null
-              : state.activeConversationId,
+            state.activeConversationId === conversationId ? null : state.activeConversationId,
         }));
       },
 
@@ -204,9 +472,65 @@ export const useAIStore = create<AIState>()(
       partialize: (state) => ({
         apiKeys: state.apiKeys,
         selectedProvider: state.selectedProvider,
+        openaiCompatibleConfig: state.openaiCompatibleConfig,
+        openaiCompatibleProfiles: state.openaiCompatibleProfiles,
+        selectedOpenAICompatibleProfileId: state.selectedOpenAICompatibleProfileId,
         tokenUsage: state.tokenUsage,
         // Don't persist conversations to keep localStorage small
       }),
+      merge: (persistedState, currentState) => {
+        const persisted = persistedState as Partial<AIState>;
+        const persistedProfiles = (persisted.openaiCompatibleProfiles || [])
+          .filter(isValidOpenAICompatibleProfile)
+          .map((profile) => ({
+            ...profile,
+            config: {
+              ...defaultOpenAICompatibleConfig,
+              ...(profile.config || {}),
+              customHeaders: {
+                ...defaultOpenAICompatibleConfig.customHeaders,
+                ...(profile.config?.customHeaders || {}),
+              },
+            },
+          }));
+        const mergedProfiles = persistedProfiles.length
+          ? persistedProfiles
+          : [
+              {
+                id: defaultOpenAICompatibleProfileId,
+                name: 'Default',
+                apiKey: persisted.apiKeys?.openaiCompatible || '',
+                config: {
+                  ...defaultOpenAICompatibleConfig,
+                  ...(persisted.openaiCompatibleConfig || {}),
+                  customHeaders: {
+                    ...defaultOpenAICompatibleConfig.customHeaders,
+                    ...(persisted.openaiCompatibleConfig?.customHeaders || {}),
+                  },
+                },
+              },
+            ];
+        const selectedProfileId = mergedProfiles.some(
+          (profile) => profile.id === persisted.selectedOpenAICompatibleProfileId
+        )
+          ? (persisted.selectedOpenAICompatibleProfileId as string)
+          : mergedProfiles[0].id;
+        const selectedProfile =
+          mergedProfiles.find((profile) => profile.id === selectedProfileId) || mergedProfiles[0];
+
+        return {
+          ...currentState,
+          ...persisted,
+          apiKeys: {
+            ...currentState.apiKeys,
+            ...(persisted.apiKeys || {}),
+            openaiCompatible: selectedProfile.apiKey,
+          },
+          openaiCompatibleConfig: cloneOpenAICompatibleConfig(selectedProfile.config),
+          openaiCompatibleProfiles: mergedProfiles,
+          selectedOpenAICompatibleProfileId: selectedProfileId,
+        };
+      },
     }
   )
 );
@@ -214,13 +538,29 @@ export const useAIStore = create<AIState>()(
 // Initialize AI service with stored keys on app load
 export const initializeAIService = () => {
   const state = useAIStore.getState();
-  const { apiKeys, selectedProvider } = state;
-  
+  const {
+    apiKeys,
+    selectedProvider,
+    openaiCompatibleConfig,
+    openaiCompatibleProfiles,
+    selectedOpenAICompatibleProfileId,
+  } = state;
+  const selectedCompatibleProfile = openaiCompatibleProfiles.find(
+    (profile) => profile.id === selectedOpenAICompatibleProfileId
+  );
+  const effectiveOpenAICompatibleConfig = selectedCompatibleProfile?.config || openaiCompatibleConfig;
+  const effectiveOpenAICompatibleKey = selectedCompatibleProfile?.apiKey || apiKeys.openaiCompatible;
+
+  aiService.setOpenAIConfig('openaiCompatible', effectiveOpenAICompatibleConfig);
+
   // Set the current provider
   aiService.setProvider(selectedProvider);
-  
+
   // Set API keys for all providers
-  Object.entries(apiKeys).forEach(([provider, key]) => {
+  Object.entries({
+    ...apiKeys,
+    openaiCompatible: effectiveOpenAICompatibleKey,
+  }).forEach(([provider, key]) => {
     if (key) {
       aiService.setApiKey(provider as AIProvider, key);
     }

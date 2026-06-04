@@ -7,7 +7,13 @@ import { OpenAIProvider } from './providers/openai-provider';
 import { AnthropicProvider } from './providers/anthropic-provider';
 import { GeminiProvider } from './providers/gemini-provider';
 
-export type AIProvider = 'openai' | 'anthropic' | 'gemini';
+export type AIProvider = 'openai' | 'openaiCompatible' | 'anthropic' | 'gemini';
+
+export interface OpenAICompatibleConfig {
+  baseURL: string;
+  model: string;
+  customHeaders: Record<string, string>;
+}
 
 export interface AIMessage {
   role: 'user' | 'assistant' | 'system';
@@ -41,6 +47,8 @@ export interface AIProviderInterface {
   isConfigured(): boolean;
   validateKey(): Promise<boolean>;
   getModelName(): string;
+  setApiKey(apiKey: string): void;
+  setConfig(config: Partial<OpenAICompatibleConfig>): void;
 }
 
 class AIService {
@@ -49,6 +57,14 @@ class AIService {
 
   constructor() {
     this.providers.set('openai', new OpenAIProvider());
+    this.providers.set(
+      'openaiCompatible',
+      new OpenAIProvider({
+        defaultModel: 'gpt-4o-mini',
+        defaultEmbeddingModel: 'text-embedding-3-small',
+        providerName: 'OpenAI-compatible',
+      })
+    );
     this.providers.set('anthropic', new AnthropicProvider());
     this.providers.set('gemini', new GeminiProvider());
   }
@@ -58,9 +74,15 @@ class AIService {
    */
   setApiKey(provider: AIProvider, apiKey: string): void {
     const providerInstance = this.providers.get(provider);
-    if (providerInstance && 'setApiKey' in providerInstance) {
-      (providerInstance as any).setApiKey(apiKey);
-    }
+    providerInstance?.setApiKey(apiKey);
+  }
+
+  /**
+   * Set OpenAI/OpenAI-compatible provider config
+   */
+  setOpenAIConfig(provider: 'openai' | 'openaiCompatible', config: Partial<OpenAICompatibleConfig>): void {
+    const providerInstance = this.providers.get(provider);
+    providerInstance?.setConfig(config);
   }
 
   /**
