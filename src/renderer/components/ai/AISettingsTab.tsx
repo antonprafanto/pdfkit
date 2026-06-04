@@ -18,13 +18,25 @@ const parseHeadersInput = (headersInput: string): Record<string, string> => {
     return {};
   }
 
-  const parsed = JSON.parse(headersInput) as unknown;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(headersInput);
+  } catch {
+    throw new Error('Invalid JSON format in custom headers');
+  }
+
   if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
     throw new Error('Headers must be a JSON object');
   }
 
   return Object.fromEntries(
-    Object.entries(parsed).map(([key, value]) => [key, String(value)])
+    Object.entries(parsed).map(([key, value]) => {
+      if (typeof value === 'string') {
+        return [key, value];
+      }
+
+      throw new Error(`Header "${key}" must be a string`);
+    })
   );
 };
 

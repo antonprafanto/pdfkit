@@ -47,16 +47,65 @@ const cloneOpenAICompatibleConfig = (config: OpenAICompatibleConfig): OpenAIComp
   customHeaders: { ...config.customHeaders },
 });
 
+let openAICompatibleProfileCounter = 0;
+
+const generateOpenAICompatibleProfileId = (): string => {
+  if (typeof globalThis.crypto?.randomUUID === 'function') {
+    return globalThis.crypto.randomUUID();
+  }
+
+  if (typeof globalThis.crypto?.getRandomValues === 'function') {
+    const bytes = globalThis.crypto.getRandomValues(new Uint32Array(2));
+    return `openai-compatible-${bytes[0].toString(16)}-${bytes[1].toString(16)}`;
+  }
+
+  openAICompatibleProfileCounter += 1;
+  return `openai-compatible-${Date.now()}-${openAICompatibleProfileCounter}`;
+};
+
 const createOpenAICompatibleProfile = (
   name: string,
   apiKey: string,
   config: OpenAICompatibleConfig
 ): OpenAICompatibleProfile => ({
-  id: `openai-compatible-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+  id: generateOpenAICompatibleProfileId(),
   name: name.trim(),
   apiKey,
   config: cloneOpenAICompatibleConfig(config),
 });
+
+const isValidOpenAICompatibleProfile = (profile: unknown): profile is OpenAICompatibleProfile => {
+  if (!profile || typeof profile !== 'object') {
+    return false;
+  }
+
+  const candidate = profile as {
+    id?: unknown;
+    name?: unknown;
+    apiKey?: unknown;
+    config?: {
+      baseURL?: unknown;
+      model?: unknown;
+      customHeaders?: unknown;
+    };
+  };
+
+  if (
+    typeof candidate.id !== 'string' ||
+    typeof candidate.name !== 'string' ||
+    typeof candidate.apiKey !== 'string' ||
+    !candidate.config ||
+    typeof candidate.config.baseURL !== 'string' ||
+    typeof candidate.config.model !== 'string' ||
+    !candidate.config.customHeaders ||
+    typeof candidate.config.customHeaders !== 'object' ||
+    Array.isArray(candidate.config.customHeaders)
+  ) {
+    return false;
+  }
+
+  return Object.values(candidate.config.customHeaders).every((value) => typeof value === 'string');
+};
 
 const defaultOpenAICompatibleProfile: OpenAICompatibleProfile = {
   id: defaultOpenAICompatibleProfileId,
@@ -431,17 +480,19 @@ export const useAIStore = create<AIState>()(
       }),
       merge: (persistedState, currentState) => {
         const persisted = persistedState as Partial<AIState>;
-        const persistedProfiles = (persisted.openaiCompatibleProfiles || []).map((profile) => ({
-          ...profile,
-          config: {
-            ...defaultOpenAICompatibleConfig,
-            ...(profile.config || {}),
-            customHeaders: {
-              ...defaultOpenAICompatibleConfig.customHeaders,
-              ...(profile.config?.customHeaders || {}),
+        const persistedProfiles = (persisted.openaiCompatibleProfiles || [])
+          .filter(isValidOpenAICompatibleProfile)
+          .map((profile) => ({
+            ...profile,
+            config: {
+              ...defaultOpenAICompatibleConfig,
+              ...(profile.config || {}),
+              customHeaders: {
+                ...defaultOpenAICompatibleConfig.customHeaders,
+                ...(profile.config?.customHeaders || {}),
+              },
             },
-          },
-        }));
+          }));
         const mergedProfiles = persistedProfiles.length
           ? persistedProfiles
           : [
